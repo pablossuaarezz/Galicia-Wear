@@ -1,0 +1,418 @@
+// =====================================================================
+// GaliciaWear — Esquema Prisma completo
+// Convención: identificadores Prisma en castellano camelCase;
+// columnas de BBDD en castellano snake_case (vía @map).
+// Cumple "BBDD relacional + ORM" de la rúbrica DAM.
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------------------
+
+enum Rol {
+  CLIENTE
+  DISENADOR
+  ADMIN
+}
+
+enum CiudadGallega {
+  CORUNA
+  LUGO
+  SANTIAGO
+  VIGO
+  PONTEVEDRA
+  OURENSE
+}
+
+enum TallaPrenda {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+  TALLA_UNICA
+}
+
+enum MaterialPrincipal {
+  ALGODON_ORGANICO
+  LANA_RECICLADA
+  LINO
+  TENCEL
+  CANAMO
+  POLIESTER_RECICLADO
+  SEDA
+  OTRO
+}
+
+enum EstadoPedido {
+  PENDIENTE_PAGO
+  PAGADO
+  ACEPTADO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+  DEVUELTO
+}
+
+enum MetodoPago {
+  TARJETA
+  BIZUM
+  TRANSFERENCIA
+}
+
+enum Transportista {
+  CORREOS_VERDE
+  CORREOS_EXPRESS
+  NACEX
+  SEUR
+}
+
+enum EstadoModeracion {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+enum CodigoCertificado {
+  GOTS
+  OEKO_TEX
+  FAIRTRADE
+  GRS
+  BLUESIGN
+  ECOCERT
+}
+
+// ---------------------------------------------------------------------
+// USUARIOS Y PERFILES
+// ---------------------------------------------------------------------
+
+model Usuario {
+  id                 String    @id @default(uuid())
+  correo             String    @unique
+  hashContrasena     String    @map("hash_contrasena")
+  rol                Rol       @default(CLIENTE)
+  correoVerificado   Boolean   @default(false) @map("correo_verificado")
+  fechaCreacion      DateTime  @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime  @updatedAt @map("fecha_actualizacion")
+  fechaEliminacion   DateTime? @map("fecha_eliminacion")
+
+  cliente            Cliente?
+  disenador          Disenador?
+  direcciones        Direccion[]
+  tokensRefresco     TokenRefresco[]
+  mensajesEnviados   Mensaje[]   @relation("Remitente")
+  mensajesRecibidos  Mensaje[]   @relation("Destinatario")
+  disenadoresValidados Disenador[] @relation("AdminValidador")
+
+  @@index([correo])
+  @@index([rol])
+  @@map("usuario")
+}
+
+model Cliente {
+  usuarioId                 String  @id @map("usuario_id")
+  usuario                   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nombre                    String
+  apellidos                 String
+  telefono                  String?
+  fechaNacimiento           DateTime? @map("fecha_nacimiento")
+  // JSON con preferencias eco: { certificados: ["GOTS"], maxKm: 100, ciudad: "CORUNA" }
+  preferenciasSostenibilidad Json    @default("{}") @map("preferencias_sostenibilidad")
+  direccionPredeterminadaId  String? @map("direccion_predeterminada_id")
+
+  carrito  Carrito?
+  pedidos  Pedido[]
+  resenas  Resena[]
+
+  @@map("cliente")
+}
+
+model Disenador {
+  usuarioId       String        @id @map("usuario_id")
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nombreMarca     String        @unique @map("nombre_marca")
+  biografia       String        @db.Text
+  ciudad          CiudadGallega
+  // IBAN cifrado AES-256-GCM. La clave nunca está en BBDD.
+  ibanCifrado     String        @map("iban_cifrado")
+  validado        Boolean       @default(false)
+  fechaValidacion DateTime?     @map("fecha_validacion")
+  validadoPorId   String?       @map("validado_por_id")
+  validadoPor     Usuario?      @relation("AdminValidador", fields: [validadoPorId], references: [id])
+  urlLogo         String?       @map("url_logo")
+  urlWeb          String?       @map("url_web")
+  fechaCreacion   DateTime      @default(now()) @map("fecha_creacion")
+
+  productos        Producto[]
+  lineasPedido     LineaPedido[]
+
+  @@index([ciudad])
+  @@index([validado])
+  @@map("disenador")
+}
+
+model Direccion {
+  id           String  @id @default(uuid())
+  usuarioId    String  @map("usuario_id")
+  usuario      Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  alias        String  // "Casa", "Trabajo"
+  linea1       String
+  linea2       String?
+  ciudad       String
+  codigoPostal String  @map("codigo_postal")
+  provincia    String  @default("A Coruña")
+  pais         String  @default("ES") @db.Char(2)
+  esPrincipal  Boolean @default(false) @map("es_principal")
+
+  pedidosEnvio Pedido[] @relation("DireccionEnvio")
+
+  @@index([usuarioId])
+  @@map("direccion")
+}
+
+// ---------------------------------------------------------------------
+// AUTENTICACIÓN
+// ---------------------------------------------------------------------
+
+model TokenRefresco {
+  id            String    @id @default(uuid())
+  usuarioId     String    @map("usuario_id")
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  hashToken     String    @unique @map("hash_token")
+  fechaCreacion DateTime  @default(now()) @map("fecha_creacion")
+  fechaExpiracion DateTime @map("fecha_expiracion")
+  fechaRevocacion DateTime? @map("fecha_revocacion")
+  agenteUsuario String?   @map("agente_usuario") // User-Agent del navegador/app
+  ipOrigen      String?   @map("ip_origen")
+
+  @@index([usuarioId])
+  @@index([fechaExpiracion])
+  @@map("token_refresco")
+}
+
+// ---------------------------------------------------------------------
+// CATÁLOGO
+// ---------------------------------------------------------------------
+
+model Producto {
+  id              String            @id @default(uuid())
+  disenadorId     String            @map("disenador_id")
+  disenador       Disenador         @relation(fields: [disenadorId], references: [usuarioId], onDelete: Cascade)
+  nombre          String
+  slug            String            @unique
+  descripcion     String            @db.Text
+  precioBase      Decimal           @map("precio_base") @db.Decimal(10, 2)
+  activo          Boolean           @default(true)
+  kmOrigen        Int               @default(0) @map("km_origen")
+  materialPrincipal MaterialPrincipal @map("material_principal")
+  fechaCreacion   DateTime          @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime       @updatedAt @map("fecha_actualizacion")
+
+  variantes    Variante[]
+  imagenes     ImagenProducto[]
+  certificados CertificadoDeProducto[]
+  resenas      Resena[]
+  mensajes     Mensaje[]
+
+  @@index([disenadorId])
+  @@index([activo])
+  @@index([materialPrincipal])
+  @@map("producto")
+}
+
+model Variante {
+  id           String      @id @default(uuid())
+  productoId   String      @map("producto_id")
+  producto     Producto    @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  talla        TallaPrenda
+  color        String
+  sku          String      @unique
+  stock        Int         @default(0)
+  ajustePrecio Decimal     @default(0) @map("ajuste_precio") @db.Decimal(10, 2)
+
+  itemsCarrito    ItemCarrito[]
+  lineasPedido    LineaPedido[]
+
+  @@unique([productoId, talla, color])
+  @@index([productoId])
+  @@map("variante")
+}
+
+model ImagenProducto {
+  id          String   @id @default(uuid())
+  productoId  String   @map("producto_id")
+  producto    Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  url         String
+  textoAlternativo String? @map("texto_alternativo")
+  posicion    Int      @default(0)
+  esPrincipal Boolean  @default(false) @map("es_principal")
+
+  @@index([productoId])
+  @@map("imagen_producto")
+}
+
+model CertificadoSostenibilidad {
+  id          String              @id @default(uuid())
+  codigo      CodigoCertificado   @unique
+  nombre      String
+  descripcion String              @db.Text
+  urlEmisor   String              @map("url_emisor")
+
+  productos CertificadoDeProducto[]
+
+  @@map("certificado_sostenibilidad")
+}
+
+model CertificadoDeProducto {
+  productoId       String                    @map("producto_id")
+  certificadoId    String                    @map("certificado_id")
+  producto         Producto                  @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  certificado      CertificadoSostenibilidad @relation(fields: [certificadoId], references: [id], onDelete: Cascade)
+  numeroCertificado String                   @map("numero_certificado")
+  fechaEmision     DateTime                  @map("fecha_emision")
+  fechaExpiracion  DateTime?                 @map("fecha_expiracion")
+
+  @@id([productoId, certificadoId])
+  @@map("certificado_de_producto")
+}
+
+// ---------------------------------------------------------------------
+// CARRITO Y PEDIDOS
+// ---------------------------------------------------------------------
+
+model Carrito {
+  id                 String         @id @default(uuid())
+  clienteId          String         @unique @map("cliente_id")
+  cliente            Cliente        @relation(fields: [clienteId], references: [usuarioId], onDelete: Cascade)
+  fechaActualizacion DateTime       @updatedAt @map("fecha_actualizacion")
+
+  items ItemCarrito[]
+
+  @@map("carrito")
+}
+
+model ItemCarrito {
+  id            String   @id @default(uuid())
+  carritoId     String   @map("carrito_id")
+  carrito       Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
+  varianteId    String   @map("variante_id")
+  variante      Variante @relation(fields: [varianteId], references: [id])
+  cantidad      Int
+  fechaAnadido  DateTime @default(now()) @map("fecha_anadido")
+
+  @@unique([carritoId, varianteId])
+  @@index([carritoId])
+  @@map("item_carrito")
+}
+
+model Pedido {
+  id                  String        @id @default(uuid())
+  numeroPedido        String        @unique @map("numero_pedido") // GW-2026-00001
+  clienteId           String        @map("cliente_id")
+  cliente             Cliente       @relation(fields: [clienteId], references: [usuarioId])
+  estado              EstadoPedido  @default(PENDIENTE_PAGO)
+  subtotal            Decimal       @db.Decimal(10, 2)
+  costeEnvio          Decimal       @map("coste_envio") @db.Decimal(10, 2)
+  total               Decimal       @db.Decimal(10, 2)
+  direccionEnvioId    String        @map("direccion_envio_id")
+  direccionEnvio      Direccion     @relation("DireccionEnvio", fields: [direccionEnvioId], references: [id])
+  metodoPago          MetodoPago    @map("metodo_pago")
+  fechaCreacion       DateTime      @default(now()) @map("fecha_creacion")
+  fechaPago           DateTime?     @map("fecha_pago")
+  fechaAceptacion     DateTime?     @map("fecha_aceptacion")
+  notas               String?       @db.Text
+
+  lineas   LineaPedido[]
+  envio    Envio?
+
+  @@index([clienteId])
+  @@index([estado])
+  @@map("pedido")
+}
+
+model LineaPedido {
+  id           String       @id @default(uuid())
+  pedidoId     String       @map("pedido_id")
+  pedido       Pedido       @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  varianteId   String       @map("variante_id")
+  variante     Variante     @relation(fields: [varianteId], references: [id])
+  disenadorId  String       @map("disenador_id")
+  disenador    Disenador    @relation(fields: [disenadorId], references: [usuarioId])
+  cantidad     Int
+  precioUnitario Decimal    @map("precio_unitario") @db.Decimal(10, 2)
+  estadoLinea  EstadoPedido @default(PENDIENTE_PAGO) @map("estado_linea")
+
+  resena Resena?
+
+  @@index([pedidoId])
+  @@index([disenadorId])
+  @@map("linea_pedido")
+}
+
+model Envio {
+  id                String        @id @default(uuid())
+  pedidoId          String        @unique @map("pedido_id")
+  pedido            Pedido        @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  transportista     Transportista
+  envioEcologico    Boolean       @default(false) @map("envio_ecologico")
+  numeroSeguimiento String?       @map("numero_seguimiento")
+  entregaEstimada   DateTime?     @map("entrega_estimada")
+  fechaEnvio        DateTime?     @map("fecha_envio")
+  fechaEntrega      DateTime?     @map("fecha_entrega")
+
+  @@map("envio")
+}
+
+// ---------------------------------------------------------------------
+// RESEÑAS Y MENSAJERÍA
+// ---------------------------------------------------------------------
+
+model Resena {
+  id              String           @id @default(uuid())
+  lineaPedidoId   String           @unique @map("linea_pedido_id")
+  lineaPedido     LineaPedido      @relation(fields: [lineaPedidoId], references: [id], onDelete: Cascade)
+  clienteId       String           @map("cliente_id")
+  cliente         Cliente          @relation(fields: [clienteId], references: [usuarioId])
+  productoId      String           @map("producto_id")
+  producto        Producto         @relation(fields: [productoId], references: [id])
+  valoracion      Int              // 1..5 (validado en servicio)
+  titulo          String
+  cuerpo          String           @db.Text
+  // Las fotos viven en MongoDB (colección ReviewMedia); este flag indica si hay
+  tieneMultimedia Boolean          @default(false) @map("tiene_multimedia")
+  estadoModeracion EstadoModeracion @default(PENDIENTE) @map("estado_moderacion")
+  fechaCreacion   DateTime         @default(now()) @map("fecha_creacion")
+
+  @@index([productoId])
+  @@index([clienteId])
+  @@index([estadoModeracion])
+  @@map("resena")
+}
+
+model Mensaje {
+  id            String    @id @default(uuid())
+  remitenteId   String    @map("remitente_id")
+  remitente     Usuario   @relation("Remitente", fields: [remitenteId], references: [id])
+  destinatarioId String   @map("destinatario_id")
+  destinatario  Usuario   @relation("Destinatario", fields: [destinatarioId], references: [id])
+  productoId    String?   @map("producto_id")
+  producto      Producto? @relation(fields: [productoId], references: [id])
+  cuerpo        String    @db.Text
+  fechaEnvio    DateTime  @default(now()) @map("fecha_envio")
+  fechaLectura  DateTime? @map("fecha_lectura")
+
+  @@index([remitenteId])
+  @@index([destinatarioId])
+  @@index([productoId])
+  @@map("mensaje")
+}
