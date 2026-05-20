@@ -1,0 +1,112 @@
+@startuml usecase-admin
+' =============================================================
+' GaliciaWear — Casos de uso: actor ADMIN (staff interno)
+' Panel de escritorio JavaFX.
+' =============================================================
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+
+actor "Admin\n(Staff GaliciaWear)" as admin
+
+rectangle "GaliciaWear — Panel Admin (JavaFX)" as system {
+
+  package "Acceso" {
+    usecase "Iniciar sesión\n(JWT)" as UC1
+    usecase "Cerrar sesión" as UC2
+  }
+
+  package "Diseñadores" {
+    usecase "Listar solicitudes\nde alta" as UC3
+    usecase "Validar diseñador" as UC4
+    usecase "Rechazar solicitud\n(con motivo)" as UC5
+    usecase "Suspender diseñador" as UC6
+    usecase "Ver historial\nde diseñador" as UC7
+  }
+
+  package "Catálogo" {
+    usecase "Moderar productos" as UC8
+    usecase "Retirar producto\n(violación política)" as UC9
+    usecase "Aprobar/rechazar\ncertificado" as UC10
+  }
+
+  package "Pedidos" {
+    usecase "Listar todos\nlos pedidos" as UC11
+    usecase "Cambiar estado\nde pedido" as UC12
+    usecase "Procesar reembolso" as UC13
+    usecase "Mediar disputa\ncliente↔diseñador" as UC14
+  }
+
+  package "Reseñas" {
+    usecase "Moderar reseña" as UC15
+    usecase "Aprobar reseña" as UC16
+    usecase "Rechazar reseña\n(spam, ofensiva)" as UC17
+  }
+
+  package "Datos masivos" {
+    usecase "Importar productos\n(CSV/XML/JSON)" as UC18
+    usecase "Exportar a XML" as UC19
+    usecase "Exportar a JSON" as UC20
+  }
+
+  package "Auditoría y métricas" {
+    usecase "Ver dashboard\ncon KPIs" as UC21
+    usecase "Consultar logs\nde auditoría" as UC22
+    usecase "Generar reporte\nperiódico" as UC23
+  }
+
+  package "Usuarios" {
+    usecase "Suspender usuario" as UC24
+    usecase "Borrar cuenta\n(GDPR)" as UC25
+  }
+}
+
+admin --> UC1
+admin --> UC3
+admin --> UC4
+admin --> UC5
+admin --> UC6
+admin --> UC8
+admin --> UC9
+admin --> UC10
+admin --> UC11
+admin --> UC12
+admin --> UC13
+admin --> UC14
+admin --> UC15
+admin --> UC18
+admin --> UC19
+admin --> UC20
+admin --> UC21
+admin --> UC22
+admin --> UC23
+admin --> UC24
+admin --> UC25
+
+UC1 .> UC21 : <<include>>\n(landing tras login)
+UC15 .> UC16 : <<extend>>
+UC15 .> UC17 : <<extend>>
+UC4 .> UC22 : <<include>>\n(queda en audit log)
+UC9 .> UC22 : <<include>>
+UC13 .> UC22 : <<include>>
+UC25 .> UC22 : <<include>>
+UC18 .> UC19 : <<extend>>\n(re-export tras import)
+
+note right of UC18
+  Cumple requisito XML/JSON
+  de la rúbrica DAM. Se abre
+  FileChooser de JavaFX → la API
+  parsea con worker_threads
+  (hilo separado, no bloquea).
+end note
+
+note right of UC22
+  Logs viven en MongoDB.
+  Toda acción sensible queda
+  registrada (quién, qué,
+  cuándo, IP).
+end note
+
+@enduml

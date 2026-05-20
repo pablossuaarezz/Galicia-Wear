@@ -1,0 +1,70 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.iml
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.eslintcache
+
+# Variables de entorno (¡NUNCA subir secretos!)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Prisma
+database/migrations/*/migration.sql.bak
+
+# Java / Android / Gradle
+*.class
+*.jar
+*.war
+target/
+.gradle/
+local.properties
+*.apk
+*.aab
+*.keystore
+captures/
+
+# JavaFX / Maven
+*.iml
+out/
+
+# Docker
+.docker/
+
+# Backups generados
+backups/
+*.tar.gz
+*.dump
+
+# Cobertura tests
+coverage/
+.nyc_output/
+jacoco.exec
+test-results/
+
+# Artefactos generados
+*.tmp
+*.bak

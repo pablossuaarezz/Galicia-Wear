@@ -1,0 +1,97 @@
+@startuml sequence-push
+' =============================================================
+' GaliciaWear — Secuencia: notificación push en tiempo real
+' Escenario: el diseñador acepta el pedido desde su dashboard web
+' y el cliente recibe push en su Android al instante.
+' Demuestra: Socket.IO (tiempo real), FCM (push), hilos (worker
+' separado para no bloquear), comunicación entre procesos.
+' =============================================================
+
+skinparam sequenceArrowThickness 1.5
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+
+actor "Diseñador" as designer
+participant "Web React\n(Dashboard)" as web
+participant "API Gateway\n(Express)" as api
+participant "AuthMiddleware\n(JWT + RBAC)" as auth
+participant "OrderService" as osvc
+database "PostgreSQL" as pg
+database "MongoDB" as mongo
+participant "Notification\nWorker\n(worker_threads)" as worker
+participant "Socket.IO\nGateway" as ws
+participant "FCM Server SDK\n(firebase-admin)" as fcm
+participant "App Android\n(cliente)" as android
+actor "Cliente\n(Ana)" as customer
+
+== 1. Diseñador acepta el pedido ==
+designer -> web : Pulsa "Aceptar pedido"\nGW-2026-00001
+web -> api : PATCH /orders/:id/status\n{ status: "ACEPTADO" }\nHeader: Authorization: Bearer <jwt>
+
+== 2. Validación + RBAC ==
+api -> auth : verifyJWT + requireRole(DISEÑADOR)
+auth --> api : { userId, role: DISEÑADOR }
+api -> osvc : acceptByDesigner(orderId, userId)
+osvc -> pg : SELECT o.*, oi.designer_id\nFROM "order" o JOIN order_item oi\nON oi.order_id=o.id\nWHERE o.id = ?
+
+alt diseñador NO es dueño de los items
+  osvc --> api : 403 Forbidden
+  api --> web : 403
+else todo OK
+  osvc -> pg : UPDATE "order" SET status='ACEPTADO',\n  accepted_at=now()\n  WHERE id = ?
+  pg --> osvc : 1 row updated
+end
+
+== 3. Auditoría asíncrona en Mongo (no bloquea respuesta) ==
+osvc -> mongo : insert ActivityLog\n{ action: "order_accepted",\n  by: designerId, orderId, ts }
+
+== 4. Enviar a worker para notificaciones (hilo separado) ==
+osvc -> worker : postMessage({\n  type: "ORDER_ACCEPTED",\n  orderId, customerId,\n  designerName, orderNumber\n})
+note right of worker
+  <b>worker_threads de Node</b>
+  Procesa notificaciones sin
+  bloquear el event loop.
+  Cumple "hilos" + "comunicación
+  entre procesos" de la rúbrica.
+end note
+
+== 5. Responder al diseñador (rápido, <100 ms) ==
+osvc --> api : OK
+api --> web : 200 OK { status: "ACEPTADO" }
+web --> designer : UI actualiza estado del pedido
+
+== 6. (En paralelo) Worker emite notificaciones ==
+group [En hilo worker — no bloquea la petición HTTP]
+  worker -> ws : emitToUser(customerId,\n  "order:status_changed",\n  { orderNumber, status, designerName })
+
+  alt cliente tiene la app abierta
+    ws -> android : Socket.IO push (live)
+    android -> customer : Actualiza pantalla\n"Mis pedidos" en vivo
+  end
+
+  worker -> pg : SELECT fcm_token FROM device\nWHERE user_id = ?
+  pg --> worker : token
+
+  worker -> fcm : sendToToken(token, {\n  title: "¡Pedido aceptado!",\n  body: "El diseñador X ha aceptado tu pedido GW-2026-00001",\n  data: { orderId }\n})
+
+  fcm -> android : Push (vía Google Cloud)
+  android -> customer : Notificación bandeja\n(suena, vibra)
+
+  worker -> mongo : insert NotificationLog\n{ userId: customerId,\n  channel: "PUSH+SOCKET",\n  sentAt: now() }
+end
+
+== 7. Cliente toca la notificación ==
+customer -> android : Toca notificación
+android -> api : GET /orders/:id
+api --> android : Detalle actualizado
+android --> customer : Muestra detalle con estado "ACEPTADO"\ny botón de tracking
+
+note over designer, customer
+  <b>Latencia objetivo:</b> &lt; 3 s desde clic del diseñador
+  hasta que vibra el móvil de Ana.
+  El diseñador ve respuesta en &lt; 100 ms porque las
+  notificaciones se delegan a worker_threads.
+end note
+
+@enduml

@@ -1,0 +1,108 @@
+@startuml usecase-cliente
+' =============================================================
+' GaliciaWear — Casos de uso: actor CLIENTE
+' Refleja las funcionalidades de la app Android del cliente final
+' (buyer persona "Ana López", 25, A Coruña).
+' =============================================================
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+
+actor "Cliente\n(Ana, 25 años)" as cliente
+
+rectangle "GaliciaWear — App móvil cliente" as system {
+
+  package "Acceso" {
+    usecase "Registrarse" as UC1
+    usecase "Iniciar sesión" as UC2
+    usecase "Recuperar contraseña" as UC3
+    usecase "Cerrar sesión" as UC4
+  }
+
+  package "Catálogo" {
+    usecase "Explorar productos" as UC5
+    usecase "Filtrar por sostenibilidad\n(certificados, km, ciudad)" as UC6
+    usecase "Buscar por texto" as UC7
+    usecase "Ver detalle de producto" as UC8
+    usecase "Probar prenda con AR\n(ARCore)" as UC9
+    usecase "Ver perfil del diseñador" as UC10
+  }
+
+  package "Compra" {
+    usecase "Añadir al carrito" as UC11
+    usecase "Modificar carrito\n(cantidad, eliminar)" as UC12
+    usecase "Realizar pedido" as UC13
+    usecase "Elegir envío eco\n(Correos verde)" as UC14
+    usecase "Pagar pedido" as UC15
+    usecase "Cancelar pedido\n(si aún no enviado)" as UC16
+  }
+
+  package "Post-venta" {
+    usecase "Hacer seguimiento\nde pedido" as UC17
+    usecase "Recibir notificación\npush" as UC18
+    usecase "Chatear con diseñador" as UC19
+    usecase "Escribir reseña\n(con fotos)" as UC20
+    usecase "Ver mis reseñas" as UC21
+  }
+
+  package "Perfil" {
+    usecase "Gestionar direcciones" as UC22
+    usecase "Editar preferencias\nde sostenibilidad" as UC23
+    usecase "Ver recomendaciones\npersonalizadas" as UC24
+    usecase "Ver historial de pedidos" as UC25
+  }
+}
+
+cliente --> UC1
+cliente --> UC2
+cliente --> UC3
+cliente --> UC4
+cliente --> UC5
+cliente --> UC6
+cliente --> UC7
+cliente --> UC8
+cliente --> UC10
+cliente --> UC11
+cliente --> UC13
+cliente --> UC16
+cliente --> UC17
+cliente --> UC18
+cliente --> UC19
+cliente --> UC20
+cliente --> UC21
+cliente --> UC22
+cliente --> UC23
+cliente --> UC24
+cliente --> UC25
+
+' --- Inclusiones (<<include>>) y extensiones (<<extend>>) ---
+
+UC5 .> UC2 : <<include>>\n(login opcional para guardar prefs)
+UC8 .> UC9 : <<extend>>\n(si dispositivo soporta ARCore)
+UC8 .> UC10 : <<extend>>
+UC11 .> UC2 : <<include>>
+UC12 .> UC11 : <<include>>
+UC13 .> UC2 : <<include>>
+UC13 .> UC14 : <<include>>
+UC13 .> UC15 : <<include>>
+UC15 .> UC18 : <<extend>>\n(push de confirmación)
+UC20 .> UC25 : <<include>>\n(solo se reseña lo comprado)
+UC24 .> UC23 : <<include>>\n(usa prefs guardadas)
+
+note right of UC9
+  <b>AR opcional</b>
+  Requiere ARCore. Si el
+  dispositivo no lo soporta,
+  se oculta el botón.
+end note
+
+note bottom of UC6
+  Diferenciador validado en
+  entrevistas (María).
+  Filtros: GOTS, OEKO-TEX,
+  ≤100 km, ciudad gallega.
+end note
+
+@enduml
