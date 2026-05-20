@@ -1,0 +1,295 @@
+@startuml class-domain
+' =============================================================
+' GaliciaWear — Diagrama de clases del dominio backend
+' Patrón aplicado: Controller → Service → Repository + DTO + Entity
+' Muestra la POO real del backend (cumple "POO" de la rúbrica DAM):
+'   - Interfaces (IRepository, IService)
+'   - Herencia / clases abstractas (BaseRepository)
+'   - Composición (Service usa Repository)
+'   - Genéricos (BaseRepository<T>)
+' =============================================================
+
+skinparam classBackgroundColor #fbf8f3
+skinparam classBorderColor #1e6fa3
+skinparam classFontStyle bold
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+package "domain.entities" #eef6fb {
+  abstract class BaseEntity {
+    +id: UUID
+    +createdAt: Date
+    +updatedAt: Date
+  }
+
+  class User {
+    +email: string
+    -passwordHash: string
+    +role: UserRole
+    +emailVerified: boolean
+    +deletedAt?: Date
+    +verifyPassword(plain: string): Promise<boolean>
+  }
+
+  enum UserRole {
+    CLIENTE
+    DISEÑADOR
+    ADMIN
+  }
+
+  class Customer {
+    +firstName: string
+    +lastName: string
+    +sustainabilityPrefs: SustainabilityPrefs
+    +defaultAddressId?: UUID
+  }
+
+  class Designer {
+    +brandName: string
+    +bio: string
+    +city: GalicianCity
+    -ibanEncrypted: string
+    +validated: boolean
+    +validatedBy?: UUID
+    +canPublishProducts(): boolean
+  }
+
+  enum GalicianCity {
+    CORUNA
+    LUGO
+    SANTIAGO
+    VIGO
+    PONTEVEDRA
+    OURENSE
+  }
+
+  class Product {
+    +designerId: UUID
+    +name: string
+    +slug: string
+    +description: string
+    +basePrice: Money
+    +active: boolean
+    +kmOrigin: number
+    +mainMaterial: Material
+    +totalStock(): number
+    +hasCertificate(code: string): boolean
+  }
+
+  class ProductVariant {
+    +productId: UUID
+    +size: Size
+    +color: string
+    +sku: string
+    +stock: number
+    +priceDiff: Money
+    +effectivePrice(): Money
+    +decreaseStock(qty: number): void
+  }
+
+  class Order {
+    +customerId: UUID
+    +orderNumber: string
+    +status: OrderStatus
+    +subtotal: Money
+    +shippingCost: Money
+    +total: Money
+    +items: OrderItem[]
+    +canBeCancelled(): boolean
+    +transitionTo(newStatus: OrderStatus): void
+  }
+
+  enum OrderStatus {
+    PENDIENTE
+    PAGADO
+    ACEPTADO
+    ENVIADO
+    ENTREGADO
+    CANCELADO
+    DEVUELTO
+  }
+
+  class OrderItem {
+    +productVariantId: UUID
+    +designerId: UUID
+    +quantity: number
+    +unitPrice: Money
+    +itemStatus: OrderStatus
+    +lineTotal(): Money
+  }
+
+  class Review {
+    +orderItemId: UUID
+    +customerId: UUID
+    +productId: UUID
+    +rating: number
+    +title: string
+    +body: string
+    +hasMedia: boolean
+    +moderationStatus: ModerationStatus
+    +approve(): void
+  }
+
+  class SustainabilityCertificate {
+    +code: string
+    +name: string
+    +description: string
+  }
+
+  ' Value Object
+  class Money <<value object>> {
+    +amount: Decimal
+    +currency: string
+    +add(other: Money): Money
+    +multiply(factor: number): Money
+  }
+}
+
+package "application.services" #eef6fb {
+  interface IService<T> {
+    +findById(id: UUID): Promise<T?>
+    +list(filter: object): Promise<T[]>
+  }
+
+  class ProductService {
+    -repo: IProductRepository
+    -certRepo: ICertificateRepository
+    +search(filter: ProductFilter): Promise<Product[]>
+    +create(dto: CreateProductDTO, designerId: UUID): Promise<Product>
+    +addCertificate(productId: UUID, certCode: string): Promise<void>
+  }
+
+  class OrderService {
+    -orderRepo: IOrderRepository
+    -productVariantRepo: IProductVariantRepository
+    -notificationService: NotificationService
+    -realtime: IRealtimeGateway
+    +place(customerId: UUID, dto: PlaceOrderDTO): Promise<Order>
+    +acceptByDesigner(orderId: UUID, designerId: UUID): Promise<Order>
+    +cancel(orderId: UUID, by: UUID): Promise<Order>
+  }
+
+  class NotificationService {
+    -fcm: IFCMClient
+    -mongoLogRepo: INotificationLogRepository
+    +sendPush(userId: UUID, payload: PushPayload): Promise<void>
+  }
+
+  class AuthService {
+    -userRepo: IUserRepository
+    -refreshTokenRepo: IRefreshTokenRepository
+    +register(dto: RegisterDTO): Promise<TokenPair>
+    +login(email: string, password: string): Promise<TokenPair>
+    +refresh(refreshToken: string): Promise<TokenPair>
+  }
+}
+
+package "infrastructure.repositories" #eef6fb {
+  interface IRepository<T> {
+    +findById(id: UUID): Promise<T?>
+    +findMany(where: object): Promise<T[]>
+    +create(data: object): Promise<T>
+    +update(id: UUID, data: object): Promise<T>
+    +delete(id: UUID): Promise<void>
+  }
+
+  abstract class BaseRepository<T> {
+    #prisma: PrismaClient
+    #modelName: string
+    +{abstract} findById(id: UUID): Promise<T?>
+    +findMany(where: object): Promise<T[]>
+    +create(data: object): Promise<T>
+    +update(id: UUID, data: object): Promise<T>
+    +delete(id: UUID): Promise<void>
+  }
+
+  class ProductRepository {
+    +findById(id: UUID): Promise<Product?>
+    +searchWithFilters(filter: ProductFilter): Promise<Product[]>
+  }
+
+  class OrderRepository {
+    +findById(id: UUID): Promise<Order?>
+    +findByCustomer(customerId: UUID): Promise<Order[]>
+  }
+
+  class UserRepository
+  class RefreshTokenRepository
+  class CertificateRepository
+}
+
+package "infrastructure.gateways" #eef6fb {
+  interface IRealtimeGateway {
+    +emitToUser(userId: UUID, event: string, data: object): void
+    +emitToRoom(room: string, event: string, data: object): void
+  }
+
+  class SocketIOGateway
+
+  interface IFCMClient {
+    +sendToToken(token: string, payload: PushPayload): Promise<void>
+  }
+
+  class FirebaseFCMClient
+}
+
+' --- Herencia ---
+BaseEntity <|-- User
+BaseEntity <|-- Product
+BaseEntity <|-- Order
+BaseEntity <|-- Review
+BaseEntity <|-- SustainabilityCertificate
+
+User "1" o-- "0..1" Customer : extiende\\nrol CLIENTE
+User "1" o-- "0..1" Designer : extiende\\nrol DISEÑADOR
+
+' --- Composición / Asociaciones de dominio ---
+Designer "1" *-- "*" Product : publica
+Product "1" *-- "*" ProductVariant : contiene
+Product "*" -- "*" SustainabilityCertificate : certifica
+Order "1" *-- "1..*" OrderItem : tiene
+OrderItem "1" o-- "0..1" Review
+
+' --- Implementaciones ---
+IRepository <|.. BaseRepository
+BaseRepository <|-- ProductRepository
+BaseRepository <|-- OrderRepository
+BaseRepository <|-- UserRepository
+BaseRepository <|-- RefreshTokenRepository
+BaseRepository <|-- CertificateRepository
+
+IService <|.. ProductService
+IService <|.. OrderService
+
+IRealtimeGateway <|.. SocketIOGateway
+IFCMClient <|.. FirebaseFCMClient
+
+' --- Composición de servicios ---
+ProductService o-- ProductRepository
+ProductService o-- CertificateRepository
+OrderService o-- OrderRepository
+OrderService o-- NotificationService
+OrderService o-- IRealtimeGateway
+NotificationService o-- IFCMClient
+AuthService o-- UserRepository
+AuthService o-- RefreshTokenRepository
+
+note right of BaseRepository
+  <b>Patrón Repository genérico</b>
+  Implementa CRUD común con
+  Prisma. Las subclases solo
+  sobrescriben lo específico.
+  → Cumple "POO + genéricos"
+  de la rúbrica DAM.
+end note
+
+note right of OrderService::acceptByDesigner
+  Cuando el diseñador acepta:
+    1. Valida ownership.
+    2. Transición de estado.
+    3. Emite Socket.IO al cliente.
+    4. Envía FCM push.
+  Ver sequence-push.puml.
+end note
+
+@enduml

@@ -1,0 +1,105 @@
+@startuml usecase-disenador
+' =============================================================
+' GaliciaWear — Casos de uso: actor DISEÑADOR
+' Dashboard de diseñador en la app web (React).
+' =============================================================
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+
+actor "Diseñador gallego" as designer
+actor "Admin" as admin << (sistema) >>
+
+rectangle "GaliciaWear — Dashboard del diseñador (Web)" as system {
+
+  package "Onboarding" {
+    usecase "Solicitar alta\ncomo diseñador" as UC1
+    usecase "Completar perfil\n(marca, bio, ciudad)" as UC2
+    usecase "Subir documentación\n(IBAN, autónomo)" as UC3
+    usecase "Esperar validación\nde admin" as UC4
+  }
+
+  package "Catálogo" {
+    usecase "Crear producto" as UC5
+    usecase "Subir imágenes\ndel producto" as UC6
+    usecase "Asignar certificados\nsostenibles" as UC7
+    usecase "Definir variantes\n(talla, color, stock)" as UC8
+    usecase "Editar producto" as UC9
+    usecase "Despublicar producto" as UC10
+    usecase "Gestionar stock" as UC11
+  }
+
+  package "Pedidos" {
+    usecase "Ver pedidos recibidos" as UC12
+    usecase "Aceptar pedido" as UC13
+    usecase "Rechazar pedido\n(con motivo)" as UC14
+    usecase "Marcar como enviado\n(con tracking)" as UC15
+    usecase "Imprimir etiqueta\nde envío" as UC16
+  }
+
+  package "Comunicación" {
+    usecase "Chatear con cliente" as UC17
+    usecase "Recibir notificaciones\nde nuevo pedido" as UC18
+    usecase "Responder reseñas" as UC19
+  }
+
+  package "Métricas y plan" {
+    usecase "Ver KPIs personales\n(ventas, top productos)" as UC20
+    usecase "Descargar histórico" as UC21
+    usecase "Suscribirse a plan\npremium" as UC22
+  }
+}
+
+designer --> UC1
+designer --> UC2
+designer --> UC5
+designer --> UC6
+designer --> UC8
+designer --> UC9
+designer --> UC10
+designer --> UC11
+designer --> UC12
+designer --> UC13
+designer --> UC14
+designer --> UC15
+designer --> UC17
+designer --> UC18
+designer --> UC19
+designer --> UC20
+designer --> UC21
+designer --> UC22
+
+UC1 .> UC3 : <<include>>
+UC1 .> UC4 : <<include>>
+UC4 ..> admin : <<requires>>\nvalidación
+
+UC5 .> UC6 : <<include>>
+UC5 .> UC7 : <<include>>
+UC5 .> UC8 : <<include>>
+
+UC13 .> UC18 : <<extend>>\n(cliente recibe push)
+UC15 .> UC16 : <<include>>
+
+note right of UC4
+  Admin valida tras revisar
+  IBAN + condición de autónomo.
+  Ver usecase-admin.puml
+end note
+
+note right of UC13
+  <b>Acción crítica:</b> al aceptar,
+  el cliente recibe push en su
+  Android en tiempo real
+  (ver sequence-push.puml).
+end note
+
+note bottom of UC7
+  Certificados disponibles:
+  GOTS, OEKO-TEX, Fairtrade,
+  GRS, Bluesign. Diferenciador
+  validado en entrevistas.
+end note
+
+@enduml

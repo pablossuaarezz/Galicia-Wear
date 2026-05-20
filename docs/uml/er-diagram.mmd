@@ -1,0 +1,212 @@
+%% =============================================================
+%% GaliciaWear — Diagrama Entidad-Relación (PostgreSQL)
+%% Renderizar con: Mermaid Live Editor, GitHub (autorender) o
+%%   `npx -p @mermaid-js/mermaid-cli mmdc -i er-diagram.mmd -o er-diagram.svg`
+%% =============================================================
+erDiagram
+    USER ||--o| CUSTOMER          : "es (rol=CLIENTE)"
+    USER ||--o| DESIGNER          : "es (rol=DISEÑADOR)"
+    USER ||--o{ ADDRESS           : "tiene"
+    USER ||--o{ REFRESH_TOKEN     : "emite"
+    USER ||--o{ CHAT_MESSAGE      : "envía/recibe"
+
+    DESIGNER ||--o{ PRODUCT       : "publica"
+    DESIGNER ||--o{ ORDER_ITEM    : "vende"
+
+    CUSTOMER ||--|| CART          : "tiene"
+    CUSTOMER ||--o{ ORDER         : "realiza"
+    CUSTOMER ||--o{ REVIEW        : "escribe"
+
+    PRODUCT  ||--o{ PRODUCT_VARIANT : "tiene"
+    PRODUCT  ||--o{ PRODUCT_IMAGE   : "tiene"
+    PRODUCT  ||--o{ PRODUCT_CERTIFICATE : "está certificado por"
+    PRODUCT  ||--o{ REVIEW           : "recibe"
+
+    SUSTAINABILITY_CERTIFICATE ||--o{ PRODUCT_CERTIFICATE : "se asigna a"
+
+    CART     ||--o{ CART_ITEM        : "contiene"
+    CART_ITEM }o--|| PRODUCT_VARIANT : "referencia"
+
+    ORDER    ||--o{ ORDER_ITEM       : "contiene"
+    ORDER    ||--|| SHIPMENT         : "envía con"
+    ORDER    }o--|| ADDRESS          : "se envía a"
+    ORDER_ITEM }o--|| PRODUCT_VARIANT : "referencia"
+    ORDER_ITEM ||--o| REVIEW         : "puede ser reseñado"
+
+    USER {
+        uuid    id PK
+        varchar email UK
+        varchar password_hash
+        enum    role "CLIENTE|DISEÑADOR|ADMIN"
+        boolean email_verified
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at "soft delete"
+    }
+
+    CUSTOMER {
+        uuid    user_id PK_FK
+        varchar first_name
+        varchar last_name
+        varchar phone "nullable"
+        date    date_of_birth "nullable"
+        jsonb   sustainability_prefs "certificados, max_km, ciudad preferida"
+        uuid    default_address_id FK "nullable"
+    }
+
+    DESIGNER {
+        uuid    user_id PK_FK
+        varchar brand_name UK
+        text    bio
+        enum    city "CORUNA|LUGO|SANTIAGO|VIGO|PONTEVEDRA|OURENSE"
+        varchar iban_encrypted "AES-256, clave en KMS"
+        boolean validated "admin lo valida tras solicitud"
+        timestamp validated_at "nullable"
+        uuid    validated_by FK "admin que validó"
+        varchar logo_url "nullable"
+        varchar website_url "nullable"
+        timestamp created_at
+    }
+
+    ADDRESS {
+        uuid    id PK
+        uuid    user_id FK
+        varchar alias "Casa, Trabajo, ..."
+        varchar line1
+        varchar line2 "nullable"
+        varchar city
+        varchar postal_code
+        varchar province "default Galicia"
+        char    country "ES"
+        boolean is_default
+    }
+
+    PRODUCT {
+        uuid    id PK
+        uuid    designer_id FK
+        varchar name
+        varchar slug UK
+        text    description
+        decimal base_price "EUR"
+        boolean active
+        int     km_origin "distancia origen para 'km 0'"
+        enum    main_material "ALGODON_ORG|LANA_REC|LINO|TENCEL|..."
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PRODUCT_VARIANT {
+        uuid    id PK
+        uuid    product_id FK
+        enum    size "XS|S|M|L|XL|XXL"
+        varchar color
+        varchar sku UK
+        int     stock
+        decimal price_diff "ajuste sobre base_price"
+    }
+
+    PRODUCT_IMAGE {
+        uuid    id PK
+        uuid    product_id FK
+        varchar url
+        varchar alt
+        int     position
+        boolean is_primary
+    }
+
+    SUSTAINABILITY_CERTIFICATE {
+        uuid    id PK
+        varchar code UK "GOTS|OEKO_TEX|FAIRTRADE|GRS|BLUESIGN"
+        varchar name
+        text    description
+        varchar issuer_url
+    }
+
+    PRODUCT_CERTIFICATE {
+        uuid    product_id PK_FK
+        uuid    certificate_id PK_FK
+        varchar certificate_number
+        date    issued_at
+        date    expires_at "nullable"
+    }
+
+    CART {
+        uuid    id PK
+        uuid    customer_id FK_UK
+        timestamp updated_at
+    }
+
+    CART_ITEM {
+        uuid    id PK
+        uuid    cart_id FK
+        uuid    product_variant_id FK
+        int     quantity
+        timestamp added_at
+    }
+
+    ORDER {
+        uuid    id PK
+        varchar order_number UK "GW-2026-00001"
+        uuid    customer_id FK
+        enum    status "PENDIENTE|PAGADO|ACEPTADO|ENVIADO|ENTREGADO|CANCELADO|DEVUELTO"
+        decimal subtotal
+        decimal shipping_cost
+        decimal total
+        uuid    shipping_address_id FK
+        enum    payment_method "TARJETA|BIZUM|TRANSFERENCIA"
+        timestamp placed_at
+        timestamp paid_at "nullable"
+        text    notes "nullable"
+    }
+
+    ORDER_ITEM {
+        uuid    id PK
+        uuid    order_id FK
+        uuid    product_variant_id FK
+        uuid    designer_id FK "snapshot del diseñador"
+        int     quantity
+        decimal unit_price "snapshot al momento de la compra"
+        enum    item_status "sub-estado por item (multi-diseñador)"
+    }
+
+    SHIPMENT {
+        uuid    id PK
+        uuid    order_id FK_UK
+        enum    carrier "CORREOS_VERDE|CORREOS_EXPRESS|NACEX"
+        boolean eco_shipping "envío con compensación CO2"
+        varchar tracking_number
+        date    estimated_delivery
+        timestamp shipped_at "nullable"
+        timestamp delivered_at "nullable"
+    }
+
+    REVIEW {
+        uuid    id PK
+        uuid    order_item_id FK_UK "solo se reseña lo comprado"
+        uuid    customer_id FK
+        uuid    product_id FK "denormalizado para query"
+        int     rating "1..5"
+        varchar title
+        text    body
+        boolean has_media "fotos viven en MongoDB"
+        enum    moderation_status "PENDING|APPROVED|REJECTED"
+        timestamp created_at
+    }
+
+    CHAT_MESSAGE {
+        uuid    id PK
+        uuid    sender_id FK
+        uuid    recipient_id FK
+        uuid    product_id FK "nullable, contextual"
+        text    body
+        timestamp sent_at
+        timestamp read_at "nullable"
+    }
+
+    REFRESH_TOKEN {
+        uuid    id PK
+        uuid    user_id FK
+        varchar token_hash "bcrypt o sha256"
+        timestamp expires_at
+        timestamp revoked_at "nullable, rotación"
+    }

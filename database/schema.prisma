@@ -1,0 +1,19 @@
+// JUSTIFICACIÓN: stub mínimo de Fase 0. En Fase 1 se modela el dominio completo
+// (User, Customer, Designer, Product, Order, Review, SustainabilityCertificate, ...).
+// Aquí solo se deja la conexión y un modelo trivial para verificar que `prisma generate` funciona.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Modelo de ejemplo — se elimina en Fase 1 cuando entren las entidades reales.
+model HealthPing {
+  id        Int      @id @default(autoincrement())
+  pingedAt  DateTime @default(now())
+  source    String   @default("backend")
+}

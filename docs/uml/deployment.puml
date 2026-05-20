@@ -1,0 +1,143 @@
+@startuml deployment
+' =============================================================
+' GaliciaWear — Diagrama de despliegue
+' Muestra cómo se distribuyen los componentes en máquinas y
+' contenedores. Cumple "multiplataforma" + "compatibilidad Linux"
+' + "comunicación entre procesos" de la rúbrica DAM.
+' =============================================================
+
+skinparam shadowing false
+skinparam node {
+  BackgroundColor #eef6fb
+  BorderColor #1e6fa3
+}
+skinparam component {
+  BackgroundColor #fbf8f3
+  BorderColor #5c8a3a
+}
+skinparam database {
+  BackgroundColor #f1f7ee
+  BorderColor #3f6128
+}
+
+' === CLIENTES ===
+
+node "Móvil Android\n(usuario final)" as androidNode {
+  artifact "GaliciaWear.apk\n(Java 17, MVVM)" as apk
+  component "Retrofit + OkHttp\n(HTTPS + JWT)" as retrofit
+  component "Socket.IO client" as sioClient
+  component "Firebase\nMessaging SDK" as fcmSdk
+  component "Room\n(caché offline)" as room
+}
+
+node "Linux desktop\n(staff GaliciaWear)" as desktopNode {
+  artifact "galiciawear-admin.deb\n(jpackage)" as deb
+  component "JavaFX 21 + FXML\n(MVC)" as fx
+  component "java.net.http" as javanet
+  component "WebSocket client" as wsClient
+}
+
+node "Navegador\n(cliente o diseñador)" as browser {
+  component "React 18 + Vite\n(SPA)" as react
+  component "Fetch API + JWT" as fetch
+  component "Socket.IO client (web)" as sioWeb
+}
+
+' === DOCKER HOST (Linux) ===
+
+node "Servidor Linux (Docker host)" as dockerHost #f1f7ee {
+
+  node "Reverse Proxy\n(Caddy / Nginx)\n:443 (HTTPS + Let's Encrypt)" as caddy
+
+  node "Docker Compose network: galiciawear" as composeNet {
+
+    node "Container: backend\n(node:20-alpine)" as backendC {
+      component "Express + TypeScript\nController → Service → Repository" as express
+      component "Socket.IO server" as sioSrv
+      component "worker_threads\n(notificaciones, recomendaciones,\nexport masivos XML/JSON)" as workers
+      component "Prisma ORM" as prisma
+      component "firebase-admin SDK" as fcmAdmin
+      component "Swagger UI\n/api/docs" as swagger
+    }
+
+    node "Container: web\n(nginx:alpine)" as webC {
+      artifact "dist estático\n(React build)" as dist
+      component "Nginx :80\n(SPA fallback + /api proxy)" as nginx
+    }
+
+    database "Container: postgres\n(postgres:16-alpine)" as pgC {
+      folder "Volume\npostgres_data" as pgVol
+    }
+
+    database "Container: mongo\n(mongo:7)" as mongoC {
+      folder "Volume\nmongo_data" as mongoVol
+    }
+  }
+
+  artifact "scripts/\nbackup.sh + restore.sh\n(cron 0 3 * * *)" as backupScript
+  folder "Volume\nbackups/" as backupVol
+}
+
+' === SERVICIOS EXTERNOS ===
+
+cloud "Firebase Cloud\nMessaging (Google)" as fcmCloud
+cloud "Correos Verde\nAPI (envíos eco)" as correos
+cloud "Pasarela de pago\n(Bizum / Tarjeta)" as pay
+
+' === Conexiones cliente → infra ===
+apk -[#1e6fa3]-> caddy : "HTTPS\nRest + JWT"
+sioClient -[#5c8a3a]-> caddy : "WSS\nSocket.IO"
+fcmSdk -[#1e6fa3,dashed]-> fcmCloud : "Registra token"
+
+deb -[#1e6fa3]-> caddy : "HTTPS REST"
+wsClient -[#5c8a3a]-> caddy : "WSS"
+
+react -[#1e6fa3]-> caddy : "HTTPS\n(/api proxy)"
+sioWeb -[#5c8a3a]-> caddy : "WSS"
+
+' === Caddy → backend ===
+caddy -[#1e6fa3]-> express : "HTTP :3000"
+caddy -[#5c8a3a]-> sioSrv : "WS"
+caddy -[#1e6fa3]-> nginx : "HTTP :80"
+
+' === Backend → BBDD ===
+prisma -[#3f6128]-> pgC : "TCP :5432"
+express -[#3f6128]-> mongoC : "TCP :27017"
+
+' === Backend → externos ===
+fcmAdmin -[#1e6fa3,dashed]-> fcmCloud : "HTTPS\nPush a tokens"
+fcmCloud -[#1e6fa3,dotted]-> apk : "Push entrega"
+express -[#1e6fa3,dashed]-> correos : "HTTPS API"
+express -[#1e6fa3,dashed]-> pay : "HTTPS API"
+
+' === Backup ===
+backupScript -[#3f6128,dashed]-> pgC : "pg_dump"
+backupScript -[#3f6128,dashed]-> mongoC : "mongodump"
+backupScript -[#3f6128]-> backupVol : ".tar.gz\n(retención 30 días)"
+
+' === Notas ===
+note right of dockerHost
+  <b>Linux first</b>
+  Todo el stack del servidor corre en
+  contenedores alpine sobre Linux.
+  El reverse proxy hace HTTPS con
+  Let's Encrypt y dirige tráfico
+  a backend (REST + WSS) y web (SPA).
+end note
+
+note bottom of workers
+  <b>Hilos del backend</b>
+  - notificaciones (FCM + Socket)
+  - generación de XML/JSON masivos
+  - cálculo de recomendaciones
+  No bloquean el event loop principal.
+end note
+
+note bottom of mongoC
+  <b>BBDD NoSQL</b>
+  Colecciones: ActivityLog,
+  Recommendation, ReviewMedia,
+  AnonymousCart, NotificationLog.
+end note
+
+@enduml
