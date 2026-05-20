@@ -3,10 +3,11 @@
 > **Plataforma e-commerce multiplataforma de moda sostenible gallega.**
 > Proyecto Fin de Ciclo · Desarrollo de Aplicaciones Multiplataforma (DAM) · 2024-26.
 
-![Status](https://img.shields.io/badge/status-fase%200%20%E2%9C%85-blue)
+![Status](https://img.shields.io/badge/status-fase%202a%20%E2%9C%85-blue)
 ![Stack](https://img.shields.io/badge/stack-Node%20%2B%20React%20%2B%20Android%20%2B%20JavaFX-1e6fa3)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Linux-first](https://img.shields.io/badge/Linux--first-yes-success)
+![Idioma](https://img.shields.io/badge/c%C3%B3digo-castellano-orange)
 
 GaliciaWear es un **marketplace de moda sostenible local** que conecta a diseñadores
 gallegos con consumidores jóvenes (18-35 años) en A Coruña y Galicia. Ofrece filtros por
@@ -140,8 +141,12 @@ Ver [PROGRESS.md](./PROGRESS.md) para el estado vivo.
 | Fase | Estado | Descripción |
 |------|--------|-------------|
 | 0 | ✅ | Inicialización monorepo, Docker, CI, README |
-| 1 | ⏳ | Modelado UML + ER PostgreSQL |
-| 2 | ⏳ | Backend completo Node + Express + Prisma + Socket.IO + Swagger |
+| 1 | ✅ | Modelado UML + ER PostgreSQL (10 diagramas) |
+| 2a | ✅ | Schema Prisma + infra backend (logger, errores, middlewares) + módulo **autenticación** + tests |
+| 2b | ⏳ | Módulos `usuarios`, `disenadores`, `direcciones`, `certificados` |
+| 2c | ⏳ | Módulos `productos`, `variantes`, `carritos` |
+| 2d | ⏳ | Módulos `pedidos`, `envios`, `resenas`, `mensajes` |
+| 2e | ⏳ | Socket.IO + workers + Swagger + seed |
 | 3 | ⏳ | Persistencia avanzada: Mongo + backup.sh + import/export XML/JSON |
 | 4 | ⏳ | App Android (10 pantallas, FCM, ARCore stub) |
 | 5 | ⏳ | JavaFX admin + dashboard tiempo real + jpackage |

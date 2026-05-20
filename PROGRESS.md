@@ -7,8 +7,10 @@
 
 ## Estado global
 
-- **Fase actual**: ✅ Fase 1 cerrada — esperando OK del usuario para arrancar Fase 2.
+- **Fase actual**: ✅ Fase 2a cerrada (autenticación) — esperando OK para arrancar Fase 2b.
 - **Última actualización**: 2026-05-20.
+- **Rama**: `Fase2` (mergeada con `main` que contenía Fase 0+1).
+- **Regla activa desde Fase 2**: TODOS los identificadores en castellano. Ver [`CONVENCIONES.md`](./CONVENCIONES.md).
 
 ---
 
@@ -150,18 +152,133 @@ Todos en `docs/uml/`:
 
 ---
 
+---
+
+## Fase 2a — Autenticación + esquema completo + infraestructura backend ✅
+
+> Fase 2 se ha partido en sub-fases (2a … 2e) por tamaño. Esta es la 2a.
+
+### Regla nueva aplicada desde aquí
+
+- **TODOS los identificadores en castellano** (variables, funciones, clases, campos BBDD, enums, nombres de archivo y carpeta). Excepciones documentadas en [`CONVENCIONES.md`](./CONVENCIONES.md): APIs de librerías, acrónimos universales (JWT, API, REST, JSON, XML, FCM, DTO…), claves de variables de entorno (`NODE_ENV`, `PORT`, `DATABASE_URL`), nombres de archivo convencionales (`index.ts`, `Dockerfile`, `package.json`).
+- Sin `ñ` ni tildes en identificadores (por compatibilidad con URLs, scripts, filesystems): `disenador`, `resena`, `contrasena`. Sí en strings de UI.
+
+### Estructura backend post-merge
+
+```
+backend/
+├── package.json (v0.2.0 con deps Fase 2)
+├── tsconfig.json
+├── jest.config.js
+├── .eslintrc.json, .prettierrc
+├── Dockerfile (multi-stage alpine)
+├── .dockerignore
+└── src/
+    ├── aplicacion.ts                ← Express + helmet + cors + rate-limit + /salud + /auth
+    ├── index.ts                     ← arranque + cierre limpio (SIGTERM/SIGINT)
+    ├── configuracion/
+    │   └── entorno.ts               ← validación zod de process.env
+    ├── utilidades/
+    │   ├── registrador.ts           ← pino logger (JSON prod, pretty dev)
+    │   ├── errores.ts               ← ErrorAplicacion + 6 subclases (POO + herencia)
+    │   └── prisma.ts                ← singleton PrismaClient + cerrarConexionBd
+    ├── middlewares/
+    │   ├── autenticacion.ts         ← verificarJwt + module augmentation peticion.usuario
+    │   ├── rbac.ts                  ← requerirRol + soloCliente/soloDisenador/soloAdmin
+    │   ├── validacion.ts            ← validar(esquema, fuente)
+    │   └── manejadorErrores.ts      ← traduce zod + Prisma + ErrorAplicacion a JSON
+    └── modulos/autenticacion/
+        ├── dto.ts                   ← dtoRegistro, dtoLogin, dtoRefresco, dtoCierreSesion
+        ├── repositorio.ts           ← acceso Prisma a Usuario + TokenRefresco
+        ├── servicio.ts              ← registro, login, refresco rotativo, logout
+        ├── controlador.ts           ← thin layer HTTP (try/catch + next(error))
+        └── rutas.ts                 ← 5 endpoints + JSDoc OpenAPI + rate-limit login
+```
+
+### Schema Prisma — 13 modelos + 9 enums (castellano)
+
+`database/schema.prisma`. Modelos: `Usuario`, `Cliente`, `Disenador`, `Direccion`, `TokenRefresco`, `Producto`, `Variante`, `ImagenProducto`, `CertificadoSostenibilidad`, `CertificadoDeProducto`, `Carrito`, `ItemCarrito`, `Pedido`, `LineaPedido`, `Envio`, `Resena`, `Mensaje`. Enums: `Rol`, `CiudadGallega`, `TallaPrenda`, `MaterialPrincipal`, `EstadoPedido`, `MetodoPago`, `Transportista`, `EstadoModeracion`, `CodigoCertificado`. Columnas en `snake_case` castellano vía `@map` (`hash_contrasena`, `fecha_creacion`, `numero_pedido`…).
+
+### Endpoints implementados (5/30+)
+
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| POST   | `/auth/registro`   | no | Crear cuenta CLIENTE o DISEÑADOR; devuelve pareja de tokens |
+| POST   | `/auth/login`      | no | Iniciar sesión (rate-limit 5 intentos / 15 min) |
+| POST   | `/auth/refresh`    | no | Renovar pareja (rotación, reuso revoca todos los tokens) |
+| POST   | `/auth/logout`     | no | Revocar el token de refresco actual (idempotente) |
+| GET    | `/auth/yo`         | JWT | Devolver perfil del usuario autenticado |
+| GET    | `/salud`           | no | Healthcheck para Docker |
+| GET    | `/`                | no | Banner informativo |
+
+### Seguridad implementada
+
+- **bcrypt** con 12 rounds configurables (`BCRYPT_ROUNDS`).
+- **JWT** de acceso (15 min) + **refresh token opaco** (7 días) almacenado **hasheado SHA-256** en BBDD.
+- **Rotación** de refresh: cada uso emite nuevo par y revoca el anterior.
+- **Detección de reuso**: si llega un token revocado → revoca **todos** los tokens del usuario (posible robo).
+- **Rate limit global** + rate limit reforzado en `/auth/login` (anti fuerza bruta).
+- **Helmet** (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).
+- **CORS** restrictivo a `CORS_ORIGIN`.
+- **Mensaje genérico** en login fallido (evita user enumeration).
+- **Logs** estructurados sin filtrar contraseñas ni tokens.
+
+### Tests (3 archivos, 16 casos)
+
+| Archivo | Casos | Cubre |
+|---------|-------|-------|
+| `tests/salud.test.ts` | 3 | Bootstrap: /salud, /, 404 |
+| `tests/autenticacion.servicio.test.ts` | 8 | Lógica de negocio: registro, login, refresco, reuso, logout (mocks repo + bcrypt real) |
+| `tests/autenticacion.rutas.test.ts` | 5 | Integración HTTP: validación zod, 409, 201, 401 sin token, 200 con token, 204 logout |
+
+Cobertura objetivo del módulo `autenticacion`: **≥80%** (lo medimos en Fase 7 cuando esté toda la suite).
+
+### Decisiones técnicas relevantes
+
+| Decisión | Por qué |
+|----------|---------|
+| Refresh token **opaco aleatorio (48 bytes base64url)**, no JWT | Permite revocarlo (un JWT firmado no se revoca, solo expira). |
+| Almacenamos **hash SHA-256** del refresh, no el token | Si la BBDD se filtra, los tokens no son reutilizables. |
+| **Rotación** + **reuso = revocar todos** | Patrón OAuth 2.0 BCP. Si alguien roba un refresh y lo usa, en cuanto el usuario legítimo intente renovar, detectamos el reuso y se cierran sesiones. |
+| Servicio expone funciones puras, no clase con DI | Más simple para tests + Jest mocks. Repository es un objeto literal con métodos. La "herencia + interfaces" del diagrama de clases se materializa en Fase 2b cuando aparezca el segundo módulo. |
+| `validar(esquema, fuente)` middleware | Centraliza la validación, deja el controlador limpio. |
+| `ErrorAplicacion` + subclases | Permite que el handler global mapee `codigoEstado` y `codigo` sin que cada controlador maneje su propio HTTP. |
+
+### Verificación local (a ejecutar por el usuario)
+
+```bash
+cd "Galicia Wear/backend"
+npm install
+npx prisma generate --schema=../database/schema.prisma
+npm test                      # → 16 tests verdes
+npm run dev                   # → http://localhost:3000/salud
+# Probar registro:
+curl -X POST http://localhost:3000/auth/registro \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"ana@test.gal","contrasena":"Segura123","nombre":"Ana","apellidos":"López"}'
+```
+
+### Preguntas probables del tribunal — Fase 2a
+
+1. **¿Por qué identificadores en castellano si la convención profesional es inglés?**
+   > Aplico el principio de **lenguaje ubicuo** del Domain-Driven Design: el código habla el mismo idioma que el dominio del negocio. GaliciaWear es un marketplace gallego dirigido a usuarios hispanohablantes; los términos del negocio (diseñador, certificado de sostenibilidad, envío ecológico) nacen en castellano. Traducirlos al inglés introduciría una capa de traducción mental innecesaria y crearía divergencias sutiles entre el código y la conversación de producto. Lo documento en `CONVENCIONES.md` y es una decisión deliberada, no descuido.
+
+2. **¿Por qué refresh tokens opacos y no JWTs anidados? ¿No es más simple usar dos JWTs?**
+   > Los JWT son **stateless**: no se pueden revocar antes de su expiración. Si un atacante roba un JWT de refresh, puede usarlo 7 días sin que pueda hacer nada. Con un token opaco aleatorio guardado en BBDD (hasheado SHA-256), tengo dos superpoderes: (a) revocarlo individualmente al hacer logout; (b) detectar **reuso**: si llega un token ya marcado como `fechaRevocacion != null`, significa que alguien lo robó y lo está reutilizando — revoco todas las sesiones del usuario y le obligo a re-loguear. Es el patrón OAuth 2.0 BCP (Best Current Practice). El coste es una query a BBDD por refresh, pero los refresh ocurren cada 15 min, no es problema.
+
+3. **El servicio de autenticación usa funciones (objeto literal) y no una clase. ¿No rompe el principio POO de la rúbrica?**
+   > La rúbrica pide POO, y la POO la materializo donde aporta valor real, no por cumplir checklist. Concretamente: la jerarquía `ErrorAplicacion` → `ErrorValidacion / ErrorNoAutenticado / ErrorAccesoDenegado / ErrorNoEncontrado / ErrorConflicto / ErrorReglaDeNegocio` es POO genuina (herencia + polimorfismo gracias a `instanceof` en el handler). En Fase 2b, cuando aparezca el segundo módulo (productos), introduciré un `RepositorioBase<T>` genérico del que heredarán `RepositorioProducto`, `RepositorioPedido`, etc. — ahí se ve la herencia con genéricos. Pero un módulo aislado como `autenticacion` no necesita una clase: el servicio es un conjunto de operaciones puras sin estado. Imponer `class ServicioAutenticacion` con `static` por todas partes solo añade ruido.
+
+---
+
 ## Próxima fase
 
-**Fase 2 — Backend Node + Express + Prisma + Socket.IO + Swagger + tests** (~120 archivos, 2-3 sesiones):
+**Fase 2b — Módulos `usuarios`, `disenadores`, `direcciones`, `certificados`** (~35 archivos, 1 sesión):
 
-- Estructura por dominios en `backend/src/modules/{auth,users,products,orders,reviews,designers,notifications,admin}/`.
-- Schema Prisma completo con todas las entidades de Fase 1.
-- Autenticación JWT + refresh rotativo + bcrypt + middleware `requireRole`.
-- DTOs con zod en TODOS los endpoints.
-- API REST completa (≥30 endpoints) documentada en Swagger UI `/api/docs`.
-- Socket.IO para chat + notificaciones + presencia.
-- Seed con datos realistas (5 diseñadores gallegos, 30 productos, 10 clientes, 15 pedidos).
-- Tests Jest + Supertest (≥1 unit + ≥1 integration por módulo).
-- Worker `worker_threads` para notificaciones y export masivos.
+- `modulos/usuarios/`: CRUD de perfil, cambio de contraseña, borrado GDPR.
+- `modulos/disenadores/`: alta como diseñador (solicitud), edición de marca, listar diseñadores públicos.
+- `modulos/direcciones/`: CRUD de direcciones del usuario, marcar como predeterminada.
+- `modulos/certificados/`: catálogo público de certificados sostenibles (read-only, datos por seed).
+- Introducir `RepositorioBase<T>` genérico que heredarán los repositorios de estos módulos.
 
-> Confirma con "OK Fase 2" para empezar.
+> Confirma con "OK Fase 2b" para empezar.
