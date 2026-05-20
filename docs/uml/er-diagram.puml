@@ -1,0 +1,240 @@
+@startuml er-diagram
+' =============================================================
+' GaliciaWear — Diagrama Entidad-Relación (PostgreSQL)
+' Versión PlantUML del ER (también disponible en Mermaid).
+' Renderizar con:  plantuml er-diagram.puml   (genera er-diagram.png)
+' =============================================================
+
+!define PRIMARY_KEY <b><color:#1e6fa3>
+!define FOREIGN_KEY <color:#5c8a3a>
+
+skinparam linetype ortho
+skinparam classBackgroundColor #fbf8f3
+skinparam classBorderColor #1e6fa3
+skinparam shadowing false
+
+entity "user" as user {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  email : varchar UK
+  password_hash : varchar
+  role : enum "CLIENTE | DISEÑADOR | ADMIN"
+  email_verified : boolean
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp <i>(soft delete)</i>
+}
+
+entity "customer" as customer {
+  PRIMARY_KEY user_id : uuid </color></b> <i>(FK→user)</i>
+  --
+  first_name : varchar
+  last_name : varchar
+  phone : varchar
+  date_of_birth : date
+  sustainability_prefs : jsonb
+  FOREIGN_KEY default_address_id : uuid</color>
+}
+
+entity "designer" as designer {
+  PRIMARY_KEY user_id : uuid </color></b> <i>(FK→user)</i>
+  --
+  brand_name : varchar UK
+  bio : text
+  city : enum (gallega)
+  iban_encrypted : varchar
+  validated : boolean
+  validated_at : timestamp
+  FOREIGN_KEY validated_by : uuid</color> <i>(admin)</i>
+  logo_url : varchar
+  website_url : varchar
+  created_at : timestamp
+}
+
+entity "address" as address {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY user_id : uuid</color>
+  alias : varchar
+  line1 : varchar
+  line2 : varchar
+  city : varchar
+  postal_code : varchar
+  province : varchar
+  country : char(2)
+  is_default : boolean
+}
+
+entity "product" as product {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY designer_id : uuid</color>
+  name : varchar
+  slug : varchar UK
+  description : text
+  base_price : decimal
+  active : boolean
+  km_origin : int
+  main_material : enum
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "product_variant" as pv {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY product_id : uuid</color>
+  size : enum
+  color : varchar
+  sku : varchar UK
+  stock : int
+  price_diff : decimal
+}
+
+entity "product_image" as pi {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY product_id : uuid</color>
+  url : varchar
+  alt : varchar
+  position : int
+  is_primary : boolean
+}
+
+entity "sustainability_certificate" as cert {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  code : varchar UK <i>(GOTS, OEKO_TEX, ...)</i>
+  name : varchar
+  description : text
+  issuer_url : varchar
+}
+
+entity "product_certificate" as pc {
+  PRIMARY_KEY product_id : uuid </color></b>
+  PRIMARY_KEY certificate_id : uuid </color></b>
+  --
+  certificate_number : varchar
+  issued_at : date
+  expires_at : date
+}
+
+entity "cart" as cart {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY customer_id : uuid UK</color>
+  updated_at : timestamp
+}
+
+entity "cart_item" as ci {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY cart_id : uuid</color>
+  FOREIGN_KEY product_variant_id : uuid</color>
+  quantity : int
+  added_at : timestamp
+}
+
+entity "order" as ord {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  order_number : varchar UK
+  FOREIGN_KEY customer_id : uuid</color>
+  status : enum
+  subtotal : decimal
+  shipping_cost : decimal
+  total : decimal
+  FOREIGN_KEY shipping_address_id : uuid</color>
+  payment_method : enum
+  placed_at : timestamp
+  paid_at : timestamp
+  notes : text
+}
+
+entity "order_item" as oi {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY order_id : uuid</color>
+  FOREIGN_KEY product_variant_id : uuid</color>
+  FOREIGN_KEY designer_id : uuid</color>
+  quantity : int
+  unit_price : decimal <i>(snapshot)</i>
+  item_status : enum
+}
+
+entity "shipment" as ship {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY order_id : uuid UK</color>
+  carrier : enum
+  eco_shipping : boolean
+  tracking_number : varchar
+  estimated_delivery : date
+  shipped_at : timestamp
+  delivered_at : timestamp
+}
+
+entity "review" as rev {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY order_item_id : uuid UK</color>
+  FOREIGN_KEY customer_id : uuid</color>
+  FOREIGN_KEY product_id : uuid</color>
+  rating : smallint
+  title : varchar
+  body : text
+  has_media : boolean
+  moderation_status : enum
+  created_at : timestamp
+}
+
+entity "chat_message" as msg {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY sender_id : uuid</color>
+  FOREIGN_KEY recipient_id : uuid</color>
+  FOREIGN_KEY product_id : uuid</color>
+  body : text
+  sent_at : timestamp
+  read_at : timestamp
+}
+
+entity "refresh_token" as rt {
+  PRIMARY_KEY id : uuid </color></b>
+  --
+  FOREIGN_KEY user_id : uuid</color>
+  token_hash : varchar
+  expires_at : timestamp
+  revoked_at : timestamp
+}
+
+' --- Relaciones ---
+user ||..o| customer        : "1:1 (rol=CLIENTE)"
+user ||..o| designer        : "1:1 (rol=DISEÑADOR)"
+user ||..o{ address         : "1:N"
+user ||..o{ rt              : "1:N"
+user ||..o{ msg             : "1:N (sender/recipient)"
+
+designer ||..o{ product     : "1:N publica"
+designer ||..o{ oi          : "1:N vende"
+
+customer ||..|| cart        : "1:1"
+customer ||..o{ ord         : "1:N realiza"
+customer ||..o{ rev         : "1:N escribe"
+
+product  ||..o{ pv          : "1:N tiene variantes"
+product  ||..o{ pi          : "1:N tiene imágenes"
+product  ||..o{ pc          : "1:N certificados"
+product  ||..o{ rev         : "1:N reseñas"
+cert     ||..o{ pc          : "1:N"
+
+cart     ||..o{ ci          : "1:N"
+ci       }o..|| pv          : "N:1"
+
+ord      ||..o{ oi          : "1:N líneas"
+ord      ||..|| ship        : "1:1 envío"
+ord      }o..|| address     : "N:1 dirección envío"
+oi       }o..|| pv          : "N:1 variante"
+oi       ||..o| rev         : "1:0..1 reseña"
+
+@enduml

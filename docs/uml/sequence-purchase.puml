@@ -1,0 +1,101 @@
+@startuml sequence-purchase
+' =============================================================
+' GaliciaWear — Secuencia: flujo de compra completo
+' Recorre desde que Ana (cliente) busca un producto sostenible en la
+' app Android hasta que el pedido queda registrado y el diseñador
+' es notificado por Socket.IO + FCM.
+' =============================================================
+
+skinparam sequenceArrowThickness 1.5
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 10
+
+actor "Cliente\n(Ana)" as user
+participant "App Android\n(MVVM + Retrofit)" as app
+participant "API Gateway\n(Express)" as api
+participant "AuthMiddleware\n(JWT)" as auth
+participant "ProductService" as psvc
+participant "OrderService" as osvc
+database "PostgreSQL\n(núcleo)" as pg
+database "MongoDB\n(logs/recs)" as mongo
+participant "Socket.IO\nGateway" as ws
+participant "FCM Server\nSDK" as fcm
+actor "Diseñador" as designer
+
+== 1. Búsqueda con filtros sostenibles ==
+user -> app : Abre buscador,\nselecciona filtros\n(GOTS, ≤100 km, A Coruña)
+app -> api : GET /products?certs=GOTS&maxKm=100&city=CORUNA\nHeader: Authorization: Bearer <jwt>
+api -> auth : verifyJWT(token)
+auth --> api : { userId, role: CLIENTE }
+api -> psvc : search(filter)
+psvc -> pg : SELECT * FROM product p\nJOIN product_certificate pc ON pc.product_id=p.id\nWHERE pc.certificate_code='GOTS'\n  AND p.km_origin <= 100 ...
+pg --> psvc : 18 productos
+psvc --> api : Product[]
+api --> app : 200 OK { products: [...] }
+app --> user : Muestra grid de productos
+
+== 2. Detalle de producto y "Ver en mi habitación" (AR opcional) ==
+user -> app : Pulsa producto "Camiseta Lino A Coruña"
+app -> api : GET /products/:id
+api -> psvc : findById(id)
+psvc -> pg : SELECT + JOIN variants, images, certificates
+pg --> psvc : Producto completo
+psvc --> api : Product detalle
+api --> app : 200 OK
+app --> user : Muestra detalle.\nBotón "Ver en mi habitación"\n(si ARCore disponible)
+
+== 3. Añadir al carrito ==
+user -> app : Talla M, color azul, +1 al carrito
+app -> api : POST /cart/items\n{ productVariantId, quantity: 1 }
+api -> auth : verifyJWT
+auth --> api : OK
+api -> pg : INSERT INTO cart_item ...\nON CONFLICT (cart_id, variant_id) DO UPDATE
+pg --> api : OK
+api --> app : 201 Created
+app --> user : Toast "Añadido al carrito"
+
+== 4. Checkout ==
+user -> app : Va al carrito, pulsa "Realizar pedido"
+app -> api : GET /cart
+api --> app : { items, subtotal, shippingOptions }
+user -> app : Elige envío eco (Correos verde, +0€)\nDirección "Casa A Coruña"\nMétodo: Bizum
+app -> api : POST /orders\n{ shippingAddressId, paymentMethod, ecoShipping: true }
+
+== 5. Creación transaccional del pedido ==
+api -> auth : verifyJWT
+auth --> api : OK
+api -> osvc : place(customerId, dto)
+
+group [Transacción Postgres]
+  osvc -> pg : BEGIN
+  osvc -> pg : SELECT stock FROM product_variant\n  FOR UPDATE
+  pg --> osvc : stock = 8
+  osvc -> pg : INSERT INTO order (...)\n  RETURNING id, order_number
+  pg --> osvc : { id: "...", order_number: "GW-2026-00001" }
+  osvc -> pg : INSERT INTO order_item (...)
+  osvc -> pg : INSERT INTO shipment (...)\n  carrier='CORREOS_VERDE'\n  eco_shipping=true
+  osvc -> pg : UPDATE product_variant\n  SET stock = stock - 1\n  WHERE id = ...
+  osvc -> pg : COMMIT
+end
+
+== 6. Notificación al diseñador (tiempo real) ==
+osvc -> mongo : insert ActivityLog\n{ action: "order_placed", userId, orderId }
+osvc -> ws : emitToUser(designerId, "order:new", { orderNumber })
+ws --> designer : Socket.IO push\n(si web activa)
+osvc -> fcm : sendToToken(designerFcmToken,\n  { title: "Nuevo pedido GW-2026-00001" })
+fcm --> designer : Notificación push\n(siempre)
+
+== 7. Respuesta al cliente ==
+osvc --> api : Order creado
+api --> app : 201 Created\n{ orderNumber, total, tracking }
+app --> user : Pantalla "Pedido confirmado"\nResumen + número de pedido
+
+note over user, designer
+  <b>Flujo end-to-end:</b> 8-10 segundos típicos.
+  El cliente nunca espera por la notificación del
+  diseñador (fire-and-forget en pasos 6).
+end note
+
+@enduml
