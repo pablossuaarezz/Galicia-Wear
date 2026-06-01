@@ -65,13 +65,52 @@ public class FragmentoRegistro extends Fragment {
         String nombre     = obtenerTexto(enlace.entradaNombre);
         String apellidos  = obtenerTexto(enlace.entradaApellidos);
 
-        if (correo.isEmpty() || contrasena.length() < 6 || nombre.isEmpty()) {
-            enlace.campoNombre.setError("Completa todos los campos (contraseña ≥ 6 caracteres)");
-            return;
+        boolean esCliente = enlace.radioCliente.isChecked();
+        String rol = esCliente ? Constantes.ROL_CLIENTE : Constantes.ROL_DISENADOR;
+
+        // Limpiamos errores previos antes de revalidar.
+        enlace.campoCorreo.setError(null);
+        enlace.campoContrasena.setError(null);
+        enlace.campoNombre.setError(null);
+        enlace.campoApellidos.setError(null);
+
+        // Las reglas deben coincidir con las del backend (dto.ts): correo válido,
+        // contraseña ≥ 8 con mayúscula, minúscula y número, y nombre + apellidos
+        // obligatorios para clientes. Validar en el cliente evita un 400 confuso.
+        boolean valido = true;
+
+        if (correo.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+            enlace.campoCorreo.setError("Introduce un correo electrónico válido");
+            valido = false;
         }
 
-        String rol = enlace.radioCliente.isChecked() ? Constantes.ROL_CLIENTE : Constantes.ROL_DISENADOR;
+        if (!contrasenaValida(contrasena)) {
+            enlace.campoContrasena.setError(
+                "Mínimo 8 caracteres, con mayúscula, minúscula y número");
+            valido = false;
+        }
+
+        if (esCliente && nombre.isEmpty()) {
+            enlace.campoNombre.setError("Nombre obligatorio");
+            valido = false;
+        }
+
+        if (esCliente && apellidos.isEmpty()) {
+            enlace.campoApellidos.setError("Apellidos obligatorios");
+            valido = false;
+        }
+
+        if (!valido) return;
+
         modeloVista.registrarse(correo, contrasena, nombre, apellidos, rol);
+    }
+
+    /** Reglas equivalentes a las del backend: ≥8 caracteres con mayúscula, minúscula y número. */
+    private boolean contrasenaValida(String contrasena) {
+        return contrasena.length() >= 8
+            && contrasena.matches(".*[A-Z].*")
+            && contrasena.matches(".*[a-z].*")
+            && contrasena.matches(".*[0-9].*");
     }
 
     private String obtenerTexto(android.widget.EditText campo) {

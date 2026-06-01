@@ -23,6 +23,15 @@ export const repositorioAutenticacion = {
     return prisma.usuario.findUnique({ where: { id } });
   },
 
+  // Perfil completo para /auth/yo: incluye los datos de cliente o diseñador,
+  // donde viven nombre/apellidos (Cliente) y nombreMarca (Disenador).
+  async buscarPerfilCompleto(id: string) {
+    return prisma.usuario.findUnique({
+      where: { id },
+      include: { cliente: true, disenador: true },
+    });
+  },
+
   async crearUsuario(datos: DatosCreacionUsuario): Promise<Usuario> {
     const datosUsuario: Prisma.UsuarioCreateInput = {
       correo: datos.correo,

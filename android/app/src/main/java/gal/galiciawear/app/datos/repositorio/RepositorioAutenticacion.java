@@ -165,7 +165,8 @@ public class RepositorioAutenticacion {
         Map<String, String> cuerpo = new HashMap<>();
         String tokenRefresh = gestorSesion.obtenerTokenRefresh();
         if (tokenRefresh != null) {
-            cuerpo.put("tokenRefresh", tokenRefresh);
+            // El backend (dtoCierreSesion) espera el campo "tokenRefresco".
+            cuerpo.put("tokenRefresco", tokenRefresh);
         }
         // Fire-and-forget: aunque falle la llamada al servidor, cerramos sesión local
         servicioApi.cerrarSesion(cuerpo).enqueue(new Callback<Void>() {

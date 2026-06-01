@@ -16,7 +16,17 @@
       "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-24.jdk/Contents/Home ./gradlew :app:help --console=plain)",
       "Bash(cat .idea/gradle.xml)",
       "Bash(cat .idea/.name)",
-      "Bash(cat .idea/modules.xml)"
+      "Bash(cat .idea/modules.xml)",
+      "Bash(lsof -iTCP:3000 -sTCP:LISTEN -n)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} en %{time_total}s\\\\n\" http://localhost:3000/productos)",
+      "Bash(curl -s -o /dev/null -w \"raiz HTTP %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(head -5 backend/node_modules/.prisma/client/default.js)",
+      "Bash(grep -c \"did not initialize\" backend/node_modules/.prisma/client/default.js)",
+      "Bash(ls -la .env)",
+      "Bash(docker ps *)",
+      "Bash(kill 17434 18844 18894)",
+      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
+      "Bash(node -e ' *)"
     ]
   }
 }

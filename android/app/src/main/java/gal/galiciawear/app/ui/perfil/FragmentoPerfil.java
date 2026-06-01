@@ -42,11 +42,20 @@ public class FragmentoPerfil extends Fragment {
 
         modeloVista.observarPerfil().observe(getViewLifecycleOwner(), recurso -> {
             if (recurso.esExito() && recurso.datos != null) {
-                enlace.textoNombre.setText(
-                    recurso.datos.nombre + " " + recurso.datos.apellidos
-                );
+                String nombre    = recurso.datos.nombre    != null ? recurso.datos.nombre    : "";
+                String apellidos = recurso.datos.apellidos != null ? recurso.datos.apellidos : "";
+                String nombreCompleto = (nombre + " " + apellidos).trim();
+
+                enlace.textoNombre.setText(nombreCompleto);
                 enlace.textoCorreo.setText(recurso.datos.correo);
                 enlace.textoRol.setText(recurso.datos.rol);
+
+                // Inicial del avatar a partir del nombre real (en vez de la "A" fija).
+                if (!nombreCompleto.isEmpty()) {
+                    enlace.textoInicial.setText(
+                        nombreCompleto.substring(0, 1).toUpperCase()
+                    );
+                }
             }
         });
 

@@ -63,8 +63,17 @@ export const controladorAutenticacion = {
     }
   },
 
-  // Endpoint protegido — devuelve datos del usuario autenticado.
-  obtenerMiPerfil(peticion: Request, respuesta: Response): void {
-    respuesta.status(200).json({ usuario: peticion.usuario });
+  // Endpoint protegido — devuelve el perfil completo del usuario autenticado.
+  async obtenerMiPerfil(
+    peticion: Request,
+    respuesta: Response,
+    siguiente: NextFunction,
+  ): Promise<void> {
+    try {
+      const perfil = await servicioAutenticacion.obtenerPerfil(peticion.usuario!.sub);
+      respuesta.status(200).json(perfil);
+    } catch (error) {
+      siguiente(error);
+    }
   },
 };

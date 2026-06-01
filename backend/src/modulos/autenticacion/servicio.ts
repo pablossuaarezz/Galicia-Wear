@@ -202,6 +202,31 @@ export const servicioAutenticacion = {
     };
   },
 
+  // Perfil del usuario autenticado para GET /auth/yo. Devuelve un objeto plano con
+  // nombre/apellidos resueltos desde el perfil de cliente (o el nombre de marca si es
+  // diseñador), que es lo que consume la app Android.
+  async obtenerPerfil(usuarioId: string): Promise<{
+    id: string;
+    correo: string;
+    rol: Rol;
+    nombre: string | null;
+    apellidos: string | null;
+    fechaCreacion: Date;
+  }> {
+    const usuario = await repositorioAutenticacion.buscarPerfilCompleto(usuarioId);
+    if (!usuario || usuario.fechaEliminacion) {
+      throw new ErrorNoAutenticado('Usuario no disponible');
+    }
+    return {
+      id: usuario.id,
+      correo: usuario.correo,
+      rol: usuario.rol,
+      nombre: usuario.cliente?.nombre ?? usuario.disenador?.nombreMarca ?? null,
+      apellidos: usuario.cliente?.apellidos ?? null,
+      fechaCreacion: usuario.fechaCreacion,
+    };
+  },
+
   async cerrarSesion(tokenRefrescoPlano: string): Promise<void> {
     const hash = crypto.createHash('sha256').update(tokenRefrescoPlano).digest('hex');
     const registro = await repositorioAutenticacion.buscarTokenRefrescoPorHash(hash);
