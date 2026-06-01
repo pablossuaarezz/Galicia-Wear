@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        Tema principal Material Design 3 — modo claro.
+        NoActionBar porque usamos MaterialToolbar en los layouts.
+    -->
+    <style name="Tema.GaliciaWear" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primario</item>
+        <item name="colorOnPrimary">@color/en_primario</item>
+        <item name="colorSecondary">@color/verde_sostenible</item>
+        <item name="colorTertiary">@color/acento</item>
+        <item name="colorSurface">@color/superficie</item>
+        <item name="android:colorBackground">@color/fondo</item>
+        <item name="colorError">@color/error</item>
+        <item name="android:statusBarColor">@color/primario_oscuro</item>
+        <item name="android:navigationBarColor">@color/superficie</item>
+    </style>
+
+    <!-- Tema del splash — fondo primario sin barra de estado visible -->
+    <style name="Tema.GaliciaWear.Splash" parent="Tema.GaliciaWear">
+        <item name="android:statusBarColor">@color/primario</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Bridge para el tema heredado en Base.Theme (requerido por AGP) -->
+    <style name="Base.Theme.GaliciaWear" parent="Tema.GaliciaWear" />
+    <!-- Alias para compatibilidad con el manifest original -->
+    <style name="Theme.GaliciaWear" parent="Tema.GaliciaWear" />
+
+</resources>

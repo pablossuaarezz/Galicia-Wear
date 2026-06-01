@@ -3,6 +3,8 @@
 // Cumple "testing básico" de la rúbrica + cobertura objetivo ≥60%.
 import { Rol } from '@prisma/client';
 
+jest.mock('../src/utilidades/auditoria', () => ({ registrarActividad: jest.fn() }));
+
 jest.mock('../src/modulos/autenticacion/repositorio', () => ({
   repositorioAutenticacion: {
     buscarPorCorreo: jest.fn(),

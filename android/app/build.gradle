@@ -1,0 +1,104 @@
+plugins {
+    alias(libs.plugins.android.application)
+    // Hilt genera código de inyección en tiempo de compilación
+    alias(libs.plugins.hilt)
+    // Google Services procesa google-services.json y genera constantes Firebase
+    alias(libs.plugins.google.services)
+}
+
+android {
+    namespace 'gal.galiciawear.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "gal.galiciawear.app"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // URL base inyectada como constante de build — permite apuntar
+        // a distintos entornos (dev/prod) sin tocar el código fuente.
+        buildConfigField "String", "URL_BASE_API", '"http://10.0.2.2:3000/"'
+        buildConfigField "String", "URL_WEBSOCKET", '"http://10.0.2.2:3000"'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        // Java 17: lambdas, streams y compatibilidad con Hilt 2.52 + Room 2.6
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        // ViewBinding: acceso tipado a vistas, sin riesgo de NPE por cast erróneo
+        viewBinding true
+        buildConfig true
+    }
+}
+
+dependencies {
+    // ── AndroidX base ────────────────────────────────────────────────────────
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.fragment
+    implementation libs.constraintlayout
+    implementation libs.recyclerview
+    implementation libs.viewpager2
+    implementation libs.swiperefreshlayout
+    implementation libs.cardview
+
+    // ── Lifecycle (ViewModel + LiveData) ─────────────────────────────────────
+    // ViewModel sobrevive rotaciones; LiveData actualiza la UI en el hilo correcto
+    implementation libs.lifecycle.viewmodel
+    implementation libs.lifecycle.livedata
+    implementation libs.lifecycle.runtime
+
+    // ── Hilt (DI) ────────────────────────────────────────────────────────────
+    // Patrón DI exigido por rúbrica DAM; permite inyectar mocks en tests
+    implementation libs.hilt.android
+    annotationProcessor libs.hilt.compiler
+
+    // ── Retrofit + OkHttp (capa de red) ──────────────────────────────────────
+    implementation libs.retrofit
+    implementation libs.retrofit.gson
+    implementation libs.okhttp
+    implementation libs.okhttp.logging
+    implementation libs.gson
+
+    // ── Room (ORM — caché offline) ────────────────────────────────────────────
+    // ORM oficial Android; requisito explícito de la rúbrica DAM
+    implementation libs.room.runtime
+    annotationProcessor libs.room.compiler
+
+    // ── Glide (carga de imágenes) ─────────────────────────────────────────────
+    implementation libs.glide
+    annotationProcessor libs.glide.compiler
+
+    // ── Socket.IO (chat en tiempo real) ───────────────────────────────────────
+    // Cubre requisito DAM "Sockets/WebSockets"; se excluye org.json (incluido en Android)
+    implementation(libs.socketio.client) {
+        exclude group: 'org.json', module: 'json'
+    }
+
+    // ── Firebase (FCM push) ───────────────────────────────────────────────────
+    // Cubre requisito DAM "Notificaciones tiempo real"; BoM garantiza coherencia de versiones
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.messaging
+
+    // ── Tests ─────────────────────────────────────────────────────────────────
+    testImplementation libs.junit
+    testImplementation libs.mockito.core
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.mockito.android
+}

@@ -40,3 +40,15 @@ describe('GET /ruta-inexistente', () => {
     expect(respuesta.body.codigo).toBe('NO_ENCONTRADO');
   });
 });
+
+describe('GET /api/docs.json (Swagger spec)', () => {
+  it('devuelve la especificación OpenAPI 3.0 en JSON', async () => {
+    const aplicacion = crearAplicacion();
+    const respuesta = await request(aplicacion).get('/api/docs.json');
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.body.openapi).toBe('3.0.3');
+    expect(respuesta.body.info.title).toBe('GaliciaWear API');
+    expect(Array.isArray(respuesta.body.tags)).toBe(true);
+  });
+});

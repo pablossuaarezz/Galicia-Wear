@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fondo">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/barra_herramientas"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:paddingBottom="100dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/metodo_pago"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
+
+            <RadioGroup
+                android:id="@+id/radio_grupo_metodo_pago"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/radio_tarjeta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tarjeta_credito"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radio_transferencia"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/transferencia_bancaria" />
+            </RadioGroup>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tipo_envio"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switch_envio_eco"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/envio_ecologico" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_eco"
+                    android:contentDescription="@string/icono_eco"
+                    android:layout_gravity="center_vertical" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/indicador_carga"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/boton_confirmar_pedido"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="@string/confirmar_pedido"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

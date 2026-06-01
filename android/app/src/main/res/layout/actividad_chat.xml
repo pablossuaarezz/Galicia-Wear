@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fondo">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/barra_herramientas"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primario"
+        app:titleTextColor="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Indicador de conexión Socket.IO (visible cuando desconectado) -->
+    <TextView
+        android:id="@+id/texto_estado_conexion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/aviso"
+        android:textColor="@android:color/white"
+        android:textAlignment="center"
+        android:padding="4dp"
+        android:textSize="12sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/barra_herramientas" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/lista_mensajes"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/texto_estado_conexion"
+        app:layout_constraintBottom_toTopOf="@id/barra_entrada"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Barra de entrada de mensaje — anclada a la parte inferior -->
+    <LinearLayout
+        android:id="@+id/barra_entrada"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@color/superficie"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/campo_mensaje"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/escribe_mensaje"
+            android:inputType="textMultiLine"
+            android:maxLines="4"
+            android:imeOptions="actionSend" />
+
+        <!-- Ley de Fitts: botón de envío grande y en el extremo derecho -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/boton_enviar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_enviar"
+            android:contentDescription="@string/enviar_mensaje"
+            android:layout_marginStart="8dp"
+            app:fabSize="mini" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

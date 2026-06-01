@@ -10,7 +10,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  // JUSTIFICACIÓN: MySQL — servidor ilimitado del centro (colexio-karbo).
+  // Soporta los tipos usados (Json desde 5.7, ENUM nativo, Decimal, Text).
+  // Cumple requisito DAM "BBDD relacional + ORM".
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 

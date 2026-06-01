@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono: hoja verde para el slide "Sostenibilidad verificada" -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp" android:height="180dp"
+    android:viewportWidth="180" android:viewportHeight="180">
+    <path android:fillColor="@color/verde_sostenible"
+        android:pathData="M90,20 C60,50 20,70 20,110 C20,140 50,165 90,165 C130,165 160,140 160,110 C160,70 120,50 90,20 Z"/>
+    <path android:fillColor="@color/verde_claro" android:pathData="M90,50 L90,150 Q110,120 90,50 Z"/>
+</vector>

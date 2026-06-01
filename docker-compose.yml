@@ -1,26 +1,10 @@
 # JUSTIFICACIÓN: orquestación local con un solo comando. Cumple "compatibilidad Linux"
 # de la rúbrica DAM. Usa solo paths relativos para que la raíz pueda tener espacios.
+# La BBDD relacional (MySQL) es REMOTA (servidor del centro), por eso no aparece aquí —
+# el backend se conecta directamente vía DATABASE_URL.
 name: galiciawear
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: galiciawear-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-galiciawear}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-galiciawear_dev}
-      POSTGRES_DB: ${POSTGRES_DB:-galiciawear}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-galiciawear}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   mongo:
     image: mongo:7
     container_name: galiciawear-mongo
@@ -44,14 +28,13 @@ services:
     container_name: galiciawear-backend
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
       mongo:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-galiciawear}:${POSTGRES_PASSWORD:-galiciawear_dev}@postgres:5432/${POSTGRES_DB:-galiciawear}?schema=public
+      # DATABASE_URL apunta al MySQL remoto del centro; el valor real se inyecta desde .env
+      DATABASE_URL: ${DATABASE_URL}
       MONGO_URL: mongodb://${MONGO_USER:-galiciawear}:${MONGO_PASSWORD:-galiciawear_dev}@mongo:27017/galiciawear?authSource=admin
       JWT_SECRET: ${JWT_SECRET:-please-override-in-production-min-16}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-please-override-too-min-16-chars}
@@ -69,5 +52,4 @@ services:
       - "8080:80"
 
 volumes:
-  postgres_data:
   mongo_data:

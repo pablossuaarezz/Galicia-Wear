@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campo_correo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/correo_electronico"
+            android:layout_marginTop="32dp"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/entrada_correo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:imeOptions="actionNext"
+                android:autofillHints="emailAddress" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campo_contrasena"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/contrasena"
+            android:layout_marginTop="16dp"
+            app:passwordToggleEnabled="true"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/entrada_contrasena"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:imeOptions="actionDone"
+                android:autofillHints="password" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Indicador de carga centrado sobre el botón -->
+        <ProgressBar
+            android:id="@+id/indicador_carga"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="16dp" />
+
+        <!-- Ley de Fitts: botón grande, ancho completo, fácil de pulsar -->
+        <Button
+            android:id="@+id/boton_login"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/iniciar_sesion"
+            android:enabled="false"
+            android:layout_marginTop="24dp" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/fondo">
+
+    <!-- Barra de búsqueda -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/buscar_productos"
+        android:layout_margin="12dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/entrada_busqueda"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="text" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Filtros avanzados agrupados (Ley de Hick) -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/material"
+                    android:layout_marginEnd="8dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/entrada_material"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/max_km"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/entrada_max_km"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- Certificados de sostenibilidad como chips seleccionables -->
+            <com.google.android.material.chip.ChipGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_gots"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GOTS"
+                    style="@style/Widget.Material3.Chip.Filter" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_oeko_tex"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OEKO-TEX"
+                    style="@style/Widget.Material3.Chip.Filter" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_grs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GRS"
+                    style="@style/Widget.Material3.Chip.Filter" />
+            </com.google.android.material.chip.ChipGroup>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <Button
+                    android:id="@+id/boton_buscar"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="2"
+                    android:text="@string/buscar"
+                    android:layout_marginEnd="8dp" />
+
+                <Button
+                    android:id="@+id/boton_limpiar"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="@string/limpiar" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <ProgressBar
+        android:id="@+id/indicador_carga"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/resultados"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"
+        android:clipToPadding="false" />
+
+</LinearLayout>

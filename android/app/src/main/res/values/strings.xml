@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nombre y slogan -->
+    <string name="nombre_app">GaliciaWear</string>
+    <string name="slogan_app">Moda sostenible gallega</string>
+    <string name="logo_descripcion">Logo de GaliciaWear</string>
+    <string name="ilustracion_onboarding">Ilustración de onboarding</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_titulo_1">Moda 100% gallega</string>
+    <string name="onboarding_titulo_2">Sostenibilidad verificada</string>
+    <string name="onboarding_titulo_3">Conecta con los diseñadores</string>
+    <string name="onboarding_desc_1">Descubre diseñadores locales de A Coruña y toda Galicia. Moda con identidad propia.</string>
+    <string name="onboarding_desc_2">Filtra por certificados GOTS, OEKO-TEX y materiales orgánicos. Compra con conciencia.</string>
+    <string name="onboarding_desc_3">Chatea con el diseñador de tu prenda favorita. Comunidad real, no fast fashion.</string>
+    <string name="saltar">Saltar</string>
+    <string name="siguiente">Siguiente</string>
+
+    <!-- Autenticación -->
+    <string name="correo_electronico">Correo electrónico</string>
+    <string name="contrasena">Contraseña</string>
+    <string name="nombre">Nombre</string>
+    <string name="apellidos">Apellidos</string>
+    <string name="iniciar_sesion">Iniciar sesión</string>
+    <string name="crear_cuenta">Crear cuenta</string>
+    <string name="soy_cliente">Soy cliente</string>
+    <string name="soy_disenador">Soy diseñador/a</string>
+
+    <!-- Navegación inferior -->
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_buscador">Buscar</string>
+    <string name="nav_carrito">Carrito</string>
+    <string name="nav_pedidos">Pedidos</string>
+    <string name="nav_perfil">Perfil</string>
+
+    <!-- Productos -->
+    <string name="sin_productos">No hay productos disponibles</string>
+    <string name="material">Material</string>
+    <string name="certificados">Certificados de sostenibilidad</string>
+    <string name="selecciona_variante">Selecciona talla / color</string>
+    <string name="añadir_carrito">Añadir al carrito</string>
+    <string name="ver_en_ar">Ver en mi habitación</string>
+
+    <!-- Buscador -->
+    <string name="buscar_productos">Buscar productos…</string>
+    <string name="max_km">Máx. km origen</string>
+    <string name="buscar">Buscar</string>
+    <string name="limpiar">Limpiar</string>
+
+    <!-- Carrito -->
+    <string name="carrito_vacio">Tu carrito está vacío</string>
+    <string name="hacer_pedido">Hacer pedido</string>
+    <string name="eliminar_item">Eliminar artículo</string>
+
+    <!-- Pedidos -->
+    <string name="sin_pedidos">Todavía no tienes pedidos</string>
+    <string name="confirmar_pedido">Confirmar pedido</string>
+    <string name="metodo_pago">Método de pago</string>
+    <string name="tarjeta_credito">Tarjeta de crédito/débito</string>
+    <string name="transferencia_bancaria">Transferencia bancaria</string>
+    <string name="tipo_envio">Tipo de envío</string>
+    <string name="envio_ecologico">Envío ecológico (Correos Verde)</string>
+    <string name="informacion_envio">Información de envío</string>
+    <string name="articulos">Artículos</string>
+    <string name="ver_detalle">Ver detalle</string>
+
+    <!-- Chat -->
+    <string name="escribe_mensaje">Escribe un mensaje…</string>
+    <string name="enviar_mensaje">Enviar</string>
+
+    <!-- Perfil -->
+    <string name="cerrar_sesion">Cerrar sesión</string>
+
+    <!-- Notificaciones -->
+    <string name="canal_notificaciones_id">galiciawear_notificaciones</string>
+    <string name="canal_notificaciones_nombre">Notificaciones GaliciaWear</string>
+    <string name="canal_notificaciones_descripcion">Actualizaciones de pedidos y mensajes de diseñadores</string>
+
+    <!-- Accesibilidad -->
+    <string name="icono_eco">Icono ecológico</string>
+</resources>

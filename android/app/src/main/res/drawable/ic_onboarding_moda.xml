@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono: camiseta estilizada para el slide de onboarding "Moda gallega" -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp" android:height="180dp"
+    android:viewportWidth="180" android:viewportHeight="180">
+    <path android:fillColor="@color/primario"
+        android:pathData="M90,20 L60,40 L30,50 L45,75 L55,65 L55,155 L125,155 L125,65 L135,75 L150,50 L120,40 Z"/>
+    <path android:fillColor="@color/primario_claro"
+        android:pathData="M60,40 Q75,55 90,55 Q105,55 120,40 L90,40 Z"/>
+</vector>

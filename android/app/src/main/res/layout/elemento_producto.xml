@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tarjeta de producto para el grid 2 columnas del catálogo -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Imagen del producto con relación de aspecto 1:1 -->
+        <ImageView
+            android:id="@+id/imagen_producto"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/texto_nombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/texto_primario"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/texto_marca"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/texto_secundario"
+                android:layout_marginTop="2dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+
+                <TextView
+                    android:id="@+id/texto_precio"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primario" />
+
+                <TextView
+                    android:id="@+id/texto_km"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:textColor="@color/verde_sostenible" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/texto_material"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:textColor="@color/texto_secundario"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

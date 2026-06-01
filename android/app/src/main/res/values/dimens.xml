@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Espaciado base del sistema 8-pt grid -->
+    <dimen name="espaciado_xs">4dp</dimen>
+    <dimen name="espaciado_s">8dp</dimen>
+    <dimen name="espaciado_m">16dp</dimen>
+    <dimen name="espaciado_l">24dp</dimen>
+    <dimen name="espaciado_xl">32dp</dimen>
+
+    <!-- Tamaños de fuente -->
+    <dimen name="texto_caption">12sp</dimen>
+    <dimen name="texto_cuerpo">14sp</dimen>
+    <dimen name="texto_cuerpo_grande">16sp</dimen>
+    <dimen name="texto_titulo">22sp</dimen>
+    <dimen name="texto_display">28sp</dimen>
+
+    <!-- Bordes y elevación -->
+    <dimen name="radio_esquina_tarjeta">12dp</dimen>
+    <dimen name="elevacion_tarjeta">2dp</dimen>
+    <dimen name="elevacion_barra">4dp</dimen>
+
+    <!-- Alturas de botón (Ley de Fitts: min 48dp para táctil) -->
+    <dimen name="altura_boton_primario">52dp</dimen>
+    <dimen name="altura_boton_normal">48dp</dimen>
+    <dimen name="tamano_fab">56dp</dimen>
+</resources>

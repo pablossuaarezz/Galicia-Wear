@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fondo">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/barra_herramientas"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ProgressBar
+        android:id="@+id/indicador_carga"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:id="@+id/contenido_detalle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="100dp">
+
+            <!-- Imagen del producto -->
+            <ImageView
+                android:id="@+id/imagen_producto"
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:scaleType="centerCrop" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/texto_nombre_producto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/texto_primario" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/texto_precio"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="20sp"
+                        android:textColor="@color/primario"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/texto_km"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/verde_sostenible" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/texto_marca"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/texto_secundario"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/texto_ciudad"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@color/texto_secundario" />
+
+                <TextView
+                    android:id="@+id/texto_descripcion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="15sp"
+                    android:textColor="@color/texto_primario"
+                    android:layout_marginTop="16dp"
+                    android:lineSpacingExtra="4dp" />
+
+                <!-- Material -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/material"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp" />
+
+                <TextView
+                    android:id="@+id/texto_material"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/texto_secundario" />
+
+                <!-- Certificados — Ley de Hick: chips visuales, no lista -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/certificados"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/grupo_chips_certificados"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" />
+
+                <!-- Tallas/Colores -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/selecciona_variante"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/grupo_chips_tallas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Botones flotantes en la parte inferior — Ley de Fitts -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:background="@color/superficie"
+        android:padding="16dp"
+        android:elevation="8dp">
+
+        <Button
+            android:id="@+id/boton_ver_en_habitacion"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="@string/ver_en_ar"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/boton_anadir_carrito"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="2"
+            android:text="@string/añadir_carrito" />
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

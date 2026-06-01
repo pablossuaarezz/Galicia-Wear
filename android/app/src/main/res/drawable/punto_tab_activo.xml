@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Punto relleno para la pestaña de onboarding activa -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/en_primario" />
+    <size android:width="8dp" android:height="8dp" />
+</shape>

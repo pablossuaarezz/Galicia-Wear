@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fondo">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/barra_herramientas"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ProgressBar
+        android:id="@+id/indicador_carga"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Estado del pedido en un chip coloreado -->
+            <TextView
+                android:id="@+id/texto_estado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="@color/primario_claro"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView android:id="@+id/texto_total"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="20sp" android:textStyle="bold"
+                        android:textColor="@color/primario" />
+
+                    <TextView android:id="@+id/texto_metodo_pago"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="14sp" android:textColor="@color/texto_secundario"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView android:id="@+id/texto_fecha"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="12sp" android:textColor="@color/texto_secundario"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Información de envío -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardCornerRadius="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/informacion_envio"
+                        android:textSize="14sp" android:textStyle="bold" />
+
+                    <TextView android:id="@+id/texto_transportista"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="14sp" android:layout_marginTop="4dp" />
+
+                    <TextView android:id="@+id/texto_seguimiento"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="14sp" android:textColor="@color/primario"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Líneas del pedido -->
+            <TextView android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/articulos"
+                android:textSize="14sp" android:textStyle="bold"
+                android:layout_marginTop="16dp" android:layout_marginBottom="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/lista_lineas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

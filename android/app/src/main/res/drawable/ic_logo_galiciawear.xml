@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo simplificado GaliciaWear: letra G estilizada en azul atlántico -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+
+    <!-- Círculo de fondo blanco semitransparente -->
+    <path
+        android:fillColor="#33FFFFFF"
+        android:pathData="M80,80 m-70,0 a70,70 0 1,0 140,0 a70,70 0 1,0 -140,0" />
+
+    <!-- Letra G estilizada -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,28 C52,28 30,50 30,78 C30,106 52,128 80,128
+                          C100,128 117,117 126,100 L100,100 C95,108 88,112 80,112
+                          C60,112 46,97 46,78 C46,59 60,44 80,44
+                          C91,44 100,49 107,57 L86,57 L86,73 L124,73 L124,57
+                          C114,41 98,28 80,28 Z" />
+</vector>

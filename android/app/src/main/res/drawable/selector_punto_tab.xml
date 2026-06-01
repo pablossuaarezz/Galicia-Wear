@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Selector que alterna entre punto activo e inactivo según el estado de la pestaña -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/punto_tab_activo"
+        android:state_selected="true" />
+    <item android:drawable="@drawable/punto_tab_inactivo" />
+</selector>

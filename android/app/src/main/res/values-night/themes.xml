@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema modo oscuro GaliciaWear -->
+    <style name="Base.Theme.GaliciaWear" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primario_claro</item>
+        <item name="colorOnPrimary">@color/primario_oscuro</item>
+        <item name="colorSecondary">@color/verde_claro</item>
+        <item name="colorSurface">@color/superficie_oscura</item>
+        <item name="android:colorBackground">@color/fondo_oscuro</item>
+        <item name="android:statusBarColor">@color/fondo_oscuro</item>
+        <item name="android:navigationBarColor">@color/superficie_oscura</item>
+    </style>
+    <style name="Tema.GaliciaWear" parent="Base.Theme.GaliciaWear" />
+    <style name="Theme.GaliciaWear" parent="Base.Theme.GaliciaWear" />
+    <style name="Tema.GaliciaWear.Splash" parent="Base.Theme.GaliciaWear">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

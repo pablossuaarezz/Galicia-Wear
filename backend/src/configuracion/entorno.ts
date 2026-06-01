@@ -16,7 +16,12 @@ const esquemaEntorno = z.object({
     .string()
     .url()
     .default('postgresql://galiciawear:galiciawear_dev@localhost:5432/galiciawear?schema=public'),
-  MONGO_URL: z.string().optional(),
+
+  // MongoDB — colecciones: ActivityLog, Recommendation, ReviewMedia, AnonymousCart, NotificationLog
+  MONGO_URI: z
+    .string()
+    .min(10, 'MONGO_URI inválido')
+    .default('mongodb://localhost:27017/galiciawear'),
 
   JWT_SECRET: z.string().min(16).default('secreto-de-desarrollo-cambia-en-produccion'),
   JWT_REFRESH_SECRET: z.string().min(16).default('otro-secreto-distinto-cambia-tambien'),
@@ -31,6 +36,13 @@ const esquemaEntorno = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
+
+  // Clave AES-256-GCM para cifrar IBANs (64 chars hex = 32 bytes).
+  // CAMBIAR en producción: openssl rand -hex 32
+  IBAN_ENCRYPTION_KEY: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/i, 'IBAN_ENCRYPTION_KEY debe ser exactamente 64 caracteres hexadecimales')
+    .default('0000000000000000000000000000000000000000000000000000000000000000'),
 });
 
 export type Entorno = z.infer<typeof esquemaEntorno>;

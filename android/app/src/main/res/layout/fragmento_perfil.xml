@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fondo">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Avatar circular con inicial del nombre -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            app:cardCornerRadius="48dp"
+            app:cardBackgroundColor="@color/primario"
+            android:layout_marginTop="32dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <TextView
+                android:id="@+id/texto_inicial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="36sp"
+                android:textColor="@android:color/white"
+                android:text="A" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/texto_nombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/texto_primario"
+            android:textAlignment="center"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/texto_correo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/texto_secundario"
+            android:textAlignment="center"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/texto_rol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@android:color/white"
+            android:background="@color/primario"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Cerrar sesión con confirmación (prevención de errores) -->
+        <Button
+            android:id="@+id/boton_cerrar_sesion"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/cerrar_sesion"
+            android:layout_marginTop="48dp" />
+
+    </LinearLayout>
+</ScrollView>

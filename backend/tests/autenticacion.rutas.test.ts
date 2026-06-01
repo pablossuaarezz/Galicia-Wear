@@ -7,6 +7,8 @@ jest.mock('../src/utilidades/prisma', () => ({
   cerrarConexionBd: jest.fn(),
 }));
 
+jest.mock('../src/utilidades/auditoria', () => ({ registrarActividad: jest.fn() }));
+
 jest.mock('../src/modulos/autenticacion/repositorio', () => ({
   repositorioAutenticacion: {
     buscarPorCorreo: jest.fn(),

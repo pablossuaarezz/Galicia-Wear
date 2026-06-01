@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(tail -30 /tmp/backend.log)",
+      "Read(//private/tmp/**)",
+      "Bash(git stash *)",
+      "Bash(mkdir -p __TRACKED_VAR__/.claude __TRACKED_VAR__/backend)",
+      "Bash(cp .claude/settings.json __TRACKED_VAR__/.claude/settings.json)",
+      "Bash(cp backend/package-lock.json __TRACKED_VAR__/backend/package-lock.json)",
+      "Bash(rm .claude/settings.json backend/package-lock.json)",
+      "Bash(/usr/libexec/java_home -V)",
+      "Read(//Users/pablosuaareezz/.gradle/wrapper/dists/**)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-24.jdk/Contents/Home ./gradlew :app:help --console=plain)",
+      "Bash(cat .idea/gradle.xml)",
+      "Bash(cat .idea/.name)",
+    ]
+  }
+}

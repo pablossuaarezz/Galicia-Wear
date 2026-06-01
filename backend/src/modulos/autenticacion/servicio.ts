@@ -13,6 +13,7 @@ import {
 } from '../../utilidades/errores';
 import { PayloadJwt } from '../../middlewares/autenticacion';
 import { repositorioAutenticacion } from './repositorio';
+import { registrarActividad } from '../../utilidades/auditoria';
 import type { DatosLogin, DatosRegistro, RespuestaTokens } from './dto';
 
 // ---------- helpers privados ----------
@@ -96,6 +97,16 @@ export const servicioAutenticacion = {
       ipOrigen: contexto.ipOrigen,
     });
 
+    registrarActividad({
+      usuarioId: usuario.id,
+      accion: 'REGISTRO',
+      recurso: 'usuario',
+      recursoId: usuario.id,
+      detalles: { rol: usuario.rol },
+      ipOrigen: contexto.ipOrigen,
+      agenteUsuario: contexto.agenteUsuario,
+    });
+
     return {
       tokenAcceso: tokens.tokenAcceso,
       tokenRefresco: tokens.tokenRefrescoPlano,
@@ -128,6 +139,15 @@ export const servicioAutenticacion = {
       fechaExpiracion: calcularFechaExpiracionRefresco(),
       agenteUsuario: contexto.agenteUsuario,
       ipOrigen: contexto.ipOrigen,
+    });
+
+    registrarActividad({
+      usuarioId: usuario.id,
+      accion: 'LOGIN',
+      recurso: 'usuario',
+      recursoId: usuario.id,
+      ipOrigen: contexto.ipOrigen,
+      agenteUsuario: contexto.agenteUsuario,
     });
 
     return {

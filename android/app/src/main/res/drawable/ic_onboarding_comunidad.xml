@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono: dos personas para el slide "Conecta con diseñadores" -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp" android:height="180dp"
+    android:viewportWidth="180" android:viewportHeight="180">
+    <path android:fillColor="@color/primario"
+        android:pathData="M60,80 m-22,0 a22,22 0 1,0 44,0 a22,22 0 1,0 -44,0"/>
+    <path android:fillColor="@color/primario"
+        android:pathData="M15,155 C15,130 35,115 60,115 C85,115 105,130 105,155 Z"/>
+    <path android:fillColor="@color/verde_sostenible"
+        android:pathData="M120,80 m-22,0 a22,22 0 1,0 44,0 a22,22 0 1,0 -44,0"/>
+    <path android:fillColor="@color/verde_sostenible"
+        android:pathData="M75,155 C75,130 95,115 120,115 C145,115 165,130 165,155 Z"/>
+</vector>

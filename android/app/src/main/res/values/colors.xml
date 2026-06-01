@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Paleta cromática de GaliciaWear
+    Inspirada en la identidad gallega: azul atlántico, verde costa, arena de rías.
+    Contraste AA (4.5:1) en textos principales sobre fondo claro.
+-->
+<resources>
+    <!-- Azul atlántico — primario de marca -->
+    <color name="primario">#1A5C8F</color>
+    <color name="primario_claro">#5A8EB8</color>
+    <color name="primario_oscuro">#0D3D63</color>
+    <color name="en_primario">#FFFFFF</color>
+    <!-- Verde sostenible -->
+    <color name="verde_sostenible">#2E7D32</color>
+    <color name="verde_claro">#66BB6A</color>
+    <!-- Acento arena -->
+    <color name="acento">#D4A853</color>
+    <!-- Fondos -->
+    <color name="fondo">#F5F5F0</color>
+    <color name="superficie">#FFFFFF</color>
+    <color name="superficie_variante">#EFEDE8</color>
+    <!-- Textos -->
+    <color name="texto_primario">#1C1B1F</color>
+    <color name="texto_secundario">#6B6D7A</color>
+    <color name="texto_deshabilitado">#ABABAB</color>
+    <!-- Estados -->
+    <color name="error">#B3261E</color>
+    <color name="exito">#2E7D32</color>
+    <color name="aviso">#F57C00</color>
+    <!-- Modo oscuro -->
+    <color name="fondo_oscuro">#1C1B1F</color>
+    <color name="superficie_oscura">#2B2930</color>
+    <color name="texto_primario_oscuro">#E6E1E5</color>
+    <color name="texto_secundario_oscuro">#CAC4D0</color>
+    <!-- Compatibilidad Material (no eliminar) -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

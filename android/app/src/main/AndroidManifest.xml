@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permisos de red: necesarios para Retrofit, Socket.IO y FCM -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Permisos de notificaciones (obligatorio Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Vibración para feedback de notificaciones -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Cámara: para la funcionalidad AR (stub ARCore) del detalle de producto -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
+
+    <application
+        android:name=".AppGaliciawear"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/nombre_app"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Tema.GaliciaWear"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             ACTIVITIES
+             Orden de navegación: Splash → Incorporacion → Autenticacion
+                                  → Principal (hub de navegación)
+                                  → Detalle / Checkout / DetallePedido / Chat
+        ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- Splash: punto de entrada. Comprueba sesión y decide a dónde navegar -->
+        <activity
+            android:name=".ui.splash.ActividadSplash"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Tema.GaliciaWear.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Onboarding: se muestra solo la primera vez que se instala la app -->
+        <activity
+            android:name=".ui.incorporacion.ActividadIncorporacion"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Login / Registro: ViewPager2 con dos fragmentos -->
+        <activity
+            android:name=".ui.autenticacion.ActividadAutenticacion"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Hub principal con BottomNavigationView: 5 pestañas -->
+        <activity
+            android:name=".ui.principal.ActividadPrincipal"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Detalle de producto con galería, variantes y botón AR stub -->
+        <activity
+            android:name=".ui.detalle.ActividadDetalleProducto"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Checkout: resumen del pedido, dirección y método de pago -->
+        <activity
+            android:name=".ui.carrito.ActividadCheckout"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Detalle de pedido: estado, tracking, líneas -->
+        <activity
+            android:name=".ui.pedidos.ActividadDetallePedido"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Chat con el diseñador vía Socket.IO -->
+        <activity
+            android:name=".ui.chat.ActividadChat"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             SERVICIOS
+        ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- FCM: recibe tokens de registro y mensajes push del backend -->
+        <service
+            android:name=".fcm.ServicioFcm"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- FCM: canal de notificaciones por defecto -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/canal_notificaciones_id" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notificacion" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/primario" />
+
+    </application>
+
+</manifest>

@@ -7,9 +7,9 @@
 
 ## Estado global
 
-- **Fase actual**: ✅ Fase 2a cerrada (autenticación) — esperando OK para arrancar Fase 2b.
+- **Fase actual**: ✅ Fase 3 completa — esperando OK para Fase 4 (Android).
 - **Última actualización**: 2026-05-20.
-- **Rama**: `Fase2` (mergeada con `main` que contenía Fase 0+1).
+- **Rama**: `Fase2`.
 - **Regla activa desde Fase 2**: TODOS los identificadores en castellano. Ver [`CONVENCIONES.md`](./CONVENCIONES.md).
 
 ---
@@ -271,14 +271,563 @@ curl -X POST http://localhost:3000/auth/registro \
 
 ---
 
+---
+
+## Fase 2b — Módulos usuarios, diseñadores, direcciones, certificados ✅
+
+### Archivos generados (27 nuevos + 4 modificados)
+
+**Utilidades nuevas:**
+
+| Archivo | Función |
+|---------|---------|
+| `src/utilidades/repositorioBase.ts` | Interface `IRepositorio<T>` + clase abstracta `RepositorioBase<T>`. Materializa herencia + genéricos (rúbrica DAM). |
+| `src/utilidades/cifrado.ts` | AES-256-GCM para IBAN. `cifrarTexto` / `descifrarTexto`. Clave de `IBAN_ENCRYPTION_KEY`. |
+
+**Módulo usuarios (6 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/usuarios.rutas.test.ts`
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /usuarios/yo` | JWT | Perfil completo (sin hashContrasena ni ibanCifrado) |
+| `PATCH /usuarios/yo/cliente` | JWT+CLIENTE | Actualizar nombre, apellidos, teléfono, nacimiento |
+| `PATCH /usuarios/yo/contrasena` | JWT | Cambiar contraseña (verifica actual con bcrypt) |
+| `DELETE /usuarios/yo` | JWT | Soft-delete GDPR (pone `fechaEliminacion`) |
+| `PATCH /usuarios/yo/preferencias` | JWT+CLIENTE | Preferencias eco (certificados, maxKm, ciudad) |
+
+**Módulo diseñadores (6 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/disenadores.rutas.test.ts`
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /disenadores` | público | Lista paginada de diseñadores validados |
+| `GET /disenadores/:id` | público | Perfil público (IBAN omitido) |
+| `POST /disenadores/solicitar` | JWT+DISEÑADOR | Crear perfil de marca con IBAN cifrado |
+| `PATCH /disenadores/yo` | JWT+DISEÑADOR | Editar perfil de marca |
+| `PATCH /disenadores/:id/validar` | JWT+ADMIN | Aprobar o rechazar un diseñador |
+
+**Módulo direcciones (6 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/direcciones.rutas.test.ts`
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /direcciones` | JWT | Listar mis direcciones |
+| `POST /direcciones` | JWT | Crear dirección |
+| `PATCH /direcciones/:id` | JWT (propia) | Actualizar dirección |
+| `DELETE /direcciones/:id` | JWT (propia) | Eliminar dirección |
+| `PATCH /direcciones/:id/principal` | JWT (propia) | Marcar como dirección principal (transacción) |
+
+**Módulo certificados (5 archivos):** `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/certificados.rutas.test.ts`
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /certificados` | público | Lista todos los certificados de sostenibilidad |
+| `GET /certificados/:codigo` | público | Detalle por código enum (GOTS, OEKO_TEX…) |
+
+### Tests totales acumulados (51)
+
+| Suite | Tests | Cubre |
+|-------|-------|-------|
+| `salud.test.ts` | 3 | Bootstrap: /salud, /, 404 |
+| `autenticacion.servicio.test.ts` | 8 | Lógica: registro, login, refresco, reuso, logout |
+| `autenticacion.rutas.test.ts` | 5 | HTTP: /auth/registro, /auth/yo, /auth/logout |
+| `usuarios.rutas.test.ts` | 8 | HTTP: perfil, actualizar, contraseña, eliminar, preferencias |
+| `disenadores.rutas.test.ts` | 10 | HTTP: listar, obtener, solicitar, actualizar, validar |
+| `direcciones.rutas.test.ts` | 7 | HTTP: listar, crear, eliminar (propio/ajeno), principal |
+| `certificados.rutas.test.ts` | 10 | HTTP: listar, GOTS, código inválido, código no en seed |
+
+### Decisiones técnicas destacables
+
+| Decisión | Por qué |
+|----------|---------|
+| `select` explícito en `RepositorioUsuarios` (sin `hashContrasena`) | Garantía a nivel ORM de que el hash nunca viaja en respuestas HTTP; menos riesgo de fuga accidental que filtrar en capas superiores. |
+| `buscarHashContrasena` separado | Solo se fetch el hash cuando se necesita explícitamente (cambio de contraseña). Principio de mínimo privilegio en consultas. |
+| IBAN cifrado AES-256-GCM, ibanCifrado omitido en `seleccionPublica` del repo disenadores | El IBAN se almacena en BBDD cifrado; la clave vive solo en entorno. Nunca se devuelve en respuestas de listado ni de perfil. |
+| `$transaction` para `marcarPrincipal` | Atomicidad: si falla actualizar `cliente.direccionPredeterminadaId`, no se modifica `Direccion.esPrincipal` (y viceversa). |
+| Seed con `upsert` | Idempotente: se puede ejecutar múltiples veces sin duplicados. Útil en onboarding del evaluador. |
+| `cifrado.ts` mockeado en tests de disenadores | El cifrado real no aporta cobertura en tests de rutas HTTP; se testa la lógica del cifrado por separado. |
+| Rutas `disenadores`: `/solicitar`, `/yo` antes de `/:id` | Express evalúa en orden; los literales deben ir antes del parámetro dinámico para no capturarlo. |
+
+### Verificación local
+
+```bash
+cd "Galicia Wear/backend"
+npm run prisma:generate
+npm test                     # → 51 tests verdes
+
+# Con Postgres corriendo:
+npm run prisma:migrate -- --name fase2b
+npm run seed                 # → 6 certificados + 1 admin + 2 clientes + 2 diseñadores
+
+curl http://localhost:3000/certificados
+curl http://localhost:3000/disenadores
+curl http://localhost:3000/certificados/GOTS
+```
+
+### Preguntas probables del tribunal — Fase 2b
+
+1. **¿Por qué `RepositorioBase<T>` si Prisma ya abstrae la BBDD?**
+   > `RepositorioBase<T>` cumple dos objetivos distintos: (a) Demuestra el patrón herencia + genéricos que exige la rúbrica DAM (la jerarquía `IRepositorio<T>` → `RepositorioBase<T>` → `RepositorioUsuarios` es polimorfismo real). (b) Centraliza el singleton Prisma, por lo que cada módulo no repite la importación y en tests se puede inyectar un mock completo del repositorio sin tocar la cadena de herencia. El argumento "Prisma ya abstrae" es válido en apps con un único modelo de datos; en un marketplace con 4 módulos distintos, el repositorio concreto aporta tipado fuerte y separación de responsabilidades.
+
+2. **¿Por qué AES-256-GCM para el IBAN y no bcrypt?**
+   > Porque el IBAN necesita **descifrado** (para transferencias, facturación) y bcrypt es unidireccional. AES-256-GCM aporta confidencialidad **y** autenticación del texto cifrado (el tag GCM detecta cualquier manipulación del dato cifrado en BBDD). La clave nunca toca la BBDD — vive en la variable de entorno `IBAN_ENCRYPTION_KEY`.
+
+3. **¿Por qué `$transaction` en `marcarPrincipal` y no dos `update` secuenciales?**
+   > Porque si el servidor cae entre los dos `update`, la BBDD quedaría en estado inconsistente: la dirección marcada como principal y el campo `cliente.direccionPredeterminadaId` apuntando a otra. Con `$transaction`, Postgres aplica ACID: o se aplican los tres cambios juntos o ninguno.
+
+---
+
+---
+
+## Fase 2c — Módulos productos, variantes, imágenes ✅
+
+### Archivos generados (18 nuevos + 3 modificados)
+
+**Módulo productos (6 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/productos.rutas.test.ts`
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /productos` | público | Lista con filtros: busqueda, material, ciudad, maxKm, certificado |
+| `GET /productos/:slug` | público | Detalle completo: variantes + imágenes + certificados |
+| `POST /productos` | JWT+DISEÑADOR | Crear producto (slug generado automáticamente) |
+| `PATCH /productos/:id` | JWT+DISEÑADOR (propio) | Actualizar nombre, precio, km, material, activo |
+| `DELETE /productos/:id` | JWT+DISEÑADOR (propio) | Soft delete (activo=false) |
+
+**Módulo variantes (6 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/variantes.rutas.test.ts`
+
+Rutas nested bajo `/productos/:productoId/variantes` con `Router({ mergeParams: true })`.
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /productos/:productoId/variantes` | público | Lista tallas/colores/stock |
+| `POST /productos/:productoId/variantes` | JWT+DISEÑADOR | Crear variante con SKU |
+| `PATCH /productos/:productoId/variantes/:id` | JWT+DISEÑADOR | Actualizar stock/color/precio |
+| `DELETE /productos/:productoId/variantes/:id` | JWT+DISEÑADOR | Eliminar variante |
+
+**Módulo imágenes (6 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/imagenes.rutas.test.ts`
+
+Rutas nested bajo `/productos/:productoId/imagenes`.
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /productos/:productoId/imagenes` | público | Lista imágenes (principal primero) |
+| `POST /productos/:productoId/imagenes` | JWT+DISEÑADOR | Añadir imagen (stub URL — subida real en Fase 6) |
+| `PATCH /productos/:productoId/imagenes/:id/principal` | JWT+DISEÑADOR | Marcar como imagen principal (transacción) |
+| `PATCH /productos/:productoId/imagenes/:id` | JWT+DISEÑADOR | Actualizar alt text / posición |
+| `DELETE /productos/:productoId/imagenes/:id` | JWT+DISEÑADOR | Eliminar imagen |
+
+### Tests totales acumulados (75)
+
+| Suite | Tests |
+|-------|-------|
+| Fases anteriores (salud + auth + usuarios + disenadores + direcciones + certificados) | 51 |
+| `productos.rutas.test.ts` | 9 |
+| `variantes.rutas.test.ts` | 8 |
+| `imagenes.rutas.test.ts` | 7 |
+
+### Seed ampliado
+
+- 3 productos de Liñares Moda (CORUNA):
+  - *Camiseta Lino Gallego* — LINO, km 15, cert. GOTS, 3 variantes
+  - *Jersey Lana Atlántica* — LANA_RECICLADA, km 45, cert. GRS, 3 variantes
+  - *Falda Algodón Orgánico* — ALGODON_ORGANICO, km 20, cert. GOTS+OEKO_TEX, 3 variantes
+- Cada producto tiene 1 imagen placeholder (Unsplash)
+
+### Decisiones técnicas destacables
+
+| Decisión | Por qué |
+|----------|---------|
+| Routers anidados con `mergeParams: true` | Permite que `peticion.params.productoId` sea accesible en los sub-routers de variantes e imágenes sin romper la encapsulación. |
+| `use('/:productoId/variantes', ...)` antes de `get('/:slug', ...)` | Express evalúa en orden; el `use` con 2 segmentos debe estar antes del `get` con 1 para no generar ambigüedad en el enrutado. |
+| Filtro `busqueda` como `ILIKE` en nombre+descripción | Suficiente para Fase 2c; full-text con `to_tsvector` se añade en Fase 7 junto con el índice GIN. |
+| `eliminar` como soft-delete (`activo=false`) | Los pedidos existentes referencian `Variante`; una eliminación física rompería la integridad referencial. El admin puede ver productos inactivos en Fase 5 (desktop). |
+| Tipos exportados manualmente en `repositorio.ts` de productos | Evita incompatibilidades entre `as const` y los `orderBy` anidados de Prisma, que no son compatibles con `readonly` arrays. |
+
+### Verificación local
+
+```bash
+cd "Galicia Wear/backend"
+npm test                       # → 75 tests verdes
+
+# Con Postgres corriendo:
+npm run prisma:migrate -- --name fase2c
+npm run seed                   # → 3 productos + variantes + imágenes + certificados
+
+curl http://localhost:3000/productos
+curl "http://localhost:3000/productos?material=LINO&maxKm=20"
+curl "http://localhost:3000/productos?certificado=GOTS"
+curl http://localhost:3000/productos/camiseta-lino-gallego-seed
+```
+
+### Preguntas probables del tribunal — Fase 2c
+
+1. **¿Por qué los filtros de sostenibilidad están en el propio endpoint GET /productos?**
+   > Porque el buyer persona "Ana" filtra activamente por certificado, distancia y material antes de entrar en detalle. Exponer los filtros en el endpoint de lista evita una segunda llamada al servidor para refinar resultados. En Prisma, los filtros sobre relaciones (`certificados.some.certificado.codigo`) se traducen a joins SQL eficientes. El coste de un índice extra en `Producto.materialPrincipal` es mínimo vs. el beneficio de UX.
+
+2. **¿Por qué imágenes son URLs y no archivos subidos?**
+   > En Fase 2c es un stub intencionado. La integración con almacenamiento externo (S3/Cloudinary) requiere configurar credenciales de terceros y manejar multipart/form-data. Separar la API de subida de la lógica de negocio es buena práctica. En Fase 6 (web), el componente de upload enviará el archivo al proveedor y guardará la URL resultante — este endpoint ya está listo para recibir esa URL.
+
+3. **¿Qué ocurre con las variantes si se desactiva un producto?**
+   > Las variantes permanecen en BBDD (`activo` solo está en `Producto`). Esto es intencional: si el diseñador vuelve a activar el producto, las variantes ya están listas. Los pedidos históricos que referencian esas variantes siguen siendo coherentes. La ruta GET pública ya filtra `activo: true`, así que las variantes de productos inactivos no se exponen al público.
+
+---
+
+---
+
+## Fase 2d — Módulos carrito, pedidos, envíos ✅
+
+### Archivos generados (17 nuevos + 2 modificados)
+
+**Módulo carrito (6 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/carrito.rutas.test.ts`
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /carrito` | JWT+CLIENTE | Carrito con ítems, variante, producto e imagen principal |
+| `POST /carrito/items` | JWT+CLIENTE | Añadir/actualizar artículo (upsert por varianteId) |
+| `DELETE /carrito/items/:varianteId` | JWT+CLIENTE | Eliminar artículo concreto |
+| `DELETE /carrito` | JWT+CLIENTE | Vaciar todo el carrito |
+
+**Módulo pedidos (5 archivos):** `dto.ts` · `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/pedidos.rutas.test.ts`
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `POST /pedidos` | JWT+CLIENTE | Checkout: valida stock, calcula totales, crea pedido (transacción ACID), vacía carrito |
+| `GET /pedidos` | JWT | Lista: clientes ven sus compras; diseñadores sus ventas |
+| `GET /pedidos/:id` | JWT | Detalle (con autorización: solo el cliente o diseñador del pedido) |
+| `PATCH /pedidos/:id/pagar` | JWT+CLIENTE | Stub payment (PENDIENTE_PAGO → PAGADO) |
+| `PATCH /pedidos/:id/aceptar` | JWT+DISEÑADOR | Acepta sus líneas + crea Envio stub (PAGADO → ACEPTADO) |
+| `PATCH /pedidos/:id/cancelar` | JWT | Cancela y restaura stock (PENDIENTE_PAGO/PAGADO → CANCELADO) |
+
+**Módulo envíos (5 archivos, nested):** `repositorio.ts` · `servicio.ts` · `controlador.ts` · `rutas.ts` · `tests/envios.rutas.test.ts`
+
+Rutas nested bajo `/pedidos/:pedidoId/envio` con `Router({ mergeParams: true })`.
+
+| Endpoint | Auth | Descripción |
+|----------|------|-------------|
+| `GET /pedidos/:pedidoId/envio` | JWT (cliente o diseñador del pedido) | Ver datos del envío |
+| `PATCH /pedidos/:pedidoId/envio` | JWT+DISEÑADOR | Actualizar tracking, transportista; marcar ENVIADO/ENTREGADO |
+
+### Tests totales acumulados (98)
+
+| Suite | Tests |
+|-------|-------|
+| Fases anteriores (75) | 75 |
+| `carrito.rutas.test.ts` | 8 |
+| `pedidos.rutas.test.ts` | 8 |
+| `envios.rutas.test.ts` | 7 |
+
+### Decisiones técnicas destacables
+
+| Decisión | Por qué |
+|----------|---------|
+| Transacción checkout re-verifica stock | Pre-check en el servicio detecta problemas obvios; la re-verificación dentro de `$transaction` protege de race conditions donde dos clientes compran el último stock simultáneamente. |
+| `cancelar` restaura stock en la misma transacción | Si la actualización del estado falla, el stock vuelve a su valor anterior (atomicidad garantizada). |
+| Número de pedido `GW-YYYY-NNNNN` generado con `COUNT` dentro de la transacción | Sencillo para TFG + la restricción `@unique` en `numeroPedido` es la última línea de defensa contra duplicados. |
+| Envío gratuito ≥50€, coste fijo 4,90€ para el resto | Regla de negocio simple y justificable ante el tribunal. Se puede parametrizar en Fase 7. |
+| `pagar` como stub | La integración con pasarela real (Stripe/Redsys) escapa al alcance del TFG; el endpoint permite demostrar el flujo completo sin dependencias externas. |
+| Máquina de estados explícita por `estadosCancelables: EstadoPedido[]` | Declarar el array con tipo explícito satisface a TypeScript y documenta intencionalmente qué estados permiten cancelación. |
+
+### Verificación local
+
+```bash
+cd "Galicia Wear/backend"
+npm test                       # → 98 tests verdes
+
+# Flujo completo (con Postgres + seed ejecutado):
+# 1. Registro cliente
+curl -X POST http://localhost:3000/auth/registro \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"ana@test.gal","contrasena":"Prueba123","nombre":"Ana","apellidos":"López","rol":"CLIENTE"}'
+
+# 2. Añadir al carrito (usar varianteId del seed)
+curl -X POST http://localhost:3000/carrito/items \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"varianteId":"<id-variante>","cantidad":1}'
+
+# 3. Checkout
+curl -X POST http://localhost:3000/pedidos \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"direccionEnvioId":"<id-direccion>","metodoPago":"TARJETA"}'
+```
+
+### Preguntas probables del tribunal — Fase 2d
+
+1. **¿Por qué dos verificaciones de stock (servicio + transacción)?**
+   > El servicio hace un pre-check ligero que devuelve error claro al usuario sin abrir una transacción. La re-verificación dentro de `$transaction` es la garantía real de consistencia: Postgres serializa los accesos, por lo que si dos requests concurrentes pasan el pre-check pero solo hay 1 unidad, solo una transacción tendrá éxito — la otra encontrará stock=0 y lanzará error 500 (que el servicio traduce a ErrorReglaDeNegocio antes del commit).
+
+2. **¿Cómo se gestiona un pedido multi-diseñador?**
+   > Cada `LineaPedido` lleva su propio `disenadorId` y `estadoLinea`. El diseñador A solo puede aceptar/enviar sus propias líneas. El `Pedido.estado` general avanza a ACEPTADO cuando TODAS las líneas están aceptadas; si solo acepta el diseñador A pero no B, el pedido permanece en PAGADO. Esto permite envíos parciales mientras el tribunal no lo exija, y es lo que modela el diagrama UML de la Fase 1.
+
+3. **¿Por qué `cancelar` restaura stock pero `eliminar`(soft-delete de producto) no?**
+   > Son eventos de naturaleza diferente. `cancelar` es un hecho de negocio que deshace el compromiso de stock (el cliente ya no quiere comprar). El soft-delete de producto ocurre mientras puede haber pedidos en curso con ese producto — si liberásemos stock ahí, estaríamos incrementando stock de un producto que el diseñador acaba de retirar, lo que induciría a error. El stock de un producto inactivo simplemente "queda congelado" y el admin puede gestionarlo desde el panel.
+
+---
+
+---
+
+## Fase 2e — Swagger / OpenAPI ✅
+
+### Archivos (1 nuevo + 2 modificados)
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/configuracion/swagger.ts` | Config `swagger-jsdoc`: OpenAPI 3.0.3, 11 tags, security scheme Bearer JWT |
+| `src/aplicacion.ts` | Monta `/api/docs` (Swagger UI) + `/api/docs.json` (spec JSON) |
+| `tests/salud.test.ts` | Smoke test: verifica que `/api/docs.json` devuelve spec válida |
+
+### Endpoints nuevos
+
+| Endpoint | Descripción |
+|----------|-------------|
+| `GET /api/docs` | Swagger UI interactiva (HTML) |
+| `GET /api/docs.json` | Especificación OpenAPI 3.0.3 en JSON |
+
+### Tests: 99/99 verdes
+
+---
+
+## Fase 2 — Backend completo ✅
+
+**Resumen de la Fase 2 completa (sub-fases 2a → 2e):**
+
+| Sub-fase | Módulos | Tests |
+|----------|---------|-------|
+| 2a | Auth JWT + refresh + schema Prisma | 16 |
+| 2b | Usuarios · Diseñadores · Direcciones · Certificados · RepositorioBase\<T\> | 51 |
+| 2c | Productos · Variantes · Imágenes (rutas nested) | 75 |
+| 2d | Carrito · Pedidos (checkout ACID) · Envíos | 98 |
+| 2e | Swagger UI `/api/docs` | 99 |
+
+**Total backend:** 13 módulos · 66 endpoints · 99 tests · API documentada.
+
+---
+
+---
+
+## Fase 3a — MongoDB: modelos + conexión al servidor del colegio ✅
+
+### Servidor: `dam2.colexio-karbo.com:57017` · Base: `psuarezvarela`
+
+**Archivos nuevos (9):**
+
+| Archivo | Función |
+|---------|---------|
+| `backend/.env` | Credenciales reales (gitignored) — incluye `MONGO_URI` |
+| `src/utilidades/mongo.ts` | Singleton Mongoose con reconexión automática |
+| `src/utilidades/auditoria.ts` | Fire-and-forget para `ActivityLog` (no bloquea flujo principal) |
+| `src/modulos/mongo/esquemas/actividadLog.ts` | TTL 90 días · índices usuarioId + accion |
+| `src/modulos/mongo/esquemas/recomendacion.ts` | TTL por campo fechaExpiracion |
+| `src/modulos/mongo/esquemas/mediaResena.ts` | Fotos/vídeos de reseñas (binarios fuera de Postgres) |
+| `src/modulos/mongo/esquemas/carritoAnonimo.ts` | TTL 30 días de inactividad |
+| `src/modulos/mongo/esquemas/notificacionLog.ts` | TTL 60 días · 8 tipos de notificación |
+| `src/modulos/mongo/index.ts` | Barrel export de todos los modelos |
+
+**Colecciones creadas en `psuarezvarela`:**
+- `activity_logs` — TTL 90 días, índices: usuarioId, accion, fechaCreacion
+- `recommendations` — TTL por fechaExpiracion (0 = usa el propio campo)
+- `review_media` — único por resenaId
+- `anonymous_carts` — TTL 30 días por fechaActualizacion
+- `notification_logs` — TTL 60 días, índices: destinatarioId, leida, fechaCreacion
+
+**Integración:** `index.ts` conecta a MongoDB al arrancar (fallo silencioso si no está disponible). El servicio de autenticación escribe `REGISTRO` y `LOGIN` a `activity_logs`.
+
+**Tests: 99/99 verdes** (mock de `auditoria` añadido a los tests de autenticación).
+
+### Preguntas probables del tribunal — Fase 3a
+
+1. **¿Por qué MongoDB para los logs y no otra tabla en PostgreSQL?**
+   > PostgreSQL es excelente para datos transaccionales con relaciones estrictas, pero los logs de actividad tienen patrones de escritura muy distintos: alta frecuencia, sin joins, sin transacciones, y necesitan expirar automáticamente (TTL). MongoDB ofrece TTL indexes nativos, escrituras de alta velocidad sin coordinación y un esquema flexible que permite añadir campos de detalles variables sin migraciones. Además, la rúbrica DAM exige explícitamente dos tipos de BBDD.
+
+2. **¿Qué es un TTL index en MongoDB y por qué lo usas aquí?**
+   > Un TTL (Time To Live) index le dice a MongoDB que borre automáticamente los documentos `N` segundos después del valor del campo indexado. En `activity_logs`, el TTL de 90 días significa que los logs más antiguos se purgan sin ninguna tarea programada — MongoDB lo hace internamente con un proceso background que corre cada 60 segundos. Esto evita crecimiento ilimitado de la colección sin intervención manual.
+
+3. **¿Por qué el logger de auditoría es "fire-and-forget" en vez de `await`?**
+   > La escritura del log no es parte del contrato de negocio: si el login de Ana funciona pero el log falla (MongoDB no disponible), Ana debe poder entrar igualmente. Si hago `await`, un fallo de Mongo se propaga al cliente como un 500 inexplicable. Con fire-and-forget, el error queda en los logs del servidor (pino) pero el flujo principal continúa. Es el mismo principio que usan Google Analytics o Datadog: la telemetría no puede tumbar la operación principal.
+
+---
+
 ## Próxima fase
 
-**Fase 2b — Módulos `usuarios`, `disenadores`, `direcciones`, `certificados`** (~35 archivos, 1 sesión):
+---
 
-- `modulos/usuarios/`: CRUD de perfil, cambio de contraseña, borrado GDPR.
-- `modulos/disenadores/`: alta como diseñador (solicitud), edición de marca, listar diseñadores públicos.
-- `modulos/direcciones/`: CRUD de direcciones del usuario, marcar como predeterminada.
-- `modulos/certificados/`: catálogo público de certificados sostenibles (read-only, datos por seed).
-- Introducir `RepositorioBase<T>` genérico que heredarán los repositorios de estos módulos.
+## Fase 3b — backup.sh + restore.sh + export/import XML/JSON + admin ✅
 
-> Confirma con "OK Fase 2b" para empezar.
+### Archivos generados (8 nuevos + 2 modificados)
+
+**Scripts (`scripts/`):**
+
+| Script | Función |
+|--------|---------|
+| `backup.sh` | `pg_dump` + `mongodump` → `.tar.gz` con timestamp · retención 30 días · cron `0 3 * * *` |
+| `restore.sh` | Extrae backup → `pg_restore` + `mongorestore --drop` |
+
+**Módulo admin (`src/modulos/admin/`):**
+
+| Archivo | Función |
+|---------|---------|
+| `repositorio.ts` | Estadísticas del dashboard + query de productos para exportar |
+| `exportacion.ts` | `worker_threads` eval-mode: genera XML o JSON sin bloquear el event loop |
+| `importacion.ts` | `fast-xml-parser` para XML; JSON nativo; upsert de productos en PostgreSQL |
+| `controlador.ts` | Handlers HTTP para stats, export y import |
+| `rutas.ts` | 4 endpoints ADMIN: `/estadisticas`, `/exportar/productos.json`, `/exportar/productos.xml`, `/importar/productos` |
+| `tests/admin.rutas.test.ts` | 8 tests: auth, permisos, stats, export JSON/XML, import JSON/XML |
+
+### Endpoints admin (todos JWT+ADMIN)
+
+| Endpoint | Descripción |
+|----------|-------------|
+| `GET /admin/estadisticas` | KPIs: usuarios, productos, pedidos mes, ingresos, estado pedidos |
+| `GET /admin/exportar/productos.json` | Descarga JSON del catálogo (worker_threads) |
+| `GET /admin/exportar/productos.xml` | Descarga XML del catálogo (worker_threads) |
+| `POST /admin/importar/productos` | Body: `{ formato, datos }` — crea/actualiza productos desde JSON o XML |
+
+### Tests: 107/107 verdes
+
+### Cobertura de rúbrica DAM cubierta en Fase 3
+
+| Contenido DAM | Cómo se cubre |
+|---|---|
+| BBDD NoSQL (MongoDB) | 5 colecciones con TTL, conexión Mongoose, logs de auditoría |
+| Script backup | `backup.sh` + `restore.sh` funcionales |
+| XML/JSON import/export | `/admin/exportar/productos.xml` + `.json` + `/admin/importar/productos` |
+| Hilos + comunicación entre procesos | `worker_threads` eval-mode en `exportacion.ts` |
+
+### Preguntas probables del tribunal — Fase 3b
+
+1. **¿Por qué worker_threads para generar el XML si Node ya es asíncrono?**
+   > Node.js es single-threaded en el event loop: operaciones de E/S (red, disco) son asíncronas pero el procesado de CPU (construir un string XML de 10 000 productos) bloquea el hilo principal durante cientos de milisegundos. En ese tiempo, otras peticiones al servidor quedarían en cola. `worker_threads` crea un hilo OS separado con su propio contexto V8 → el event loop principal sigue libre. El worker recibe los datos via `workerData` (paso por copia, sin memoria compartida) y devuelve el resultado via `parentPort.postMessage`. Esto es diferente a los `child_process` (que arrancan un nuevo proceso): los workers son más ligeros porque comparten el mismo proceso Node.
+
+2. **¿Por qué el import usa un envelope JSON `{ formato, datos }` en vez de Content-Type nativo?**
+   > Express aplica `express.json()` globalmente antes de que llegue a cualquier ruta. Para `Content-Type: application/xml`, el body quedaría sin parsear (raw stream). Aunque se puede añadir un middleware por ruta que lee el stream crudo, choca con la forma en que Supertest envía los datos en el entorno de test. El envelope JSON es más predecible, más fácil de documentar en Swagger y evita diferencias de comportamiento entre frameworks de test y producción. Es el mismo patrón que usan APIs como Cloudinary o AWS cuando necesitan mezclar datos binarios/XML con metadatos.
+
+3. **El `backup.sh` usa `pg_dump --format=custom`. ¿Qué ventaja tiene sobre `--format=plain` (SQL)?**
+   > El formato `custom` (`-Fc`) genera un fichero binario comprimido que: (a) es significativamente más pequeño que el SQL plano; (b) permite restauración selectiva tabla a tabla con `pg_restore --table=...`; (c) soporta restauración paralela con `pg_restore --jobs=N` para bases de datos grandes; (d) siempre es compatible con la versión mayor de PostgreSQL en adelante. El SQL plano es útil para inspección manual, pero para backups automáticos el formato custom es la práctica profesional estándar.
+
+---
+
+## Fase 3 — Persistencia avanzada COMPLETA ✅
+
+| Sub-fase | Contenido |
+|----------|-----------|
+| 3a | MongoDB servidor colegio, 5 colecciones con TTL, auditoría fire-and-forget |
+| 3b | backup.sh + restore.sh + export/import XML/JSON + worker_threads + stats admin |
+
+---
+
+---
+
+## Fase 4 — App móvil Android (Java nativo) ✅
+
+- **Última actualización**: 2026-05-21.
+- **Rama**: `Fase4`.
+
+### Archivos generados (~95 nuevos)
+
+#### Configuración de build
+
+| Archivo | Función |
+|---------|---------|
+| `android/gradle/libs.versions.toml` | Version catalog completo: Hilt 2.52, Retrofit 2.11, Room 2.6, Socket.IO 2.1, Firebase BoM 33.6, Glide 4.16 |
+| `android/build.gradle` | Plugins raíz: AGP + Hilt + Google Services |
+| `android/app/build.gradle` | Todas las dependencias + ViewBinding + BuildConfig + Java 17 |
+| `android/app/google-services.json` | Stub FCM (reemplazar con proyecto Firebase real en producción) |
+
+#### Infraestructura Java
+
+| Capa | Clases clave | Patrón |
+|------|-------------|--------|
+| Application | `AppGaliciawear` | @HiltAndroidApp, canal de notificaciones |
+| Sesión | `GestorSesion` | Singleton SharedPreferences — tokens JWT, onboarding flag |
+| Utilidades | `Constantes`, `RecursoUi<T>` | Resource wrapper (Loading/Success/Error) |
+| DI | `ModuloRed`, `ModuloBaseDatos`, `ModuloRepositorios` | Hilt @Module @InstallIn(SingletonComponent) |
+
+#### Capa de datos
+
+| Sub-capa | Clases |
+|----------|--------|
+| DTOs Retrofit | `DtoRespuestaToken/Usuario/Producto/Carrito/Pedido/Mensaje`, `DtoPeticionLogin/Registro/CarritoItem/Pedido`, `DtoRespuestaListaProductos` |
+| API Retrofit | `ServicioApi` — 20+ endpoints: auth, productos, carrito, pedidos |
+| Interceptor OkHttp | `InterceptorJwt` — añade `Authorization: Bearer` + logout en 401 |
+| Room (caché offline) | `EntidadProducto`, `EntidadItemCarrito`, `DaoProducto`, `DaoCarrito`, `BaseDatosLocal` |
+| Repositorios | `RepositorioAutenticacion`, `RepositorioProductos` (cache-then-network), `RepositorioCarrito`, `RepositorioPedidos`, `RepositorioChat` (Socket.IO) |
+
+#### MVVM — ViewModels
+
+`ModeloVistaAutenticacion`, `ModeloVistaProductos` (filtros persistentes), `ModeloVistaCarrito`, `ModeloVistaPedidos`, `ModeloVistaChat`, `ModeloVistaPerfil`
+
+#### UI — 10 pantallas
+
+| # | Pantalla | Clase | Criterio UX aplicado |
+|---|----------|-------|---------------------|
+| 1 | Splash + animación | `ActividadSplash` | Feedback inmediato: logo fade-in 900ms |
+| 2 | Onboarding (3 slides) | `ActividadIncorporacion` + `AdaptadorIncorporacion` | Ley de Hick: solo 3 pantallas, 2 botones |
+| 3 | Login / Registro | `ActividadAutenticacion` + `FragmentoLogin` + `FragmentoRegistro` | Prevención errores: botón desactivado; errores en TextInputLayout |
+| 4 | Hub principal (5 tabs) | `ActividadPrincipal` + `FragmentoInicio/Buscador/Carrito/Pedidos/Perfil` | Ley de Fitts: BottomNav en zona pulgar; badge carrito |
+| 5 | Detalle producto | `ActividadDetalleProducto` | Chips variantes (Hick); botón AR stub; Snackbar con acción |
+| 6 | Buscador con filtros | `FragmentoBuscador` | Chips certificados (GOTS/OEKO-TEX/GRS); filtros persistentes en ViewModel |
+| 7 | Carrito + Checkout | `FragmentoCarrito` + `ActividadCheckout` | Envío eco switch; ACID en backend |
+| 8 | Mis pedidos | `FragmentoPedidos` + `ActividadDetallePedido` | Tracking + número de seguimiento |
+| 9 | Chat Socket.IO | `ActividadChat` + `AdaptadorMensajes` | Burbujas distintas (propio/ajeno); indicator conexión |
+| 10 | Perfil + logout | `FragmentoPerfil` | Confirmación AlertDialog (prevención de errores) |
+
+#### FCM
+
+`ServicioFcm` — `@AndroidEntryPoint`, `onNewToken()`, `onMessageReceived()`, canal de notificaciones Android 8+
+
+#### Tests
+
+| Suite | Tests | Tipo |
+|-------|-------|------|
+| `ModeloVistaProductosTest` | 4 | JUnit + Mockito (unitario) |
+| `RepositorioAutenticacionTest` | 4 | JUnit + Mockito (unitario) |
+| `FlujoPantallaLoginTest` | 4 | Espresso (UI) |
+| `FlujoCarritoTest` | 2 | Room integration (Android) |
+
+### Decisiones técnicas destacables
+
+| Decisión | Por qué |
+|----------|---------|
+| MVVM con LiveData (no Coroutines) | El proyecto es Java puro. LiveData + callbacks Retrofit es idiomático en Java Android; Coroutines requiere Kotlin. |
+| Cache-then-network en RepositorioProductos | Respuesta visual inmediata (Ley de Fitts). Room emite datos cacheados antes de que llegue la red. |
+| RepositorioChat @Singleton | El socket no se recrea en cada rotación de pantalla. El ViewModel observa nuevoMensaje con `observeForever`. |
+| Socket.IO con `auth` callback | Socket.IO v4 usa autenticación basada en `auth` en el handshake. El callback en Java evita capturar referencias a `this` con riesgo de leak. |
+| Google Services stub | La app compila y arranca sin credenciales FCM reales. El stub permite desarrollo sin acceso a Firebase Console. |
+| ViewBinding (no DataBinding) | ViewBinding genera código de acceso a vistas sin expressions en XML — más simple, más rápido de compilar, sin riesgo de NPE por bindings nulos. |
+| `attach/detach` vs `replace` en fragmentos | `replace` destruye y recrea el fragmento al cambiar de pestaña. Con `show/hide` se conserva el estado de scroll y los campos de búsqueda. |
+| Confirmación AlertDialog en logout | Prevención de errores: acción destructiva/irreversible requiere confirmación explícita (principio de diseño UI/UX). |
+
+### Verificación local
+
+```bash
+# 1. Sincronizar Gradle (desde Android Studio: File → Sync Project with Gradle Files)
+#    O desde línea de comandos:
+cd "Galicia Wear/android"
+./gradlew assembleDebug                # Build del APK de debug
+
+# 2. Tests unitarios (sin emulador)
+./gradlew test
+
+# 3. Tests instrumentados (requiere emulador o dispositivo conectado)
+./gradlew connectedAndroidTest
+
+# 4. Instalar en emulador y probar flujo completo:
+./gradlew installDebug
+# Arrancar también el backend:
+cd ../backend && npm run dev           # http://10.0.2.2:3000 desde el emulador
+```
+
+### Preguntas probables del tribunal — Fase 4
+
+1. **¿Por qué MVVM y no MVC o MVP en Android?**
+   > MVVM es el patrón oficial de Google para Android desde 2017. El ViewModel sobrevive a las rotaciones de pantalla (el `Activity` se destruye pero el ViewModel no), lo que evita volver a cargar datos de red innecesariamente. LiveData garantiza que la UI solo se actualiza cuando está en estado STARTED/RESUMED, eliminando crashes por actualizar vistas destruidas. MVP tendría el mismo problema de rotaciones y requeriría gestionar manualmente el ciclo de vida. MVC en Android mezcla lógica de presentación con Activity, creando "God Activities" de 1000+ líneas imposibles de testear.
+
+2. **¿Por qué Hilt para la inyección de dependencias?**
+   > Hilt es la solución DI oficial de Google para Android, construida sobre Dagger 2. Genera código de binding en tiempo de compilación (no reflexión en runtime), lo que lo hace rápido y seguro. El principal beneficio para el TFG es la testabilidad: en los tests unitarios se inyectan mocks del repositorio sin cambiar nada en el ViewModel. Sin DI, el ViewModel crearía sus dependencias internamente (`new RepositorioProductos()`) y sería imposible aislarlas para testear. La alternativa manual (ServiceLocator) escala peor y es propenso a errores de threading.
+
+3. **¿Cómo funciona la comunicación en tiempo real con Socket.IO?**
+   > El `RepositorioChat` es un @Singleton que gestiona un objeto `Socket` de la librería `socket.io-client-java`. Al entrar al chat, llama a `conectar()` que abre una conexión WebSocket con el backend mediante el handshake Socket.IO v4 (protocolo sobre HTTP que luego hace upgrade a WebSocket). El token JWT se envía en el payload `auth` del handshake para que el servidor autorice la conexión. Los mensajes se reciben en un listener `socket.on("nuevo_mensaje", ...)` que actualiza un `MutableLiveData<DtoRespuestaMensaje>`. El ViewModel observa este LiveData con `observeForever` y añade cada mensaje a la lista. El RecyclerView del chat, que observa la lista, se actualiza automáticamente. Cubre el requisito DAM "Sockets/WebSockets e hilos".
+
+## Próxima fase
+
+**Fase 5 — App de escritorio JavaFX (Panel Admin)** — MVC, Java 17, OkHttp, Socket WebSocket cliente.
+
+> Confirma con "OK Fase 5" para empezar.
