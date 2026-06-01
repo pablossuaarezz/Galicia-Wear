@@ -16,6 +16,7 @@
       "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-24.jdk/Contents/Home ./gradlew :app:help --console=plain)",
       "Bash(cat .idea/gradle.xml)",
       "Bash(cat .idea/.name)",
+      "Bash(cat .idea/modules.xml)"
     ]
   }
 }
