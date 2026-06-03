@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Familia tipográfica Syne (Google Fonts, OFL). Mapea cada peso a su .ttf para
+    que la app use Syne Regular en el cuerpo y Syne Bold/ExtraBold en los títulos
+    (textStyle="bold" → peso 700 automáticamente).
+    Se declaran los atributos en app: (AndroidX) y android: para compatibilidad.
+-->
+<font-family xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <font app:fontWeight="400" app:fontStyle="normal" app:font="@font/syne_regular"
+        android:fontWeight="400" android:fontStyle="normal" android:font="@font/syne_regular" />
+    <font app:fontWeight="500" app:fontStyle="normal" app:font="@font/syne_medium"
+        android:fontWeight="500" android:fontStyle="normal" android:font="@font/syne_medium" />
+    <font app:fontWeight="600" app:fontStyle="normal" app:font="@font/syne_semibold"
+        android:fontWeight="600" android:fontStyle="normal" android:font="@font/syne_semibold" />
+    <font app:fontWeight="700" app:fontStyle="normal" app:font="@font/syne_bold"
+        android:fontWeight="700" android:fontStyle="normal" android:font="@font/syne_bold" />
+    <font app:fontWeight="800" app:fontStyle="normal" app:font="@font/syne_extrabold"
+        android:fontWeight="800" android:fontStyle="normal" android:font="@font/syne_extrabold" />
+</font-family>

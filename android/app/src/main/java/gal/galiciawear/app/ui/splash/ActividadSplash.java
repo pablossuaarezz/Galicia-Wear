@@ -13,8 +13,10 @@ import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.databinding.ActividadSplashBinding;
 import gal.galiciawear.app.modelovista.ModeloVistaAutenticacion;
 import gal.galiciawear.app.ui.autenticacion.ActividadAutenticacion;
+import gal.galiciawear.app.ui.disenador.ActividadDisenadorPendiente;
 import gal.galiciawear.app.ui.incorporacion.ActividadIncorporacion;
 import gal.galiciawear.app.ui.principal.ActividadPrincipal;
+import gal.galiciawear.app.utilidades.Constantes;
 
 /**
  * Pantalla de splash con logo animado.
@@ -66,16 +68,24 @@ public class ActividadSplash extends AppCompatActivity {
     }
 
     private void navegarSiguientePantalla() {
-        Intent destino;
-
         if (!modeloVista.onboardingYaVisto()) {
-            destino = new Intent(this, ActividadIncorporacion.class);
+            irA(new Intent(this, ActividadIncorporacion.class));
         } else if (!modeloVista.hayTokenAcceso()) {
-            destino = new Intent(this, ActividadAutenticacion.class);
+            irA(new Intent(this, ActividadAutenticacion.class));
+        } else if (Constantes.ROL_DISENADOR.equals(modeloVista.obtenerRol())) {
+            // Diseñador con sesión: comprobamos si ya está validado antes de entrar.
+            modeloVista.estaValidadoComoDisenador().observe(this, recurso -> {
+                if (recurso == null || recurso.estaCargando()) return;
+                boolean validado = recurso.esExito() && Boolean.TRUE.equals(recurso.datos);
+                irA(new Intent(this,
+                    validado ? ActividadPrincipal.class : ActividadDisenadorPendiente.class));
+            });
         } else {
-            destino = new Intent(this, ActividadPrincipal.class);
+            irA(new Intent(this, ActividadPrincipal.class));
         }
+    }
 
+    private void irA(Intent destino) {
         startActivity(destino);
         finish(); // Eliminar del back-stack: el usuario no debe volver al splash
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);

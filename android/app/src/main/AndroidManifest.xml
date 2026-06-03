@@ -91,6 +91,36 @@
             android:windowSoftInputMode="adjustResize" />
 
         <!-- ══════════════════════════════════════════════════════════════════
+             ÁREA DE DISEÑADOR (accesible desde Perfil cuando rol == DISENADOR)
+        ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- Espera de validación del diseñador (refrescar / entrar como cliente) -->
+        <activity
+            android:name=".ui.disenador.ActividadDisenadorPendiente"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Alta/edición del perfil de marca (lo valida un admin desde el panel) -->
+        <activity
+            android:name=".ui.disenador.ActividadPerfilDisenador"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Catálogo de prendas del diseñador -->
+        <activity
+            android:name=".ui.disenador.ActividadMisPrendas"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Alta/edición de una prenda: datos, variantes y fotos (URL en SQL) -->
+        <activity
+            android:name=".ui.disenador.ActividadEditarPrenda"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- ══════════════════════════════════════════════════════════════════
              SERVICIOS
         ══════════════════════════════════════════════════════════════════ -->
 

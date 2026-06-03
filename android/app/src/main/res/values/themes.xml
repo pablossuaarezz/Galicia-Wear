@@ -41,6 +41,27 @@
         <item name="shapeAppearanceCornerMedium">@style/Forma.GaliciaWear.Media</item>
         <item name="shapeAppearanceCornerLarge">@style/Forma.GaliciaWear.Grande</item>
 
+        <!-- ====================  TIPOGRAFÍA: SYNE  ====================
+             Fuente por defecto de toda la app. El cuerpo usa Syne Regular y los
+             títulos (textStyle="bold") Syne Bold. Además se redefinen las
+             tipografías de Material para que toolbars, diálogos, botones y
+             pestañas también rendericen en Syne. -->
+        <item name="android:fontFamily">@font/syne</item>
+        <item name="fontFamily">@font/syne</item>
+
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.GaliciaWear.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.GaliciaWear.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.GaliciaWear.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.GaliciaWear.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.GaliciaWear.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.GaliciaWear.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.GaliciaWear.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.GaliciaWear.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.GaliciaWear.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.GaliciaWear.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.GaliciaWear.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.GaliciaWear.LabelSmall</item>
+
         <!-- Estilos por defecto de los componentes -->
         <item name="materialButtonStyle">@style/Widget.GaliciaWear.Boton</item>
         <item name="materialCardViewStyle">@style/Widget.GaliciaWear.Tarjeta</item>
@@ -96,8 +117,68 @@
 
     <style name="TextAppearance.GaliciaWear.Toolbar" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:textColor">@color/en_primario</item>
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <!-- ====================  TIPOGRAFÍAS SYNE  ====================
+         Títulos y cabeceras en Syne Bold; cuerpo y etiquetas en Syne (regular).
+         Conservan el tamaño/espaciado de cada nivel Material vía el parent. -->
+    <style name="TextAppearance.GaliciaWear.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
+    </style>
+    <style name="TextAppearance.GaliciaWear.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/syne</item>
+        <item name="android:fontFamily">@font/syne</item>
     </style>
 
     <!-- ====================  NAVEGACIÓN INFERIOR  ==================== -->

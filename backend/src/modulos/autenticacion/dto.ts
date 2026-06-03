@@ -19,14 +19,19 @@ const contrasenaSchema = z
   .refine((valor) => /[a-z]/.test(valor), 'Debe incluir al menos una letra minúscula')
   .refine((valor) => /[0-9]/.test(valor), 'Debe incluir al menos un número');
 
+// Trata ''/null como "ausente": el diseñador no envía nombre/apellidos y el
+// cliente móvil serializa el cuerpo completo (Gson). Evita 400 espurios.
+const opcionalVacio = (esquema: z.ZodString) =>
+  z.preprocess((v) => (v === '' || v === null ? undefined : v), esquema.optional());
+
 export const dtoRegistro = z.object({
   correo: correoSchema,
   contrasena: contrasenaSchema,
   // El registro público sólo permite CLIENTE o DISEÑADOR. ADMIN se crea por seed.
   rol: z.enum([Rol.CLIENTE, Rol.DISENADOR]).default(Rol.CLIENTE),
   // Perfil mínimo del cliente, opcional en el alta (puede completarlo luego)
-  nombre: z.string().trim().min(1, 'Nombre obligatorio').max(80).optional(),
-  apellidos: z.string().trim().min(1, 'Apellidos obligatorios').max(120).optional(),
+  nombre: opcionalVacio(z.string().trim().min(1, 'Nombre obligatorio').max(80)),
+  apellidos: opcionalVacio(z.string().trim().min(1, 'Apellidos obligatorios').max(120)),
 });
 export type DatosRegistro = z.infer<typeof dtoRegistro>;
 

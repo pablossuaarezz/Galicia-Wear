@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Ciudades gallegas: el valor enviado al backend (enum CiudadGallega) y su
+         etiqueta legible. El código mapea por posición valor[pos]. -->
+    <string-array name="ciudad_valores">
+        <item>CORUNA</item>
+        <item>LUGO</item>
+        <item>SANTIAGO</item>
+        <item>VIGO</item>
+        <item>PONTEVEDRA</item>
+        <item>OURENSE</item>
+    </string-array>
+    <string-array name="ciudad_etiquetas">
+        <item>A Coruña</item>
+        <item>Lugo</item>
+        <item>Santiago de Compostela</item>
+        <item>Vigo</item>
+        <item>Pontevedra</item>
+        <item>Ourense</item>
+    </string-array>
+
+    <!-- Material principal (enum MaterialPrincipal). -->
+    <string-array name="material_valores">
+        <item>ALGODON_ORGANICO</item>
+        <item>LANA_RECICLADA</item>
+        <item>LINO</item>
+        <item>TENCEL</item>
+        <item>CANAMO</item>
+        <item>POLIESTER_RECICLADO</item>
+        <item>SEDA</item>
+        <item>OTRO</item>
+    </string-array>
+    <string-array name="material_etiquetas">
+        <item>Algodón orgánico</item>
+        <item>Lana reciclada</item>
+        <item>Lino</item>
+        <item>Tencel</item>
+        <item>Cáñamo</item>
+        <item>Poliéster reciclado</item>
+        <item>Seda</item>
+        <item>Otro</item>
+    </string-array>
+
+    <!-- Tallas (enum TallaPrenda). -->
+    <string-array name="talla_valores">
+        <item>XS</item>
+        <item>S</item>
+        <item>M</item>
+        <item>L</item>
+        <item>XL</item>
+        <item>XXL</item>
+        <item>TALLA_UNICA</item>
+    </string-array>
+    <string-array name="talla_etiquetas">
+        <item>XS</item>
+        <item>S</item>
+        <item>M</item>
+        <item>L</item>
+        <item>XL</item>
+        <item>XXL</item>
+        <item>Talla única</item>
+    </string-array>
+
+</resources>

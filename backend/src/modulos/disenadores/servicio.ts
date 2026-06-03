@@ -30,6 +30,14 @@ export const servicioDisenadores = {
     return disenador;
   },
 
+  // A diferencia de obtenerPublico, devuelve el perfil propio aunque aún no esté
+  // validado: el diseñador necesita verlo para editarlo mientras espera aprobación.
+  async obtenerMio(usuarioId: string): Promise<DisenadorPublico> {
+    const disenador = await repositorioDisenadores.buscarPorId(usuarioId);
+    if (!disenador) throw new ErrorNoEncontrado('Perfil de diseñador');
+    return disenador;
+  },
+
   async actualizarPropioPerfil(
     usuarioId: string,
     datos: DatosActualizarDisenador,

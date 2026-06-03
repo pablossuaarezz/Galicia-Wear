@@ -146,6 +146,17 @@ export class RepositorioProductos extends RepositorioBase<ProductoDetalle> {
     return { datos: datos as unknown as ProductoResumen[], total };
   }
 
+  // Listado de productos propios del diseñador autenticado: incluye los inactivos
+  // (a diferencia del listado público), porque el diseñador debe gestionar todo su catálogo.
+  async listarDeDisenador(disenadorId: string): Promise<ProductoResumen[]> {
+    const datos = await this.bd.producto.findMany({
+      where: { disenadorId },
+      select: seleccionResumen,
+      orderBy: { fechaCreacion: 'desc' },
+    });
+    return datos as unknown as ProductoResumen[];
+  }
+
   async crear(disenadorId: string, datos: DatosCrearProducto, slug: string): Promise<ProductoDetalle> {
     return this.bd.producto.create({
       data: {

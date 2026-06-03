@@ -89,9 +89,7 @@ public class FragmentoLogin extends Fragment {
                 enlace.indicadorCarga.setVisibility(View.VISIBLE);
             } else if (recurso.esExito()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
-                if (getActivity() instanceof ActividadAutenticacion) {
-                    ((ActividadAutenticacion) getActivity()).navegarAPrincipal();
-                }
+                decidirDestino();
             } else if (recurso.esError()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
                 enlace.botonLogin.setEnabled(true);
@@ -99,6 +97,31 @@ public class FragmentoLogin extends Fragment {
                 enlace.campoContrasena.setError(recurso.mensaje);
             }
         });
+    }
+
+    /**
+     * Tras el login: un diseñador validado entra a la app; uno sin validar va a la
+     * pantalla de espera. El cliente entra directamente.
+     */
+    private void decidirDestino() {
+        if (!(getActivity() instanceof ActividadAutenticacion)) return;
+        ActividadAutenticacion act = (ActividadAutenticacion) getActivity();
+
+        if (gal.galiciawear.app.utilidades.Constantes.ROL_DISENADOR.equals(modeloVista.obtenerRol())) {
+            enlace.indicadorCarga.setVisibility(View.VISIBLE);
+            modeloVista.estaValidadoComoDisenador().observe(getViewLifecycleOwner(), recurso -> {
+                if (recurso == null || recurso.estaCargando()) return;
+                enlace.indicadorCarga.setVisibility(View.GONE);
+                boolean validado = recurso.esExito() && Boolean.TRUE.equals(recurso.datos);
+                if (validado) {
+                    act.navegarAPrincipal();
+                } else {
+                    act.navegarAPendienteDisenador();
+                }
+            });
+        } else {
+            act.navegarAPrincipal();
+        }
     }
 
     @Override

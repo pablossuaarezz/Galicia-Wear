@@ -9,13 +9,21 @@ const ibanSchema = z
   .regex(/^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/, 'Formato IBAN no válido')
   .transform((v) => v.toUpperCase().replace(/\s+/g, ''));
 
+// Clientes como la app móvil envían el cuerpo con todos los campos (Gson serializa
+// también los vacíos/nulos). Tratamos ''/null como "sin valor" para no romper la
+// validación de los campos realmente opcionales.
+const aOpcional = <T extends z.ZodTypeAny>(esquema: T) =>
+  z.preprocess((v) => (v === '' || v === null ? undefined : v), esquema.optional());
+
+const urlOpcional = aOpcional(z.string().url('URL no válida'));
+
 export const dtoSolicitarDisenador = z.object({
   nombreMarca: z.string().trim().min(2, 'Nombre de marca muy corto').max(100),
   biografia: z.string().trim().min(10, 'Biografía muy corta').max(2000),
   ciudad: z.nativeEnum(CiudadGallega),
   iban: ibanSchema,
-  urlLogo: z.string().url('URL de logo no válida').optional(),
-  urlWeb: z.string().url('URL web no válida').optional(),
+  urlLogo: urlOpcional,
+  urlWeb: urlOpcional,
 });
 export type DatosSolicitarDisenador = z.infer<typeof dtoSolicitarDisenador>;
 
@@ -24,9 +32,10 @@ export const dtoActualizarDisenador = z
     nombreMarca: z.string().trim().min(2).max(100).optional(),
     biografia: z.string().trim().min(10).max(2000).optional(),
     ciudad: z.nativeEnum(CiudadGallega).optional(),
-    iban: ibanSchema.optional(),
-    urlLogo: z.string().url().optional().nullable(),
-    urlWeb: z.string().url().optional().nullable(),
+    // En edición el IBAN no se reenvía si no se cambia: '' equivale a "sin cambio".
+    iban: aOpcional(ibanSchema),
+    urlLogo: urlOpcional,
+    urlWeb: urlOpcional,
   })
   .strict();
 export type DatosActualizarDisenador = z.infer<typeof dtoActualizarDisenador>;

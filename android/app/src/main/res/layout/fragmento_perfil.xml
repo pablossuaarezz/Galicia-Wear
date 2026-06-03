@@ -99,6 +99,31 @@
                     android:layout_height="1dp"
                     android:layout_marginVertical="20dp" />
 
+                <!-- Área de diseñador: solo visible si rol == DISENADOR -->
+                <Button
+                    android:id="@+id/boton_perfil_disenador"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:visibility="gone"
+                    android:text="@string/mi_perfil_disenador" />
+
+                <Button
+                    android:id="@+id/boton_mis_prendas"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone"
+                    android:text="@string/gestionar_prendas" />
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:id="@+id/divisor_disenador"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:visibility="gone"
+                    android:layout_marginVertical="20dp" />
+
                 <!-- Cerrar sesión con confirmación (prevención de errores) -->
                 <Button
                     android:id="@+id/boton_cerrar_sesion"

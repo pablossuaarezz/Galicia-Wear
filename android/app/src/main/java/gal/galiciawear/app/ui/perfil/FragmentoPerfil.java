@@ -16,6 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.databinding.FragmentoPerfilBinding;
 import gal.galiciawear.app.modelovista.ModeloVistaPerfil;
 import gal.galiciawear.app.ui.autenticacion.ActividadAutenticacion;
+import gal.galiciawear.app.ui.disenador.ActividadMisPrendas;
+import gal.galiciawear.app.ui.disenador.ActividadPerfilDisenador;
+import gal.galiciawear.app.utilidades.Constantes;
 
 @AndroidEntryPoint
 public class FragmentoPerfil extends Fragment {
@@ -37,6 +40,18 @@ public class FragmentoPerfil extends Fragment {
         // Nombre rápido desde SharedPreferences (sin esperar a la red)
         enlace.textoNombre.setText(modeloVista.obtenerNombreUsuario());
         enlace.textoRol.setText(modeloVista.obtenerRolUsuario());
+
+        // Área de diseñador: solo se muestra a usuarios con rol DISENADOR.
+        if (Constantes.ROL_DISENADOR.equals(modeloVista.obtenerRolUsuario())) {
+            enlace.botonPerfilDisenador.setVisibility(View.VISIBLE);
+            enlace.botonMisPrendas.setVisibility(View.VISIBLE);
+            enlace.divisorDisenador.setVisibility(View.VISIBLE);
+
+            enlace.botonPerfilDisenador.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), ActividadPerfilDisenador.class)));
+            enlace.botonMisPrendas.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), ActividadMisPrendas.class)));
+        }
 
         modeloVista.cargarPerfil();
 

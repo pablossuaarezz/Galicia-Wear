@@ -3,13 +3,21 @@ package gal.galiciawear.app.datos.remoto;
 import java.util.List;
 
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionCarritoItem;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionDisenador;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionImagen;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionLogin;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionPedido;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionProducto;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionRegistro;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionVariante;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaCarrito;
+import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaDisenador;
+import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaImagenes;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaProductos;
+import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaVariantes;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaPedido;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProducto;
+import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProductoEnvoltura;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaToken;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaUsuario;
 import retrofit2.Call;
@@ -91,4 +99,63 @@ public interface ServicioApi {
 
     @PATCH("pedidos/{id}/cancelar")
     Call<DtoRespuestaPedido> cancelarPedido(@Path("id") String id);
+
+    // ── Diseñador (perfil de marca) ──────────────────────────────────────────
+
+    @GET("disenadores/yo")
+    Call<DtoRespuestaDisenador> obtenerMiPerfilDisenador();
+
+    @POST("disenadores/solicitar")
+    Call<DtoRespuestaDisenador> solicitarPerfilDisenador(@Body DtoPeticionDisenador cuerpo);
+
+    @PATCH("disenadores/yo")
+    Call<DtoRespuestaDisenador> actualizarPerfilDisenador(@Body DtoPeticionDisenador cuerpo);
+
+    // ── Prendas del diseñador (productos propios) ────────────────────────────
+
+    @GET("productos/mios")
+    Call<DtoRespuestaListaProductos> listarMisPrendas();
+
+    @GET("productos/mios/{id}")
+    Call<DtoRespuestaProductoEnvoltura> obtenerMiPrenda(@Path("id") String id);
+
+    @POST("productos")
+    Call<DtoRespuestaProductoEnvoltura> crearPrenda(@Body DtoPeticionProducto cuerpo);
+
+    @PATCH("productos/{id}")
+    Call<DtoRespuestaProductoEnvoltura> actualizarPrenda(
+        @Path("id") String id, @Body DtoPeticionProducto cuerpo);
+
+    @DELETE("productos/{id}")
+    Call<Void> eliminarPrenda(@Path("id") String id);
+
+    // ── Variantes de una prenda ──────────────────────────────────────────────
+
+    @GET("productos/{productoId}/variantes")
+    Call<DtoRespuestaListaVariantes> listarVariantes(@Path("productoId") String productoId);
+
+    @POST("productos/{productoId}/variantes")
+    Call<Void> crearVariante(
+        @Path("productoId") String productoId, @Body DtoPeticionVariante cuerpo);
+
+    @DELETE("productos/{productoId}/variantes/{id}")
+    Call<Void> eliminarVariante(
+        @Path("productoId") String productoId, @Path("id") String id);
+
+    // ── Fotos de una prenda (URL en SQL) ─────────────────────────────────────
+
+    @GET("productos/{productoId}/imagenes")
+    Call<DtoRespuestaListaImagenes> listarImagenes(@Path("productoId") String productoId);
+
+    @POST("productos/{productoId}/imagenes")
+    Call<Void> crearImagen(
+        @Path("productoId") String productoId, @Body DtoPeticionImagen cuerpo);
+
+    @PATCH("productos/{productoId}/imagenes/{id}/principal")
+    Call<Void> marcarImagenPrincipal(
+        @Path("productoId") String productoId, @Path("id") String id);
+
+    @DELETE("productos/{productoId}/imagenes/{id}")
+    Call<Void> eliminarImagen(
+        @Path("productoId") String productoId, @Path("id") String id);
 }

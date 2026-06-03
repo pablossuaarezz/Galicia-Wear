@@ -13,42 +13,55 @@
         android:padding="24dp"
         android:gravity="center_horizontal">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/campo_nombre"
+        <!-- ── Tipo de cuenta: cliente o diseñador ─────────────────────────── -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/nombre"
-            android:layout_marginTop="24dp"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/entrada_nombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPersonName"
-                android:imeOptions="actionNext" />
-        </com.google.android.material.textfield.TextInputLayout>
+            android:text="@string/tipo_cuenta_pregunta"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:layout_marginTop="16dp" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/campo_apellidos"
+        <RadioGroup
+            android:id="@+id/grupo_rol"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/apellidos"
-            android:layout_marginTop="12dp"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/entrada_apellidos"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPersonName"
-                android:imeOptions="actionNext" />
-        </com.google.android.material.textfield.TextInputLayout>
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
 
+            <RadioButton
+                android:id="@+id/radio_cliente"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/soy_cliente"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radio_disenador"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/soy_disenador" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/ayuda_rol"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tipo_cuenta_ayuda"
+            android:textSize="12sp"
+            android:alpha="0.7"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
+
+        <!-- ── Datos de acceso (comunes a ambos roles) ─────────────────────── -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/campo_correo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/correo_electronico"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/entrada_correo"
@@ -74,28 +87,150 @@
                 android:imeOptions="actionDone" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Rol: cliente o diseñador -->
-        <RadioGroup
+        <!-- ══════════════════════════════════════════════════════════════════
+             FORMULARIO CLIENTE
+        ══════════════════════════════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/contenedor_cliente"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:orientation="vertical">
 
-            <RadioButton
-                android:id="@+id/radio_cliente"
-                android:layout_width="0dp"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campo_nombre"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/soy_cliente"
-                android:checked="true" />
+                android:hint="@string/nombre"
+                android:layout_marginTop="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/entrada_nombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:imeOptions="actionNext" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <RadioButton
-                android:id="@+id/radio_disenador"
-                android:layout_width="0dp"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campo_apellidos"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/soy_disenador" />
-        </RadioGroup>
+                android:hint="@string/apellidos"
+                android:layout_marginTop="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/entrada_apellidos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:imeOptions="actionNext" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             FORMULARIO DISEÑADOR (datos del negocio)
+        ══════════════════════════════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/contenedor_disenador"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/datos_negocio"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:layout_marginTop="20dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campo_nombre_marca"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/nombre_marca"
+                android:layout_marginTop="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/entrada_nombre_marca"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapWords" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campo_biografia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/biografia"
+                android:layout_marginTop="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/entrada_biografia"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minLines="3"
+                    android:gravity="top"
+                    android:inputType="textMultiLine|textCapSentences" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ciudad"
+                android:textSize="13sp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="4dp" />
+
+            <Spinner
+                android:id="@+id/selector_ciudad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campo_iban"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/iban"
+                android:layout_marginTop="16dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/entrada_iban"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapCharacters" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campo_url_logo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/url_logo"
+                android:layout_marginTop="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/entrada_url_logo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/campo_url_web"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/url_web"
+                android:layout_marginTop="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/entrada_url_web"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <ProgressBar
             android:id="@+id/indicador_carga"

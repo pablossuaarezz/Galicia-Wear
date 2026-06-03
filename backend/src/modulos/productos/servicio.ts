@@ -30,6 +30,22 @@ export const servicioProductos = {
     return { ...resultado, pagina: filtros.pagina, limite: filtros.limite };
   },
 
+  async listarMios(disenadorId: string): Promise<{ datos: ProductoResumen[]; total: number }> {
+    const datos = await repositorioProductos.listarDeDisenador(disenadorId);
+    return { datos, total: datos.length };
+  },
+
+  // Detalle de una prenda propia (incluye descripción y prendas inactivas), para
+  // precargar el formulario de edición del diseñador.
+  async obtenerMia(id: string, usuarioId: string): Promise<ProductoDetalle> {
+    const producto = await repositorioProductos.buscarPorId(id);
+    if (!producto) throw new ErrorNoEncontrado('Producto');
+    if (producto.disenadorId !== usuarioId) {
+      throw new ErrorAccesoDenegado('No eres el propietario de este producto');
+    }
+    return producto;
+  },
+
   async obtenerPorSlug(slug: string): Promise<ProductoDetalle> {
     const producto = await repositorioProductos.buscarPorSlug(slug);
     if (!producto) throw new ErrorNoEncontrado('Producto');

@@ -10,6 +10,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.databinding.ActividadAutenticacionBinding;
+import gal.galiciawear.app.ui.disenador.ActividadDisenadorPendiente;
 import gal.galiciawear.app.ui.principal.ActividadPrincipal;
 
 /**
@@ -41,6 +42,13 @@ public class ActividadAutenticacion extends AppCompatActivity {
     public void navegarAPrincipal() {
         startActivity(new Intent(this, ActividadPrincipal.class));
         finishAffinity(); // Limpia todo el stack: no se puede volver al login
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
+    /** Diseñador sin validar: pantalla de espera con refrescar e iniciar como cliente. */
+    public void navegarAPendienteDisenador() {
+        startActivity(new Intent(this, ActividadDisenadorPendiente.class));
+        finishAffinity();
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 

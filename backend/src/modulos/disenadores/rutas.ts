@@ -50,6 +50,19 @@ rutasDisenadores.post(
 /**
  * @openapi
  * /disenadores/yo:
+ *   get:
+ *     tags: [Diseñadores]
+ *     summary: Devuelve el perfil de diseñador del usuario autenticado (validado o no)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Perfil de diseñador propio }
+ *       404: { description: Aún no existe perfil de diseñador }
+ */
+rutasDisenadores.get('/yo', verificarJwt, soloDisenador, controladorDisenadores.obtenerMio);
+
+/**
+ * @openapi
+ * /disenadores/yo:
  *   patch:
  *     tags: [Diseñadores]
  *     summary: Actualiza el perfil de marca del diseñador autenticado

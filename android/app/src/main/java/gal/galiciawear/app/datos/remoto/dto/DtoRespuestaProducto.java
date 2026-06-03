@@ -21,6 +21,11 @@ public class DtoRespuestaProducto {
     @SerializedName("precio")
     public double precio;
 
+    // El listado/creación del backend devuelve "precioBase" (Decimal). Lo recogemos
+    // aparte para la gestión del diseñador, donde no pasa por el presentador público.
+    @SerializedName("precioBase")
+    public double precioBase;
+
     @SerializedName("materialPrincipal")
     public String materialPrincipal;
 

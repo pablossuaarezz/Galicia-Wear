@@ -27,6 +27,16 @@
     <string name="crear_cuenta">Crear cuenta</string>
     <string name="soy_cliente">Soy cliente</string>
     <string name="soy_disenador">Soy diseñador/a</string>
+    <string name="tipo_cuenta_pregunta">¿Cómo quieres usar GaliciaWear?</string>
+    <string name="tipo_cuenta_ayuda">Como diseñador/a registras tu negocio: te pediremos los datos de tu marca. Un administrador revisará tu cuenta antes de activarla.</string>
+    <string name="datos_negocio">Datos de tu negocio</string>
+
+    <!-- Pantalla de diseñador pendiente de validación -->
+    <string name="disenador_pendiente_titulo">Cuenta pendiente de validación</string>
+    <string name="disenador_pendiente_mensaje">Tu cuenta de diseñador todavía no ha sido activada por un administrador. Vuelve a intentarlo más tarde con \"Refrescar\".</string>
+    <string name="refrescar">Refrescar</string>
+    <string name="aun_pendiente">Tu cuenta sigue pendiente de validación.</string>
+    <string name="iniciar_sesion_cliente">Iniciar sesión como cliente</string>
 
     <!-- Navegación inferior -->
     <string name="nav_inicio">Inicio</string>
@@ -72,6 +82,61 @@
 
     <!-- Perfil -->
     <string name="cerrar_sesion">Cerrar sesión</string>
+
+    <!-- Área de diseñador: perfil de marca -->
+    <string name="mi_perfil_disenador">Mi perfil de diseñador</string>
+    <string name="perfil_disenador_titulo">Perfil de diseñador</string>
+    <string name="perfil_disenador_intro">Completa los datos de tu marca. Un administrador revisará tu solicitud antes de activarla.</string>
+    <string name="nombre_marca">Nombre de la marca</string>
+    <string name="biografia">Biografía de la marca</string>
+    <string name="ciudad">Ciudad</string>
+    <string name="iban">IBAN (para tus cobros)</string>
+    <string name="iban_sin_cambio">Déjalo vacío para no cambiarlo</string>
+    <string name="url_logo">URL del logo de la marca</string>
+    <string name="url_web">Sitio web (opcional)</string>
+    <string name="guardar">Guardar</string>
+    <string name="guardar_cambios">Guardar cambios</string>
+    <string name="enviar_solicitud">Enviar solicitud</string>
+    <string name="pendiente_validacion">Perfil enviado. Pendiente de validación por un administrador (se activa desde el panel de administración).</string>
+    <string name="perfil_validado">Marca verificada ✓</string>
+    <string name="vista_previa_logo">Vista previa del logo</string>
+
+    <!-- Área de diseñador: prendas -->
+    <string name="gestionar_prendas">Gestionar mis prendas</string>
+    <string name="mis_prendas">Mis prendas</string>
+    <string name="anadir_prenda">Añadir prenda</string>
+    <string name="editar_prenda">Editar prenda</string>
+    <string name="nueva_prenda">Nueva prenda</string>
+    <string name="nombre_prenda">Nombre de la prenda</string>
+    <string name="descripcion">Descripción</string>
+    <string name="precio_base">Precio base (€)</string>
+    <string name="km_origen">Km de origen del material</string>
+    <string name="guardar_prenda">Guardar prenda</string>
+    <string name="sin_prendas">Aún no has publicado prendas. Pulsa + para crear la primera.</string>
+    <string name="prenda_inactiva">Inactiva</string>
+    <string name="completar_perfil_primero">Completa y valida tu perfil de diseñador para poder gestionar prendas.</string>
+    <string name="guarda_prenda_primero">Guarda la prenda para poder añadir variantes y fotos.</string>
+
+    <!-- Variantes -->
+    <string name="variantes_titulo">Variantes (talla y color)</string>
+    <string name="anadir_variante">Añadir variante</string>
+    <string name="talla">Talla</string>
+    <string name="color">Color</string>
+    <string name="sku">SKU (código único)</string>
+    <string name="stock">Stock</string>
+    <string name="ajuste_precio">Ajuste de precio (€)</string>
+    <string name="sin_variantes">Sin variantes todavía</string>
+
+    <!-- Fotos de la prenda (URL en SQL) -->
+    <string name="fotos_titulo">Fotos de la prenda</string>
+    <string name="anadir_foto">Añadir foto (URL)</string>
+    <string name="url_imagen">URL de la imagen</string>
+    <string name="texto_alternativo">Texto alternativo (accesibilidad)</string>
+    <string name="foto_principal">Marcar como foto principal</string>
+    <string name="marcar_principal">Hacer principal</string>
+    <string name="sin_fotos">Sin fotos todavía</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="foto_prenda_desc">Foto de la prenda</string>
 
     <!-- Notificaciones -->
     <string name="canal_notificaciones_id">galiciawear_notificaciones</string>

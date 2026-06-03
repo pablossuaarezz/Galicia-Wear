@@ -180,6 +180,10 @@ public class RepositorioAutenticacion {
         return gestorSesion.hayTokenAcceso();
     }
 
+    public String obtenerRol() {
+        return gestorSesion.obtenerUsuarioRol();
+    }
+
     public boolean onboardingYaVisto() {
         return gestorSesion.onboardingYaVisto();
     }

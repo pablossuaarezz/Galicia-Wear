@@ -8,8 +8,12 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import gal.galiciawear.app.datos.repositorio.RepositorioAutenticacion;
+import gal.galiciawear.app.datos.repositorio.RepositorioDisenador;
+import gal.galiciawear.app.datos.remoto.dto.DtoDisenador;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionDisenador;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaToken;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaUsuario;
+import gal.galiciawear.app.utilidades.Constantes;
 import gal.galiciawear.app.utilidades.RecursoUi;
 
 /**
@@ -23,6 +27,7 @@ import gal.galiciawear.app.utilidades.RecursoUi;
 public class ModeloVistaAutenticacion extends ViewModel {
 
     private final RepositorioAutenticacion repositorio;
+    private final RepositorioDisenador repositorioDisenador;
 
     // Estado de cada operación expuesto como LiveData (inmutable para la UI).
     // JUSTIFICACIÓN: se inicializan eagerly para que la UI pueda suscribirse
@@ -31,10 +36,14 @@ public class ModeloVistaAutenticacion extends ViewModel {
     private final MutableLiveData<RecursoUi<DtoRespuestaToken>> estadoLogin = new MutableLiveData<>();
     private final MutableLiveData<RecursoUi<DtoRespuestaToken>> estadoRegistro = new MutableLiveData<>();
     private final MutableLiveData<RecursoUi<DtoRespuestaUsuario>> estadoPerfil = new MutableLiveData<>();
+    // Alta de diseñador: encadena registro de cuenta + creación del perfil de negocio.
+    private final MutableLiveData<RecursoUi<DtoDisenador>> estadoRegistroDisenador = new MutableLiveData<>();
 
     @Inject
-    public ModeloVistaAutenticacion(RepositorioAutenticacion repositorio) {
+    public ModeloVistaAutenticacion(RepositorioAutenticacion repositorio,
+                                    RepositorioDisenador repositorioDisenador) {
         this.repositorio = repositorio;
+        this.repositorioDisenador = repositorioDisenador;
     }
 
     // ── Acceso desde la UI ───────────────────────────────────────────────────
@@ -49,6 +58,10 @@ public class ModeloVistaAutenticacion extends ViewModel {
 
     public LiveData<RecursoUi<DtoRespuestaUsuario>> observarPerfil() {
         return estadoPerfil;
+    }
+
+    public LiveData<RecursoUi<DtoDisenador>> observarRegistroDisenador() {
+        return estadoRegistroDisenador;
     }
 
     // ── Acciones ─────────────────────────────────────────────────────────────
@@ -66,6 +79,30 @@ public class ModeloVistaAutenticacion extends ViewModel {
             .observeForever(valor -> estadoRegistro.postValue(valor));
     }
 
+    /**
+     * Alta completa de diseñador en un solo paso: primero crea la cuenta (rol
+     * DISENADOR) y, en cuanto hay token, crea el perfil de negocio con los datos
+     * de la marca. El estado combinado se publica en estadoRegistroDisenador.
+     */
+    public void registrarComoDisenador(String correo, String contrasena,
+                                        DtoPeticionDisenador datosNegocio) {
+        estadoRegistroDisenador.setValue(RecursoUi.cargando());
+        repositorio.registro(correo, contrasena, "", "", Constantes.ROL_DISENADOR)
+            .observeForever(reg -> {
+                if (reg == null || reg.estaCargando()) return;
+                if (reg.esError()) {
+                    estadoRegistroDisenador.postValue(RecursoUi.error(reg.mensaje));
+                    return;
+                }
+                // Cuenta creada y token guardado: ya podemos crear el perfil de marca.
+                repositorioDisenador.guardarPerfil(datosNegocio, true)
+                    .observeForever(perfil -> {
+                        if (perfil == null || perfil.estaCargando()) return;
+                        estadoRegistroDisenador.postValue(perfil);
+                    });
+            });
+    }
+
     public void cargarPerfil() {
         repositorio.obtenerPerfil().observeForever(v -> estadoPerfil.postValue(v));
     }
@@ -74,9 +111,29 @@ public class ModeloVistaAutenticacion extends ViewModel {
         repositorio.cerrarSesion();
     }
 
+    /**
+     * Comprueba si el diseñador autenticado ya está validado. EXITO con
+     * datos=true → validado; datos=false → pendiente (o aún sin perfil).
+     */
+    public LiveData<RecursoUi<Boolean>> estaValidadoComoDisenador() {
+        MutableLiveData<RecursoUi<Boolean>> resultado = new MutableLiveData<>();
+        resultado.setValue(RecursoUi.cargando());
+        repositorioDisenador.obtenerMiPerfil().observeForever(recurso -> {
+            if (recurso == null || recurso.estaCargando()) return;
+            if (recurso.esExito()) {
+                boolean validado = recurso.datos != null && recurso.datos.validado;
+                resultado.postValue(RecursoUi.exito(validado));
+            } else {
+                resultado.postValue(RecursoUi.error(recurso.mensaje));
+            }
+        });
+        return resultado;
+    }
+
     // ── Consultas de estado ──────────────────────────────────────────────────
 
     public boolean hayTokenAcceso()        { return repositorio.hayTokenAcceso(); }
+    public String obtenerRol()             { return repositorio.obtenerRol(); }
     public boolean onboardingYaVisto()     { return repositorio.onboardingYaVisto(); }
     public void marcarOnboardingVisto()    { repositorio.marcarOnboardingVisto(); }
 }

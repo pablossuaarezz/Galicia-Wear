@@ -28,6 +28,15 @@ export const controladorDisenadores = {
     }
   },
 
+  async obtenerMio(peticion: Request, respuesta: Response, siguiente: NextFunction): Promise<void> {
+    try {
+      const disenador = await servicioDisenadores.obtenerMio(peticion.usuario!.sub);
+      respuesta.status(200).json({ disenador });
+    } catch (error) {
+      siguiente(error);
+    }
+  },
+
   async solicitar(
     peticion: Request,
     respuesta: Response,

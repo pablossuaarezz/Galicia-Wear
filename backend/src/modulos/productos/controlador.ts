@@ -13,6 +13,27 @@ export const controladorProductos = {
     }
   },
 
+  async listarMios(peticion: Request, respuesta: Response, siguiente: NextFunction): Promise<void> {
+    try {
+      const resultado = await servicioProductos.listarMios(peticion.usuario!.sub);
+      respuesta.status(200).json(resultado);
+    } catch (error) {
+      siguiente(error);
+    }
+  },
+
+  async obtenerMia(peticion: Request, respuesta: Response, siguiente: NextFunction): Promise<void> {
+    try {
+      const producto = await servicioProductos.obtenerMia(
+        peticion.params.id,
+        peticion.usuario!.sub,
+      );
+      respuesta.status(200).json({ producto });
+    } catch (error) {
+      siguiente(error);
+    }
+  },
+
   async obtener(peticion: Request, respuesta: Response, siguiente: NextFunction): Promise<void> {
     try {
       const producto = await servicioProductos.obtenerPorSlug(peticion.params.slug);

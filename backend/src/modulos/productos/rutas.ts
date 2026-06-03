@@ -56,6 +56,33 @@ rutasProductos.post(
   controladorProductos.crear,
 );
 
+/**
+ * @openapi
+ * /productos/mios:
+ *   get:
+ *     tags: [Productos]
+ *     summary: Lista los productos del diseñador autenticado (incluye inactivos)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Catálogo propio del diseñador }
+ */
+// IMPORTANTE: va antes de get('/:slug') para que "mios" no se interprete como slug.
+rutasProductos.get('/mios', verificarJwt, soloDisenador, controladorProductos.listarMios);
+
+/**
+ * @openapi
+ * /productos/mios/{id}:
+ *   get:
+ *     tags: [Productos]
+ *     summary: Detalle de una prenda propia del diseñador (incluye inactivas)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Detalle de la prenda }
+ *       403: { description: No eres el propietario }
+ *       404: { description: Prenda no encontrada }
+ */
+rutasProductos.get('/mios/:id', verificarJwt, soloDisenador, controladorProductos.obtenerMia);
+
 // ---- Sub-rutas nested (/productos/:productoId/variantes e /imagenes) ----
 // IMPORTANTE: los use() con parámetros van ANTES de get('/:slug') para que Express
 // no intente capturar el segmento compuesto como un slug de un solo segmento.

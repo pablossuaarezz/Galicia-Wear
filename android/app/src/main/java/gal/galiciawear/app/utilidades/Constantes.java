@@ -23,6 +23,10 @@ public final class Constantes {
     public static final String EXTRA_PEDIDO_ID     = "pedido_id";
     public static final String EXTRA_DISENADOR_ID  = "disenador_id";
     public static final String EXTRA_DISENADOR_NOMBRE = "disenador_nombre";
+    // Id de la prenda a editar; ausente/null indica alta de prenda nueva.
+    public static final String EXTRA_PRENDA_ID     = "prenda_id";
+    // Indica que el perfil de diseñador se abre como paso del alta (tras registrarse).
+    public static final String EXTRA_ONBOARDING_DISENADOR = "onboarding_disenador";
 
     // ── Notificaciones ───────────────────────────────────────────────────────
     public static final int ID_NOTIF_PEDIDO     = 1001;
