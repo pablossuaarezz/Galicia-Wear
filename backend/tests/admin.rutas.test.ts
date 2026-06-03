@@ -7,10 +7,16 @@ jest.mock('../src/utilidades/prisma', () => ({
   cerrarConexionBd: jest.fn(),
 }));
 
-// Mock del repositorio admin (estadísticas)
+// Mock del repositorio admin (estadísticas + listados + moderación)
 jest.mock('../src/modulos/admin/repositorio', () => ({
   obtenerEstadisticas: jest.fn(),
   obtenerProductosParaExportar: jest.fn(),
+  listarLogs: jest.fn(),
+  listarPedidosAdmin: jest.fn(),
+  listarDisenadoresAdmin: jest.fn(),
+  listarProductosAdmin: jest.fn(),
+  moderarProducto: jest.fn(),
+  retirarProducto: jest.fn(),
 }));
 
 // Mock del exportador (evita crear worker_threads en tests)
@@ -25,7 +31,15 @@ jest.mock('../src/modulos/admin/importacion', () => ({
 
 import request from 'supertest';
 import { crearAplicacion } from '../src/aplicacion';
-import { obtenerEstadisticas } from '../src/modulos/admin/repositorio';
+import {
+  obtenerEstadisticas,
+  listarLogs,
+  listarPedidosAdmin,
+  listarDisenadoresAdmin,
+  listarProductosAdmin,
+  moderarProducto,
+  retirarProducto,
+} from '../src/modulos/admin/repositorio';
 import { exportarProductos } from '../src/modulos/admin/exportacion';
 import { importarProductos } from '../src/modulos/admin/importacion';
 import { entorno } from '../src/configuracion/entorno';
@@ -33,6 +47,12 @@ import { entorno } from '../src/configuracion/entorno';
 const estadMock = obtenerEstadisticas as jest.Mock;
 const exportMock = exportarProductos as jest.Mock;
 const importMock = importarProductos as jest.Mock;
+const logsMock = listarLogs as jest.Mock;
+const pedidosMock = listarPedidosAdmin as jest.Mock;
+const disenadoresMock = listarDisenadoresAdmin as jest.Mock;
+const productosMock = listarProductosAdmin as jest.Mock;
+const moderarMock = moderarProducto as jest.Mock;
+const retirarMock = retirarProducto as jest.Mock;
 
 const tokenAdmin = jwt.sign(
   { sub: 'u-admin-1', correo: 'admin@test.gal', rol: Rol.ADMIN },
@@ -144,5 +164,95 @@ describe('POST /admin/importar/productos', () => {
       .send({ formato: 'xml', datos: '<galiciawear_export><productos/></galiciawear_export>' });
     expect(r.status).toBe(200);
     expect(importMock).toHaveBeenCalledWith(expect.any(String), 'xml');
+  });
+});
+
+describe('GET /admin/logs', () => {
+  it('403 si no es admin', async () => {
+    const app = crearAplicacion();
+    const r = await request(app)
+      .get('/admin/logs')
+      .set('Authorization', `Bearer ${tokenCliente}`);
+    expect(r.status).toBe(403);
+  });
+
+  it('200 devuelve logs paginados al admin', async () => {
+    logsMock.mockResolvedValueOnce({
+      datos: [{ accion: 'LOGIN', recurso: 'usuario', fechaCreacion: new Date().toISOString() }],
+      total: 1,
+    });
+    const app = crearAplicacion();
+    const r = await request(app)
+      .get('/admin/logs?accion=LOGIN')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(r.status).toBe(200);
+    expect(r.body.logs).toHaveLength(1);
+    expect(r.body.total).toBe(1);
+    expect(logsMock).toHaveBeenCalledWith(expect.objectContaining({ accion: 'LOGIN', pagina: 1 }));
+  });
+});
+
+describe('GET /admin/pedidos', () => {
+  it('200 lista todos los pedidos para el admin', async () => {
+    pedidosMock.mockResolvedValueOnce({ datos: [{ id: 'p1', numeroPedido: 'GW-2026-00001' }], total: 1 });
+    const app = crearAplicacion();
+    const r = await request(app)
+      .get('/admin/pedidos?estado=PAGADO')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(r.status).toBe(200);
+    expect(r.body.pedidos).toHaveLength(1);
+    expect(pedidosMock).toHaveBeenCalledWith(expect.objectContaining({ estado: 'PAGADO' }));
+  });
+});
+
+describe('GET /admin/disenadores', () => {
+  it('200 incluye pendientes cuando validado=false', async () => {
+    disenadoresMock.mockResolvedValueOnce({ datos: [{ usuarioId: 'd1', validado: false }], total: 1 });
+    const app = crearAplicacion();
+    const r = await request(app)
+      .get('/admin/disenadores?validado=false')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(r.status).toBe(200);
+    expect(r.body.disenadores[0].validado).toBe(false);
+    expect(disenadoresMock).toHaveBeenCalledWith(expect.objectContaining({ validado: false }));
+  });
+});
+
+describe('GET /admin/productos', () => {
+  it('200 lista productos incluyendo inactivos', async () => {
+    productosMock.mockResolvedValueOnce({ datos: [{ id: 'pr1', activo: false }], total: 1 });
+    const app = crearAplicacion();
+    const r = await request(app)
+      .get('/admin/productos?activo=false')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(r.status).toBe(200);
+    expect(r.body.productos[0].activo).toBe(false);
+    expect(productosMock).toHaveBeenCalledWith(expect.objectContaining({ activo: false }));
+  });
+});
+
+describe('PATCH /admin/productos/:id', () => {
+  it('200 modera (desactiva) un producto', async () => {
+    moderarMock.mockResolvedValueOnce({ id: 'pr1', activo: false });
+    const app = crearAplicacion();
+    const r = await request(app)
+      .patch('/admin/productos/pr1')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ activo: false });
+    expect(r.status).toBe(200);
+    expect(r.body.producto.activo).toBe(false);
+    expect(moderarMock).toHaveBeenCalledWith('pr1', { activo: false });
+  });
+});
+
+describe('DELETE /admin/productos/:id', () => {
+  it('204 retira un producto', async () => {
+    retirarMock.mockResolvedValueOnce(undefined);
+    const app = crearAplicacion();
+    const r = await request(app)
+      .delete('/admin/productos/pr1')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(r.status).toBe(204);
+    expect(retirarMock).toHaveBeenCalledWith('pr1');
   });
 });

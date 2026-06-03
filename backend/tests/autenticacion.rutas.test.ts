@@ -13,6 +13,7 @@ jest.mock('../src/modulos/autenticacion/repositorio', () => ({
   repositorioAutenticacion: {
     buscarPorCorreo: jest.fn(),
     buscarPorId: jest.fn(),
+    buscarPerfilCompleto: jest.fn(),
     crearUsuario: jest.fn(),
     guardarTokenRefresco: jest.fn(),
     buscarTokenRefrescoPorHash: jest.fn(),
@@ -105,6 +106,16 @@ describe('GET /auth/yo', () => {
       rol: Rol.CLIENTE,
     } as never);
     repoMock.guardarTokenRefresco.mockResolvedValueOnce(undefined);
+    // /auth/yo lee el perfil completo del usuario autenticado
+    repoMock.buscarPerfilCompleto.mockResolvedValueOnce({
+      id: 'u-test',
+      correo: 'test@galiciawear.gal',
+      rol: Rol.CLIENTE,
+      nombre: 'Test',
+      apellidos: 'User',
+      fechaCreacion: new Date(),
+      fechaEliminacion: null,
+    } as never);
 
     const aplicacion = crearAplicacion();
 
@@ -123,8 +134,8 @@ describe('GET /auth/yo', () => {
       .set('Authorization', `Bearer ${tokenAcceso}`);
 
     expect(respYo.status).toBe(200);
-    expect(respYo.body.usuario.sub).toBe('u-test');
-    expect(respYo.body.usuario.rol).toBe(Rol.CLIENTE);
+    expect(respYo.body.id).toBe('u-test');
+    expect(respYo.body.rol).toBe(Rol.CLIENTE);
   });
 });
 

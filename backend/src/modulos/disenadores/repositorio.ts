@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, CiudadGallega } from '@prisma/client';
 import { RepositorioBase } from '../../utilidades/repositorioBase';
 import { cifrarTexto } from '../../utilidades/cifrado';
 import type { DatosSolicitarDisenador, DatosActualizarDisenador, FiltrosDisenadores } from './dto';
@@ -41,6 +41,34 @@ export class RepositorioDisenadores extends RepositorioBase<DisenadorPublico> {
         where: condicion,
         select: seleccionPublica,
         orderBy: { nombreMarca: 'asc' },
+        skip: omitir,
+        take: filtros.limite,
+      }),
+      this.bd.disenador.count({ where: condicion }),
+    ]);
+
+    return { datos, total };
+  }
+
+  // Listado para el panel admin: permite incluir diseñadores aún no validados
+  // (el listado público fuerza validado:true; aquí el filtro es opcional).
+  async listarTodos(filtros: {
+    pagina: number;
+    limite: number;
+    ciudad?: CiudadGallega;
+    validado?: boolean;
+  }): Promise<{ datos: DisenadorPublico[]; total: number }> {
+    const omitir = (filtros.pagina - 1) * filtros.limite;
+    const condicion: Prisma.DisenadorWhereInput = {
+      ...(filtros.validado !== undefined && { validado: filtros.validado }),
+      ...(filtros.ciudad && { ciudad: filtros.ciudad }),
+    };
+
+    const [datos, total] = await Promise.all([
+      this.bd.disenador.findMany({
+        where: condicion,
+        select: seleccionPublica,
+        orderBy: { fechaCreacion: 'desc' },
         skip: omitir,
         take: filtros.limite,
       }),

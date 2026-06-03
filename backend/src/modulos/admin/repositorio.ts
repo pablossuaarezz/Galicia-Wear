@@ -1,6 +1,17 @@
 import { Prisma, EstadoPedido } from '@prisma/client';
 import { prisma } from '../../utilidades/prisma';
-import type { ProductoDetalle } from '../productos/repositorio';
+import { ErrorNoEncontrado } from '../../utilidades/errores';
+import { repositorioProductos, type ProductoDetalle } from '../productos/repositorio';
+import { repositorioPedidos } from '../pedidos/repositorio';
+import { repositorioDisenadores } from '../disenadores/repositorio';
+import { ActividadLog } from '../mongo/esquemas/actividadLog';
+import type {
+  FiltrosLogs,
+  FiltrosPedidosAdmin,
+  FiltrosDisenadoresAdmin,
+  FiltrosProductosAdmin,
+} from './dto';
+import type { DatosActualizarProducto } from '../productos/dto';
 
 // ---- Estadísticas del dashboard ----
 
@@ -98,4 +109,56 @@ export async function obtenerProductosParaExportar(): Promise<ProductoDetalle[]>
       },
     },
   }) as unknown as Promise<ProductoDetalle[]>;
+}
+
+// ---- Visor de logs de auditoría (MongoDB) ----
+
+export async function listarLogs(filtros: FiltrosLogs) {
+  const omitir = (filtros.pagina - 1) * filtros.limite;
+  const condicion: Record<string, unknown> = {};
+  if (filtros.accion) condicion.accion = filtros.accion;
+  if (filtros.usuarioId) condicion.usuarioId = filtros.usuarioId;
+  if (filtros.recurso) condicion.recurso = filtros.recurso;
+
+  const [datos, total] = await Promise.all([
+    ActividadLog.find(condicion)
+      .sort({ fechaCreacion: -1 })
+      .skip(omitir)
+      .limit(filtros.limite)
+      .lean(),
+    ActividadLog.countDocuments(condicion),
+  ]);
+
+  return { datos, total };
+}
+
+// ---- Listados globales (delegan en los repositorios de cada módulo) ----
+
+export function listarPedidosAdmin(filtros: FiltrosPedidosAdmin) {
+  return repositorioPedidos.listarTodos(filtros);
+}
+
+export function listarDisenadoresAdmin(filtros: FiltrosDisenadoresAdmin) {
+  return repositorioDisenadores.listarTodos(filtros);
+}
+
+export function listarProductosAdmin(filtros: FiltrosProductosAdmin) {
+  return repositorioProductos.listarTodos(filtros);
+}
+
+// ---- Moderación de productos por el admin (sin comprobación de propiedad) ----
+
+export async function moderarProducto(
+  id: string,
+  datos: DatosActualizarProducto,
+): Promise<ProductoDetalle> {
+  const existe = await repositorioProductos.buscarPorId(id);
+  if (!existe) throw new ErrorNoEncontrado('Producto');
+  return repositorioProductos.actualizar(id, datos);
+}
+
+export async function retirarProducto(id: string): Promise<void> {
+  const existe = await repositorioProductos.buscarPorId(id);
+  if (!existe) throw new ErrorNoEncontrado('Producto');
+  await repositorioProductos.eliminar(id); // soft-delete (activo=false)
 }

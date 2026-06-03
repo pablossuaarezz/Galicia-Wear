@@ -1,0 +1,4 @@
+# Artefactos de build Maven / jpackage
+target/
+dist/
+*.class

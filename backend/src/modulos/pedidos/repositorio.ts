@@ -143,6 +143,29 @@ export class RepositorioPedidos extends RepositorioBase<PedidoDetalle> {
     }) as unknown as Promise<PedidoDetalle[]>;
   }
 
+  // Listado global para el panel admin (paginado + filtro opcional por estado).
+  async listarTodos(filtros: {
+    pagina: number;
+    limite: number;
+    estado?: EstadoPedido;
+  }): Promise<{ datos: PedidoDetalle[]; total: number }> {
+    const omitir = (filtros.pagina - 1) * filtros.limite;
+    const condicion = filtros.estado ? { estado: filtros.estado } : {};
+
+    const [datos, total] = await Promise.all([
+      this.bd.pedido.findMany({
+        where: condicion,
+        select: seleccionDetalle,
+        orderBy: { fechaCreacion: Prisma.SortOrder.desc },
+        skip: omitir,
+        take: filtros.limite,
+      }),
+      this.bd.pedido.count({ where: condicion }),
+    ]);
+
+    return { datos: datos as unknown as PedidoDetalle[], total };
+  }
+
   // CHECKOUT — transacción ACID completa
   async crearDesdeCarrito(datos: DatosCheckout): Promise<PedidoDetalle> {
     return this.bd.$transaction(async (tx) => {

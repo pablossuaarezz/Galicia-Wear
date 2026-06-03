@@ -1,0 +1,137 @@
+/* Paleta GaliciaWear: atlantic (azul océano), galego (verde), sand (arena) */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
+    -fx-background-color: #f5f3ee; /* sand claro */
+    -atlantic: #1f6f8b;
+    -atlantic-oscuro: #154a5c;
+    -galego: #3a7d44;
+    -peligro: #b23a48;
+}
+
+/* ---- Login ---- */
+.pantalla-login {
+    -fx-background-color: linear-gradient(to bottom right, #1f6f8b, #154a5c);
+}
+.pantalla-login .label {
+    -fx-text-fill: white;
+}
+.marca-titulo {
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.marca-subtitulo {
+    -fx-font-size: 15px;
+    -fx-text-fill: #d9e6ea;
+}
+.pantalla-login .text-field,
+.pantalla-login .password-field {
+    -fx-background-radius: 6;
+    -fx-padding: 8;
+}
+.etiqueta-error {
+    -fx-text-fill: #ffd2d2;
+    -fx-font-size: 13px;
+}
+
+/* ---- Botones ---- */
+.boton-primario {
+    -fx-background-color: -atlantic;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 9 18;
+    -fx-cursor: hand;
+}
+.boton-primario:hover { -fx-background-color: -atlantic-oscuro; }
+
+.boton-secundario {
+    -fx-background-color: transparent;
+    -fx-border-color: -atlantic;
+    -fx-border-radius: 6;
+    -fx-text-fill: -atlantic;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+}
+.boton-secundario:hover { -fx-background-color: rgba(31,111,139,0.1); }
+
+.boton-peligro {
+    -fx-background-color: -peligro;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 9 18;
+    -fx-cursor: hand;
+}
+.boton-peligro:hover { -fx-background-color: #8f2c38; }
+
+/* ---- Shell / barra lateral ---- */
+.barra-lateral {
+    -fx-background-color: -atlantic-oscuro;
+}
+.marca-lateral {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.usuario-lateral {
+    -fx-font-size: 12px;
+    -fx-text-fill: #b9d2da;
+}
+.boton-nav {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e8f1f4;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 14;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+.boton-nav:hover { -fx-background-color: rgba(255,255,255,0.12); }
+
+.contenedor-central { -fx-background-color: #f5f3ee; }
+
+/* ---- Vistas ---- */
+.vista { -fx-background-color: #f5f3ee; }
+.titulo-vista {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -atlantic-oscuro;
+}
+.subtitulo {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #444;
+}
+.texto-tenue { -fx-text-fill: #888; -fx-font-size: 12px; }
+
+/* ---- Tarjetas KPI ---- */
+.tarjeta {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 16 22;
+    -fx-min-width: 170;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+}
+.tarjeta-valor {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -atlantic;
+}
+.tarjeta-etiqueta {
+    -fx-font-size: 13px;
+    -fx-text-fill: #666;
+}
+.tarjeta-alerta .tarjeta-valor { -fx-text-fill: -peligro; }
+
+/* ---- Tablas ---- */
+.table-view {
+    -fx-background-radius: 8;
+    -fx-background-color: white;
+}
+.table-view .column-header-background {
+    -fx-background-color: -atlantic;
+}
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}

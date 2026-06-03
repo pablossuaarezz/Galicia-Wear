@@ -87,9 +87,47 @@ export class RepositorioProductos extends RepositorioBase<ProductoDetalle> {
         certificados: { some: { certificado: { codigo: filtros.certificado } } },
       }),
       ...(filtros.busqueda && {
+        // En MySQL la colación por defecto (utf8mb4_*_ci) ya es case-insensitive,
+        // por lo que `contains` no admite ni necesita `mode: 'insensitive'`.
         OR: [
-          { nombre: { contains: filtros.busqueda, mode: 'insensitive' } },
-          { descripcion: { contains: filtros.busqueda, mode: 'insensitive' } },
+          { nombre: { contains: filtros.busqueda } },
+          { descripcion: { contains: filtros.busqueda } },
+        ],
+      }),
+    };
+
+    const [datos, total] = await Promise.all([
+      this.bd.producto.findMany({
+        where: condicion,
+        select: seleccionResumen,
+        orderBy: { fechaCreacion: 'desc' },
+        skip: omitir,
+        take: filtros.limite,
+      }),
+      this.bd.producto.count({ where: condicion }),
+    ]);
+
+    return { datos: datos as unknown as ProductoResumen[], total };
+  }
+
+  // Listado para el panel admin: incluye productos inactivos/retirados
+  // (el listado público fuerza activo:true).
+  async listarTodos(filtros: {
+    pagina: number;
+    limite: number;
+    busqueda?: string;
+    material?: MaterialPrincipal;
+    activo?: boolean;
+  }): Promise<{ datos: ProductoResumen[]; total: number }> {
+    const omitir = (filtros.pagina - 1) * filtros.limite;
+
+    const condicion: Prisma.ProductoWhereInput = {
+      ...(filtros.activo !== undefined && { activo: filtros.activo }),
+      ...(filtros.material && { materialPrincipal: filtros.material }),
+      ...(filtros.busqueda && {
+        OR: [
+          { nombre: { contains: filtros.busqueda } },
+          { descripcion: { contains: filtros.busqueda } },
         ],
       }),
     };

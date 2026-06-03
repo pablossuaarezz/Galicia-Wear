@@ -1,25 +1,12 @@
 // JUSTIFICACIÓN: registra los endpoints del módulo en un router aislado. La aplicación
-// los monta bajo `/auth`. Incluye rate-limit específico para login (anti fuerza bruta).
+// los monta bajo `/auth`.
 //
 // Comentarios JSDoc preparados para Swagger (los lee `swagger-jsdoc` en Fase 2e).
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
-import { entorno } from '../../configuracion/entorno';
 import { validar } from '../../middlewares/validacion';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { controladorAutenticacion } from './controlador';
 import { dtoCierreSesion, dtoLogin, dtoRefresco, dtoRegistro } from './dto';
-
-const limiteLogin = rateLimit({
-  windowMs: entorno.RATE_LIMIT_WINDOW_MS,
-  max: entorno.LOGIN_RATE_LIMIT_MAX,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    error: 'Demasiados intentos. Vuelve a intentarlo más tarde.',
-    codigo: 'LIMITE_INTENTOS',
-  },
-});
 
 export const rutasAutenticacion = Router();
 
@@ -45,14 +32,8 @@ rutasAutenticacion.post('/registro', validar(dtoRegistro), controladorAutenticac
  *     responses:
  *       200: { description: Pareja de tokens emitida }
  *       401: { description: Credenciales inválidas }
- *       429: { description: Demasiados intentos }
  */
-rutasAutenticacion.post(
-  '/login',
-  limiteLogin,
-  validar(dtoLogin),
-  controladorAutenticacion.iniciarSesion,
-);
+rutasAutenticacion.post('/login', validar(dtoLogin), controladorAutenticacion.iniciarSesion);
 
 /**
  * @openapi

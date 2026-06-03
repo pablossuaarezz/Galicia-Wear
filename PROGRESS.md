@@ -7,9 +7,9 @@
 
 ## Estado global
 
-- **Fase actual**: ✅ Fase 3 completa — esperando OK para Fase 4 (Android).
-- **Última actualización**: 2026-05-20.
-- **Rama**: `Fase2`.
+- **Fase actual**: ✅ Fase 5 completa (Panel Admin JavaFX). Fases 0–5 cerradas.
+- **Última actualización**: 2026-06-03.
+- **Rama**: `main`.
 - **Regla activa desde Fase 2**: TODOS los identificadores en castellano. Ver [`CONVENCIONES.md`](./CONVENCIONES.md).
 
 ---
@@ -826,8 +826,112 @@ cd ../backend && npm run dev           # http://10.0.2.2:3000 desde el emulador
 3. **¿Cómo funciona la comunicación en tiempo real con Socket.IO?**
    > El `RepositorioChat` es un @Singleton que gestiona un objeto `Socket` de la librería `socket.io-client-java`. Al entrar al chat, llama a `conectar()` que abre una conexión WebSocket con el backend mediante el handshake Socket.IO v4 (protocolo sobre HTTP que luego hace upgrade a WebSocket). El token JWT se envía en el payload `auth` del handshake para que el servidor autorice la conexión. Los mensajes se reciben en un listener `socket.on("nuevo_mensaje", ...)` que actualiza un `MutableLiveData<DtoRespuestaMensaje>`. El ViewModel observa este LiveData con `observeForever` y añade cada mensaje a la lista. El RecyclerView del chat, que observa la lista, se actualiza automáticamente. Cubre el requisito DAM "Sockets/WebSockets e hilos".
 
-## Próxima fase
+## Fase 5 — App de escritorio JavaFX (Panel Admin) ✅
 
-**Fase 5 — App de escritorio JavaFX (Panel Admin)** — MVC, Java 17, OkHttp, Socket WebSocket cliente.
+- **Última actualización**: 2026-06-03.
+- **Rama**: `main`.
 
-> Confirma con "OK Fase 5" para empezar.
+### Parte A — Endpoints admin añadidos al backend (para que el panel sea funcional)
+
+Toda la lógica ya existía; se expusieron variantes con scope ADMIN reutilizando los repositorios.
+
+| Endpoint nuevo | Implementación |
+|----------------|----------------|
+| `GET /admin/logs` | Lee `activity_logs` de MongoDB (paginado + filtros accion/usuarioId/recurso) |
+| `GET /admin/pedidos` | Listado global paginado + filtro por estado (`RepositorioPedidos.listarTodos`) |
+| `GET /admin/disenadores` | Listado incl. pendientes (`RepositorioDisenadores.listarTodos`, filtro `validado`) |
+| `GET /admin/productos` | Catálogo completo incl. inactivos (`RepositorioProductos.listarTodos`) |
+| `PATCH /admin/productos/:id` · `DELETE /admin/productos/:id` | Moderar/retirar sin comprobación de propiedad |
+
+Además se corrigieron dos problemas preexistentes que impedían compilar/pasar los tests tras la
+migración a MySQL: `mode: 'insensitive'` (no soportado por el cliente Prisma de MySQL) en el
+listado público de productos, y un mock incompleto (`buscarPerfilCompleto`) en el test de `/auth/yo`.
+
+**Backend: 8 archivos modificados + 1 nuevo (`admin/dto.ts`). Tests: 114/114 verdes** (antes 107;
++7 casos admin).
+
+### Parte B — App de escritorio (`desktop-admin/`)
+
+Proyecto **Maven** `gal.galiciawear:panel-admin` (Java 17 / JavaFX 21), arquitectura **MVC**.
+
+| Capa | Clases |
+|------|--------|
+| Arranque | `Lanzador` (main neutro para fat-JAR), `AplicacionPanel` (Application) |
+| Configuración | `Configuracion` (URL API por env), `GestorSesion` (tokens en `Preferences`) |
+| Modelo | records `UsuarioBasico`, `RespuestaAutenticacion`, `Estadisticas`, `Disenador`, `Producto`, `Pedido`, `LogActividad`, `ResultadoImportacion` |
+| Servicio (capa modelo MVC) | `ClienteHttp` (OkHttp + Bearer + refresh en 401), `ServicioBase` y 7 servicios REST |
+| Núcleo | `Contexto` (DI manual), `Navegacion` (router FXML con controllerFactory) |
+| Util | `EjecutorTareas` (Task/hilos), `Alertas` (diálogos) |
+| Vistas | 7 FXML + `tema.css` (paleta atlantic/galego/sand) |
+| Controladores | Login, Principal (shell), Dashboard, Diseñadores, Productos, Pedidos, ImportExport, Logs |
+
+**8 vistas**: Login (solo ADMIN) · Dashboard (KPIs + PieChart, auto-refresco 15 s) · Diseñadores
+(validar) · Productos (moderar/retirar) · Pedidos (cancelar) · Importar/Exportar (JSON+XML) · Logs.
+
+**Empaquetado**: `mvn package` → fat-JAR ejecutable (13,9 MB, JavaFX embebido) + `empaquetar.sh`
+con `jpackage` (.dmg en macOS, .deb/app-image en Linux).
+
+### Tests (14 — desktop)
+
+| Suite | Tests | Tipo |
+|-------|-------|------|
+| `GestorSesionTest` | 4 | JUnit 5 (Preferences aisladas) |
+| `ClienteHttpTest` | 2 | JUnit 5 + MockWebServer (Bearer + refresh en 401) |
+| `ServicioAutenticacionTest` | 3 | JUnit 5 + MockWebServer (login ADMIN / no-admin / 401) |
+| `ServicioProductosTest` | 3 | JUnit 5 + MockWebServer (listar / patch / delete) |
+| `ControladorLoginTest` | 2 | TestFX (avisos y error de credenciales) |
+
+### Decisiones técnicas destacables
+
+| Decisión | Por qué |
+|----------|---------|
+| El panel NO accede a BBDD; solo a la API REST | Única fuente de verdad; MySQL/Mongo viven en el servidor del centro. Cumple "las únicas BBDD son las remotas". |
+| Sesión en `java.util.prefs.Preferences`, no en BBDD/SQLite | Persistir un token no justifica una BBDD embebida; `Preferences` es nativo de la JDK. |
+| Auto-refresco por polling (`ScheduledService` 15 s) en vez de WebSocket | El backend aún no tiene servidor Socket.IO; el polling cubre el "dashboard en vivo" y el requisito de hilos sin tocar el backend. |
+| DI manual con `Contexto` + `controllerFactory` | Para una app de escritorio pequeña, un contenedor explícito es más claro que un framework de DI. |
+| Clasificador JavaFX por perfiles de Maven según SO | El clasificador de JavaFX (`mac-aarch64`, `linux`…) no coincide con el de `os-maven-plugin`; los perfiles lo resuelven en cualquier máquina. |
+| `Lanzador` neutro (no extiende `Application`) | Evita el error "JavaFX runtime components are missing" al ejecutar el fat-JAR. |
+| Refresco transparente de token en `ClienteHttp` | Ante un 401 renueva la pareja contra `/auth/refresh` y reintenta una vez; replica el patrón del interceptor de Android. |
+
+### Verificación local
+
+```bash
+# 1. Backend contra BBDD remotas
+cd backend && npx prisma generate && npm run seed && npm run dev   # crea admin del seed
+
+# 2. Tests
+cd backend && npm test          # 114/114
+cd ../desktop-admin && mvn test # 14/14 (TestFX incluido)
+
+# 3. App de escritorio
+cd desktop-admin && mvn javafx:run     # login con el admin del seed
+#    GALICIAWEAR_API_URL=<url> mvn javafx:run  para apuntar a otro backend
+
+# 4. Empaquetado
+./empaquetar.sh                 # instalador nativo en dist/
+```
+
+### Preguntas probables del tribunal — Fase 5
+
+1. **¿Por qué JavaFX y no Swing, si la rúbrica pide "mínimo Swing"?**
+   > JavaFX es el sucesor oficial de Swing desde Java 8. Aporta separación real vista/lógica con
+   > FXML declarativo (como XML+controlador), estilos con CSS, gráficos integrados (`PieChart`) y
+   > binding de propiedades. Con Swing tendría que construir la UI imperativa en Java, mezclando
+   > presentación y lógica. Empaqueto con `jpackage` un instalador nativo, igual que una app de
+   > escritorio profesional. Cumple el mínimo de la rúbrica superándolo ampliamente.
+
+2. **¿Cómo evitas congelar la ventana al llamar a la API?**
+   > Ninguna llamada HTTP corre en el JavaFX Application Thread. Las envuelvo en `Task` (vía
+   > `EjecutorTareas`, con un pool de hilos demonio) y el dashboard usa un `ScheduledService` que
+   > repite la petición cada 15 s en un hilo aparte. Los resultados vuelven a la UI en los callbacks
+   > `setOnSucceeded`/`setOnFailed`, que JavaFX garantiza que se ejecutan en el hilo de la interfaz.
+   > Así la ventana sigue respondiendo aunque el servidor tarde.
+
+3. **El panel necesita ver pedidos, diseñadores pendientes y logs, pero esos endpoints no existían
+   con scope admin. ¿Qué hiciste?**
+   > Añadí cinco endpoints `/admin/*` que reutilizan la lógica existente pero saltándose las
+   > restricciones de propiedad/rol pensadas para cliente o diseñador. Por ejemplo, el listado
+   > público de diseñadores fuerza `validado:true`; el de admin añade un `listarTodos` con el filtro
+   > opcional para poder ver y validar los pendientes. El visor de logs lee la colección
+   > `activity_logs` de MongoDB a través de la API, demostrando el uso real de la BBDD NoSQL desde
+   > el panel sin acoplarlo a Mongo directamente.

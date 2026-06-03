@@ -27,7 +27,18 @@
       "Bash(kill 17434 18844 18894)",
       "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
       "Bash(node -e ' *)",
-      "Bash(bash scripts/start-dev.sh)"
+      "Bash(bash scripts/start-dev.sh)",
+      "Bash(npm test *)",
+      "Bash(LOG_LEVEL=silent npm test)",
+      "Bash(LOG_LEVEL=silent npx jest tests/salud.test.ts)",
+      "Bash(npx jest *)",
+      "Bash(mvn -q -o compile)",
+      "Bash(mvn -q compile)",
+      "Bash(mvn -q test)",
+      "Bash(mvn -q -DskipTests package)",
+      "Bash(chmod +x empaquetar.sh)",
+      "Bash(bash -n empaquetar.sh)",
+      "Bash(unzip -p target/panel-admin-0.5.0.jar META-INF/MANIFEST.MF)"
     ]
   }
 }
