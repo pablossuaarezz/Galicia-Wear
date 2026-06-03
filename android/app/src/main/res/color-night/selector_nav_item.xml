@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tinte de navegación inferior en modo oscuro (celeste sobre superficie oscura) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/celeste_claro" android:state_checked="true" />
+    <item android:color="@color/texto_secundario_oscuro" />
+</selector>

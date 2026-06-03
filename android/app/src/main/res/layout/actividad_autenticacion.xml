@@ -7,19 +7,19 @@
     android:orientation="vertical"
     android:background="@color/fondo">
 
-    <!-- Logo + nombre en la parte superior -->
+    <!-- Logo + nombre en la parte superior, sobre degradado azul → celeste -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
-        android:paddingTop="48dp"
-        android:paddingBottom="24dp"
-        android:background="@color/primario">
+        android:paddingTop="56dp"
+        android:paddingBottom="32dp"
+        android:background="@drawable/fondo_cabecera">
 
         <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:src="@drawable/ic_logo_galiciawear"
             android:contentDescription="@string/logo_descripcion" />
 
@@ -27,21 +27,32 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/nombre_app"
-            android:textSize="22sp"
+            android:textSize="24sp"
             android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:layout_marginTop="8dp" />
+            android:letterSpacing="0.04"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/slogan_app"
+            android:textSize="13sp"
+            android:textColor="#DDFFFFFF"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/pestanas_auth"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primario"
-        app:tabTextColor="#99FFFFFF"
-        app:tabSelectedTextColor="@android:color/white"
-        app:tabIndicatorColor="@android:color/white"
-        app:tabRippleColor="#33FFFFFF" />
+        android:background="@color/superficie"
+        app:tabTextColor="@color/texto_secundario"
+        app:tabSelectedTextColor="@color/primario"
+        app:tabIndicatorColor="@color/celeste"
+        app:tabIndicatorFullWidth="false"
+        android:elevation="2dp"
+        app:tabRippleColor="@color/celeste_muy_claro" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/vista_page_auth"

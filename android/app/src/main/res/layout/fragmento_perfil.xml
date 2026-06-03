@@ -1,74 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/fondo">
+    android:background="@color/fondo"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:orientation="vertical">
 
-        <!-- Avatar circular con inicial del nombre -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            app:cardCornerRadius="48dp"
-            app:cardBackgroundColor="@color/primario"
-            android:layout_marginTop="32dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto">
+        <!-- Cabecera con degradado azul → celeste -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:background="@drawable/fondo_cabecera"
+            android:paddingTop="40dp"
+            android:paddingBottom="64dp">
+
+            <!-- Avatar circular con inicial del nombre -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                app:cardCornerRadius="52dp"
+                app:cardElevation="6dp"
+                app:strokeColor="#66FFFFFF"
+                app:strokeWidth="2dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/fondo_avatar" />
+
+                <TextView
+                    android:id="@+id/texto_inicial"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textSize="40sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:text="A" />
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
-                android:id="@+id/texto_inicial"
+                android:id="@+id/texto_nombre"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:textSize="36sp"
+                android:layout_height="wrap_content"
+                android:textSize="23sp"
+                android:textStyle="bold"
                 android:textColor="@android:color/white"
-                android:text="A" />
+                android:textAlignment="center"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/texto_correo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="#DDFFFFFF"
+                android:textAlignment="center"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Tarjeta de datos que solapa la cabecera -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="-40dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:padding="24dp">
+
+                <TextView
+                    android:id="@+id/texto_rol"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/fondo_pill_rol"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="7dp" />
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="20dp" />
+
+                <!-- Cerrar sesión con confirmación (prevención de errores) -->
+                <Button
+                    android:id="@+id/boton_cerrar_sesion"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:text="@string/cerrar_sesion" />
+
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <TextView
-            android:id="@+id/texto_nombre"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/texto_primario"
-            android:textAlignment="center"
-            android:layout_marginTop="16dp" />
-
-        <TextView
-            android:id="@+id/texto_correo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="@color/texto_secundario"
-            android:textAlignment="center"
-            android:layout_marginTop="4dp" />
-
-        <TextView
-            android:id="@+id/texto_rol"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@android:color/white"
-            android:background="@color/primario"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="4dp"
-            android:layout_marginTop="8dp" />
-
-        <!-- Cerrar sesión con confirmación (prevención de errores) -->
-        <Button
-            android:id="@+id/boton_cerrar_sesion"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="@string/cerrar_sesion"
-            android:layout_marginTop="48dp" />
 
     </LinearLayout>
 </ScrollView>

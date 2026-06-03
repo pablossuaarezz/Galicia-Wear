@@ -21,6 +21,8 @@
     <string name="contrasena">Contraseña</string>
     <string name="nombre">Nombre</string>
     <string name="apellidos">Apellidos</string>
+    <string name="login_titulo">¡Hola de nuevo!</string>
+    <string name="login_subtitulo">Inicia sesión para seguir descubriendo moda gallega</string>
     <string name="iniciar_sesion">Iniciar sesión</string>
     <string name="crear_cuenta">Crear cuenta</string>
     <string name="soy_cliente">Soy cliente</string>

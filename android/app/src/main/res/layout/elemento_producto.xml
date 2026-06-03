@@ -5,9 +5,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:layout_margin="6dp"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="3dp"
+    app:strokeColor="@color/superficie_variante"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,14 +20,15 @@
         <ImageView
             android:id="@+id/imagen_producto"
             android:layout_width="match_parent"
-            android:layout_height="160dp"
+            android:layout_height="170dp"
+            android:background="@color/superficie_variante"
             android:scaleType="centerCrop" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:padding="12dp">
 
             <TextView
                 android:id="@+id/texto_nombre"
@@ -47,36 +50,44 @@
                 android:maxLines="1"
                 android:ellipsize="end" />
 
+            <TextView
+                android:id="@+id/texto_precio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/primario"
+                android:layout_marginTop="8dp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:layout_marginTop="6dp">
-
-                <TextView
-                    android:id="@+id/texto_precio"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/primario" />
 
                 <TextView
                     android:id="@+id/texto_km"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="11sp"
-                    android:textColor="@color/verde_sostenible" />
-            </LinearLayout>
+                    android:textStyle="bold"
+                    android:textColor="@color/verde_sostenible"
+                    android:background="@drawable/fondo_badge_km"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp" />
 
-            <TextView
-                android:id="@+id/texto_material"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="11sp"
-                android:textColor="@color/texto_secundario"
-                android:layout_marginTop="2dp" />
+                <TextView
+                    android:id="@+id/texto_material"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:textColor="@color/texto_secundario"
+                    android:layout_marginStart="6dp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>

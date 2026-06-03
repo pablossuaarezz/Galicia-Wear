@@ -35,7 +35,7 @@ rutasPedidos.post(
  * /pedidos:
  *   get:
  *     tags: [Pedidos]
- *     summary: Lista pedidos propios (cliente: sus compras; diseñador: sus ventas)
+ *     summary: "Lista pedidos propios (cliente: sus compras; diseñador: sus ventas)"
  *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200: { description: Lista de pedidos }
@@ -72,7 +72,7 @@ rutasPedidos.patch('/:id/pagar', verificarJwt, soloCliente, controladorPedidos.p
  * /pedidos/{id}/aceptar:
  *   patch:
  *     tags: [Pedidos]
- *     summary: Diseñador acepta sus líneas del pedido (PAGADO → ACEPTADO); crea envío stub
+ *     summary: "Diseñador acepta sus líneas del pedido (PAGADO → ACEPTADO); crea envío stub"
  *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200: { description: Líneas aceptadas; envío creado }

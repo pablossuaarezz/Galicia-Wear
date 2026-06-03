@@ -26,7 +26,8 @@
       "Bash(docker ps *)",
       "Bash(kill 17434 18844 18894)",
       "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(bash scripts/start-dev.sh)"
     ]
   }
 }

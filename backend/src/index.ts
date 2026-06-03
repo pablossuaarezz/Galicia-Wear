@@ -16,7 +16,7 @@ async function arrancar(): Promise<void> {
 
   const aplicacion = crearAplicacion();
 
-  const servidor = aplicacion.listen(entorno.PORT, () => {
+  const servidor = aplicacion.listen(entorno.PORT, '0.0.0.0', () => {
     registrador.info(
       { puerto: entorno.PORT, entorno: entorno.NODE_ENV },
       'API GaliciaWear escuchando',

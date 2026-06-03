@@ -3,23 +3,144 @@
 
     <!--
         Tema principal Material Design 3 — modo claro.
+        Paleta azul atlántico + celeste (bandera de Galicia).
         NoActionBar porque usamos MaterialToolbar en los layouts.
+        Define estilos por defecto para que todos los componentes
+        (botones, tarjetas, chips, navegación) hereden el look de marca.
     -->
     <style name="Tema.GaliciaWear" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Colores primarios -->
         <item name="colorPrimary">@color/primario</item>
         <item name="colorOnPrimary">@color/en_primario</item>
-        <item name="colorSecondary">@color/verde_sostenible</item>
-        <item name="colorTertiary">@color/acento</item>
+        <item name="colorPrimaryContainer">@color/contenedor_primario</item>
+        <item name="colorOnPrimaryContainer">@color/en_contenedor_primario</item>
+        <!-- Secundario celeste -->
+        <item name="colorSecondary">@color/celeste</item>
+        <item name="colorOnSecondary">@color/en_primario</item>
+        <item name="colorSecondaryContainer">@color/celeste_muy_claro</item>
+        <item name="colorOnSecondaryContainer">@color/primario_oscuro</item>
+        <!-- Terciario -->
+        <item name="colorTertiary">@color/verde_sostenible</item>
+        <item name="colorOnTertiary">@color/en_primario</item>
+        <!-- Superficies -->
         <item name="colorSurface">@color/superficie</item>
+        <item name="colorSurfaceVariant">@color/superficie_variante</item>
+        <item name="colorOnSurface">@color/texto_primario</item>
+        <item name="colorOnSurfaceVariant">@color/texto_secundario</item>
         <item name="android:colorBackground">@color/fondo</item>
         <item name="colorError">@color/error</item>
+        <item name="colorOutline">@color/celeste_claro</item>
+
+        <!-- Barras del sistema -->
         <item name="android:statusBarColor">@color/primario_oscuro</item>
         <item name="android:navigationBarColor">@color/superficie</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Formas redondeadas de marca -->
+        <item name="shapeAppearanceCornerSmall">@style/Forma.GaliciaWear.Pequena</item>
+        <item name="shapeAppearanceCornerMedium">@style/Forma.GaliciaWear.Media</item>
+        <item name="shapeAppearanceCornerLarge">@style/Forma.GaliciaWear.Grande</item>
+
+        <!-- Estilos por defecto de los componentes -->
+        <item name="materialButtonStyle">@style/Widget.GaliciaWear.Boton</item>
+        <item name="materialCardViewStyle">@style/Widget.GaliciaWear.Tarjeta</item>
+        <item name="toolbarStyle">@style/Widget.GaliciaWear.Toolbar</item>
+        <item name="bottomNavigationStyle">@style/Widget.GaliciaWear.NavInferior</item>
+        <item name="chipStyle">@style/Widget.GaliciaWear.Chip</item>
+        <item name="tabStyle">@style/Widget.GaliciaWear.Tabs</item>
+        <item name="floatingActionButtonStyle">@style/Widget.GaliciaWear.Fab</item>
     </style>
 
-    <!-- Tema del splash — fondo primario sin barra de estado visible -->
+    <!-- ====================  FORMAS  ==================== -->
+    <style name="Forma.GaliciaWear.Pequena" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerSize">10dp</item>
+    </style>
+    <style name="Forma.GaliciaWear.Media" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">18dp</item>
+    </style>
+    <style name="Forma.GaliciaWear.Grande" parent="ShapeAppearance.Material3.Corner.Large">
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <!-- ====================  BOTONES  ==================== -->
+    <style name="Widget.GaliciaWear.Boton" parent="Widget.Material3.Button">
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="elevation">2dp</item>
+    </style>
+
+    <!-- ====================  TARJETAS  ==================== -->
+    <style name="Widget.GaliciaWear.Tarjeta" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">18dp</item>
+        <item name="cardElevation">3dp</item>
+        <item name="cardBackgroundColor">@color/superficie</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <!-- ====================  TOOLBAR  ==================== -->
+    <!-- Cabecera con degradado azul → celeste (banda de la bandera gallega) -->
+    <style name="Widget.GaliciaWear.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@drawable/fondo_cabecera</item>
+        <item name="titleTextColor">@color/en_primario</item>
+        <item name="subtitleTextColor">@color/celeste_claro</item>
+        <item name="titleTextAppearance">@style/TextAppearance.GaliciaWear.Toolbar</item>
+        <item name="navigationIconTint">@color/en_primario</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+
+    <style name="TextAppearance.GaliciaWear.Toolbar" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/en_primario</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <!-- ====================  NAVEGACIÓN INFERIOR  ==================== -->
+    <style name="Widget.GaliciaWear.NavInferior" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="itemIconTint">@color/selector_nav_item</item>
+        <item name="itemTextColor">@color/selector_nav_item</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.GaliciaWear.NavInferior.Indicador</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="android:elevation">12dp</item>
+    </style>
+
+    <style name="Widget.GaliciaWear.NavInferior.Indicador" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">?attr/colorPrimaryContainer</item>
+    </style>
+
+    <!-- ====================  CHIPS  ==================== -->
+    <style name="Widget.GaliciaWear.Chip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipCornerRadius">12dp</item>
+        <item name="chipBackgroundColor">@color/selector_chip_fondo</item>
+        <item name="android:textColor">@color/selector_chip_texto</item>
+        <item name="chipStrokeColor">@color/celeste</item>
+        <item name="chipStrokeWidth">1dp</item>
+    </style>
+
+    <!-- ====================  TABS  ==================== -->
+    <style name="Widget.GaliciaWear.Tabs" parent="Widget.Material3.TabLayout">
+        <item name="tabIndicatorColor">@color/celeste</item>
+        <item name="tabSelectedTextColor">@color/primario</item>
+        <item name="tabTextColor">@color/texto_secundario</item>
+        <item name="tabIndicatorFullWidth">false</item>
+    </style>
+
+    <!-- ====================  FAB  ==================== -->
+    <style name="Widget.GaliciaWear.Fab" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">@color/primario</item>
+        <item name="tint">@color/en_primario</item>
+        <item name="shapeAppearance">@style/Forma.GaliciaWear.Grande</item>
+    </style>
+
+    <!-- Tema del splash — degradado a pantalla completa -->
     <style name="Tema.GaliciaWear.Splash" parent="Tema.GaliciaWear">
-        <item name="android:statusBarColor">@color/primario</item>
+        <item name="android:statusBarColor">@color/primario_oscuro</item>
         <item name="android:windowFullscreen">true</item>
     </style>
 

@@ -1,15 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Tema modo oscuro GaliciaWear -->
+    <!-- Tema modo oscuro GaliciaWear — azul marino profundo + celeste -->
     <style name="Base.Theme.GaliciaWear" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primario_claro</item>
         <item name="colorOnPrimary">@color/primario_oscuro</item>
-        <item name="colorSecondary">@color/verde_claro</item>
+        <item name="colorPrimaryContainer">@color/superficie_variante_oscura</item>
+        <item name="colorOnPrimaryContainer">@color/celeste_claro</item>
+        <item name="colorSecondary">@color/celeste</item>
+        <item name="colorOnSecondary">@color/primario_oscuro</item>
+        <item name="colorSecondaryContainer">@color/superficie_variante_oscura</item>
+        <item name="colorOnSecondaryContainer">@color/celeste_claro</item>
+        <item name="colorTertiary">@color/verde_claro</item>
         <item name="colorSurface">@color/superficie_oscura</item>
+        <item name="colorSurfaceVariant">@color/superficie_variante_oscura</item>
+        <item name="colorOnSurface">@color/texto_primario_oscuro</item>
+        <item name="colorOnSurfaceVariant">@color/texto_secundario_oscuro</item>
         <item name="android:colorBackground">@color/fondo_oscuro</item>
+        <item name="colorOutline">@color/primario_claro</item>
         <item name="android:statusBarColor">@color/fondo_oscuro</item>
         <item name="android:navigationBarColor">@color/superficie_oscura</item>
+
+        <!-- Formas redondeadas de marca -->
+        <item name="shapeAppearanceCornerSmall">@style/Forma.GaliciaWear.Pequena</item>
+        <item name="shapeAppearanceCornerMedium">@style/Forma.GaliciaWear.Media</item>
+        <item name="shapeAppearanceCornerLarge">@style/Forma.GaliciaWear.Grande</item>
+
+        <!-- Estilos por defecto de los componentes (compartidos con modo claro) -->
+        <item name="materialButtonStyle">@style/Widget.GaliciaWear.Boton</item>
+        <item name="materialCardViewStyle">@style/Widget.GaliciaWear.Tarjeta</item>
+        <item name="toolbarStyle">@style/Widget.GaliciaWear.Toolbar</item>
+        <item name="bottomNavigationStyle">@style/Widget.GaliciaWear.NavInferior</item>
+        <item name="chipStyle">@style/Widget.GaliciaWear.Chip</item>
+        <item name="tabStyle">@style/Widget.GaliciaWear.Tabs</item>
+        <item name="floatingActionButtonStyle">@style/Widget.GaliciaWear.Fab</item>
     </style>
+
     <style name="Tema.GaliciaWear" parent="Base.Theme.GaliciaWear" />
     <style name="Theme.GaliciaWear" parent="Base.Theme.GaliciaWear" />
     <style name="Tema.GaliciaWear.Splash" parent="Base.Theme.GaliciaWear">

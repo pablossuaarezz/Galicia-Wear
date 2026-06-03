@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="3dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,9 +41,13 @@
                 android:id="@+id/texto_estado"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:textSize="11sp"
+                android:textStyle="bold"
                 android:textColor="@color/primario"
-                android:layout_marginTop="4dp" />
+                android:background="@drawable/fondo_pill_estado"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:layout_marginTop="8dp" />
         </LinearLayout>
 
         <TextView

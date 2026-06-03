@@ -1,37 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Paleta cromática de GaliciaWear
-    Inspirada en la identidad gallega: azul atlántico, verde costa, arena de rías.
-    Contraste AA (4.5:1) en textos principales sobre fondo claro.
+    Inspirada en la bandera de Galicia: campo blanco con banda azul celeste.
+    Azul atlántico + celeste como protagonistas. Contraste AA (4.5:1) en textos.
 -->
 <resources>
     <!-- Azul atlántico — primario de marca -->
-    <color name="primario">#1A5C8F</color>
-    <color name="primario_claro">#5A8EB8</color>
-    <color name="primario_oscuro">#0D3D63</color>
+    <color name="primario">#0A5CA8</color>
+    <color name="primario_claro">#4FB3E8</color>
+    <color name="primario_oscuro">#06396B</color>
     <color name="en_primario">#FFFFFF</color>
-    <!-- Verde sostenible -->
-    <color name="verde_sostenible">#2E7D32</color>
-    <color name="verde_claro">#66BB6A</color>
-    <!-- Acento arena -->
-    <color name="acento">#D4A853</color>
-    <!-- Fondos -->
-    <color name="fondo">#F5F5F0</color>
+
+    <!-- Celeste — color de acento de la bandera gallega -->
+    <color name="celeste">#29A9E0</color>
+    <color name="celeste_claro">#9AD4F2</color>
+    <color name="celeste_muy_claro">#E3F2FC</color>
+    <color name="contenedor_primario">#D4E9FA</color>
+    <color name="en_contenedor_primario">#06396B</color>
+
+    <!-- Acento celeste vibrante (antes arena) -->
+    <color name="acento">#29A9E0</color>
+
+    <!-- Verde/teal sostenible — conservado para semántica eco, virado a azul-teal -->
+    <color name="verde_sostenible">#00838F</color>
+    <color name="verde_claro">#4DD0E1</color>
+
+    <!-- Fondos — blanco con leve tinte celeste (campo de la bandera) -->
+    <color name="fondo">#F2F8FD</color>
     <color name="superficie">#FFFFFF</color>
-    <color name="superficie_variante">#EFEDE8</color>
-    <!-- Textos -->
-    <color name="texto_primario">#1C1B1F</color>
-    <color name="texto_secundario">#6B6D7A</color>
-    <color name="texto_deshabilitado">#ABABAB</color>
+    <color name="superficie_variante">#E3EFF8</color>
+
+    <!-- Textos — tinta azul marino para coherencia de marca -->
+    <color name="texto_primario">#0D2A40</color>
+    <color name="texto_secundario">#5B7185</color>
+    <color name="texto_deshabilitado">#A7B7C4</color>
+
     <!-- Estados -->
-    <color name="error">#B3261E</color>
+    <color name="error">#C62828</color>
     <color name="exito">#2E7D32</color>
-    <color name="aviso">#F57C00</color>
-    <!-- Modo oscuro -->
-    <color name="fondo_oscuro">#1C1B1F</color>
-    <color name="superficie_oscura">#2B2930</color>
-    <color name="texto_primario_oscuro">#E6E1E5</color>
-    <color name="texto_secundario_oscuro">#CAC4D0</color>
+    <color name="aviso">#EF8C00</color>
+
+    <!-- Modo oscuro — azul marino profundo -->
+    <color name="fondo_oscuro">#081A29</color>
+    <color name="superficie_oscura">#0F2A3F</color>
+    <color name="superficie_variante_oscura">#163850</color>
+    <color name="texto_primario_oscuro">#E6F2FB</color>
+    <color name="texto_secundario_oscuro">#A9C4D6</color>
+
     <!-- Compatibilidad Material (no eliminar) -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
