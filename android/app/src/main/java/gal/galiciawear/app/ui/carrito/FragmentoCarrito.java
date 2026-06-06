@@ -12,11 +12,24 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.Locale;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.databinding.FragmentoCarritoBinding;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaCarrito;
 import gal.galiciawear.app.modelovista.ModeloVistaCarrito;
+import gal.galiciawear.app.utilidades.RecursoUi;
 
+/**
+ * Pestaña del carrito.
+ *
+ * Observa el estado compartido del carrito (fuente única en el repositorio): al
+ * añadir desde el detalle de un producto o al modificar la cantidad aquí, la lista
+ * y el total se actualizan al instante. Las operaciones (cantidad/eliminar) se
+ * observan con el ciclo de vida de la vista para no filtrar observadores.
+ */
 @AndroidEntryPoint
 public class FragmentoCarrito extends Fragment {
 
@@ -35,9 +48,18 @@ public class FragmentoCarrito extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         modeloVista = new ViewModelProvider(this).get(ModeloVistaCarrito.class);
 
-        adaptador = new AdaptadorItemCarrito(varianteId ->
-            modeloVista.eliminarDelCarrito(varianteId)
-        );
+        adaptador = new AdaptadorItemCarrito(new AdaptadorItemCarrito.Acciones() {
+            @Override
+            public void onCambiarCantidad(String varianteId, int nuevaCantidad) {
+                observarOperacion(modeloVista.actualizarCantidad(varianteId, nuevaCantidad), null);
+            }
+
+            @Override
+            public void onEliminar(String varianteId) {
+                observarOperacion(modeloVista.eliminarDelCarrito(varianteId),
+                    getString(gal.galiciawear.app.R.string.articulo_eliminado));
+            }
+        });
         enlace.listaCarrito.setLayoutManager(new LinearLayoutManager(requireContext()));
         enlace.listaCarrito.setAdapter(adaptador);
 
@@ -45,28 +67,53 @@ public class FragmentoCarrito extends Fragment {
             startActivity(new Intent(requireContext(), ActividadCheckout.class))
         );
 
+        modeloVista.observarCarrito().observe(getViewLifecycleOwner(), this::renderizar);
         modeloVista.cargarCarrito();
-
-        modeloVista.observarCarrito().observe(getViewLifecycleOwner(), recurso -> {
-            if (recurso == null) return;
-            enlace.indicadorCarga.setVisibility(
-                recurso.estaCargando() ? View.VISIBLE : View.GONE
-            );
-            if (recurso.esExito() && recurso.datos != null) {
-                mostrarCarrito(recurso.datos);
-            }
-        });
     }
 
-    private void mostrarCarrito(DtoRespuestaCarrito carrito) {
-        boolean vacio = carrito.items == null || carrito.items.isEmpty();
-        enlace.textoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
-        enlace.botonCheckout.setVisibility(vacio ? View.GONE : View.VISIBLE);
+    private void renderizar(RecursoUi<DtoRespuestaCarrito> recurso) {
+        if (recurso == null) return;
 
-        if (!vacio) {
-            adaptador.establecerItems(carrito.items);
-            enlace.textoTotal.setText(String.format("Total: %.2f €", carrito.total));
+        boolean cargando = recurso.estaCargando();
+        boolean tieneItems = recurso.esExito() && recurso.datos != null && !recurso.datos.estaVacio();
+
+        // Solo mostramos el spinner a pantalla completa si aún no hay nada que enseñar.
+        enlace.indicadorCarga.setVisibility(
+            cargando && adaptador.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+
+        if (recurso.esError() && adaptador.getItemCount() == 0) {
+            enlace.grupoVacio.setVisibility(View.GONE);
+            enlace.pieCarrito.setVisibility(View.GONE);
+            if (recurso.mensaje != null) {
+                Snackbar.make(enlace.getRoot(), recurso.mensaje, Snackbar.LENGTH_LONG).show();
+            }
+            return;
         }
+
+        if (recurso.esExito()) {
+            DtoRespuestaCarrito carrito = recurso.datos;
+            enlace.grupoVacio.setVisibility(tieneItems ? View.GONE : View.VISIBLE);
+            enlace.pieCarrito.setVisibility(tieneItems ? View.VISIBLE : View.GONE);
+            adaptador.establecerItems(carrito != null ? carrito.items : null);
+            if (tieneItems) {
+                enlace.textoTotal.setText(
+                    String.format(Locale.getDefault(), "%.2f €", carrito.calcularTotal()));
+            }
+        }
+    }
+
+    /** Observa una operación de un solo uso para mostrar errores/confirmaciones. */
+    private void observarOperacion(
+        androidx.lifecycle.LiveData<RecursoUi<DtoRespuestaCarrito>> operacion,
+        @Nullable String mensajeExito) {
+        operacion.observe(getViewLifecycleOwner(), recurso -> {
+            if (recurso == null) return;
+            if (recurso.esError() && recurso.mensaje != null) {
+                Snackbar.make(enlace.getRoot(), recurso.mensaje, Snackbar.LENGTH_LONG).show();
+            } else if (recurso.esExito() && mensajeExito != null) {
+                Snackbar.make(enlace.getRoot(), mensajeExito, Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

@@ -38,6 +38,7 @@ public class ActividadDetalleProducto extends AppCompatActivity {
     private ModeloVistaCarrito modeloVistaCarrito;
     private DtoRespuestaProducto productoActual;
     private String varianteSeleccionadaId;
+    private double precioBaseProducto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +61,9 @@ public class ActividadDetalleProducto extends AppCompatActivity {
 
         enlace.botonAnadirCarrito.setOnClickListener(v -> añadirAlCarrito());
 
+        // Mantiene el badge del carrito al día también desde el detalle.
+        modeloVistaCarrito.cargarCarrito();
+
         // Botón AR stub — demuestra preparación para ARCore sin implementación completa
         // JUSTIFICACIÓN: La entrevista con Carlos mencionó RA; lo dejamos como stub
         // documentado para la defensa oral.
@@ -68,8 +72,6 @@ public class ActividadDetalleProducto extends AppCompatActivity {
                 "Realidad Aumentada: requiere ARCore configurado con google-services real",
                 Toast.LENGTH_LONG).show()
         );
-
-        observarEstadoCarrito();
     }
 
     private void cargarProducto(String slug) {
@@ -92,8 +94,11 @@ public class ActividadDetalleProducto extends AppCompatActivity {
     private void mostrarProducto(DtoRespuestaProducto producto) {
         this.productoActual = producto;
 
+        // El backend envía el precio en "precioBase"; "precio" puede llegar a 0.
+        precioBaseProducto = producto.precio > 0 ? producto.precio : producto.precioBase;
+
         enlace.textoNombreProducto.setText(producto.nombre);
-        enlace.textoPrecio.setText(String.format("%.2f €", producto.precio));
+        enlace.textoPrecio.setText(String.format("%.2f €", precioBaseProducto));
         enlace.textoDescripcion.setText(producto.descripcion);
         enlace.textoMaterial.setText(producto.materialPrincipal);
         enlace.textoKm.setText(producto.kmOrigen + " km del origen");
@@ -123,7 +128,12 @@ public class ActividadDetalleProducto extends AppCompatActivity {
                 chip.setText(v.talla + " - " + v.color);
                 chip.setCheckable(true);
                 chip.setOnCheckedChangeListener((btn, marcado) -> {
-                    if (marcado) varianteSeleccionadaId = v.id;
+                    if (marcado) {
+                        varianteSeleccionadaId = v.id;
+                        // El precio de la variante = precio base + ajuste de la variante.
+                        double ajuste = v.ajustePrecio != null ? v.ajustePrecio : 0;
+                        enlace.textoPrecio.setText(String.format("%.2f €", precioBaseProducto + ajuste));
+                    }
                 });
                 enlace.grupoChipsTallas.addView(chip);
             }
@@ -150,27 +160,47 @@ public class ActividadDetalleProducto extends AppCompatActivity {
 
     private void añadirAlCarrito() {
         if (varianteSeleccionadaId == null) {
-            Snackbar.make(enlace.getRoot(), "Selecciona una talla/color", Snackbar.LENGTH_SHORT).show();
+            mostrarAviso(getString(R.string.selecciona_variante), Snackbar.LENGTH_SHORT, false);
             return;
         }
-        modeloVistaCarrito.añadirAlCarrito(varianteSeleccionadaId, 1);
+        // LiveData de un solo uso, observado con el ciclo de vida de la actividad
+        // (sin observeForever): no filtra observadores aunque se pulse varias veces.
+        modeloVistaCarrito.añadirAlCarrito(varianteSeleccionadaId, 1)
+            .observe(this, recurso -> {
+                if (recurso == null) return;
+                if (recurso.estaCargando()) {
+                    enlace.botonAnadirCarrito.setEnabled(false);
+                } else if (recurso.esExito()) {
+                    enlace.botonAnadirCarrito.setEnabled(true);
+                    mostrarAviso(getString(R.string.articulo_anadido), Snackbar.LENGTH_LONG, true);
+                } else if (recurso.esError()) {
+                    enlace.botonAnadirCarrito.setEnabled(true);
+                    mostrarAviso(recurso.mensaje, Snackbar.LENGTH_LONG, false);
+                }
+            });
     }
 
-    private void observarEstadoCarrito() {
-        modeloVistaCarrito.observarOperacion().observe(this, recurso -> {
-            if (recurso == null) return;
-            if (recurso.estaCargando()) {
-                enlace.botonAnadirCarrito.setEnabled(false);
-            } else if (recurso.esExito()) {
-                enlace.botonAnadirCarrito.setEnabled(true);
-                Snackbar.make(enlace.getRoot(), "Añadido al carrito", Snackbar.LENGTH_SHORT)
-                    .setAction("Ver carrito", v -> finish())
-                    .show();
-            } else if (recurso.esError()) {
-                enlace.botonAnadirCarrito.setEnabled(true);
-                Snackbar.make(enlace.getRoot(), recurso.mensaje, Snackbar.LENGTH_LONG).show();
-            }
-        });
+    /**
+     * Muestra un Snackbar anclado SOBRE la barra inferior de botones. Sin el anclaje,
+     * el Snackbar aparece al fondo del CoordinatorLayout y queda tapado por esa barra
+     * (opaca y con más elevación), por lo que el usuario no veía ningún aviso.
+     */
+    private void mostrarAviso(String mensaje, int duracion, boolean conAccionVerCarrito) {
+        if (enlace == null || mensaje == null) return;
+        Snackbar snackbar = Snackbar.make(enlace.getRoot(), mensaje, duracion)
+            .setAnchorView(enlace.botonAnadirCarrito);
+        if (conAccionVerCarrito) {
+            snackbar.setAction(getString(R.string.ver_carrito), v -> abrirCarrito());
+        }
+        snackbar.show();
+    }
+
+    private void abrirCarrito() {
+        Intent intent = new Intent(this, gal.galiciawear.app.ui.principal.ActividadPrincipal.class);
+        intent.putExtra(Constantes.EXTRA_ABRIR_CARRITO, true);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 
     @Override

@@ -19,6 +19,7 @@ import gal.galiciawear.app.datos.local.entidad.EntidadProducto;
 import gal.galiciawear.app.datos.remoto.ServicioApi;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaProductos;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProducto;
+import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProductoEnvoltura;
 import gal.galiciawear.app.utilidades.Constantes;
 import gal.galiciawear.app.utilidades.RecursoUi;
 import retrofit2.Call;
@@ -99,18 +100,19 @@ public class RepositorioProductos {
         MutableLiveData<RecursoUi<DtoRespuestaProducto>> resultado = new MutableLiveData<>();
         resultado.setValue(RecursoUi.cargando());
 
-        servicioApi.obtenerProducto(slug).enqueue(new Callback<DtoRespuestaProducto>() {
+        servicioApi.obtenerProducto(slug).enqueue(new Callback<DtoRespuestaProductoEnvoltura>() {
             @Override
-            public void onResponse(Call<DtoRespuestaProducto> call, Response<DtoRespuestaProducto> r) {
-                if (r.isSuccessful() && r.body() != null) {
-                    resultado.postValue(RecursoUi.exito(r.body()));
+            public void onResponse(Call<DtoRespuestaProductoEnvoltura> call,
+                                   Response<DtoRespuestaProductoEnvoltura> r) {
+                if (r.isSuccessful() && r.body() != null && r.body().producto != null) {
+                    resultado.postValue(RecursoUi.exito(r.body().producto));
                 } else {
                     resultado.postValue(RecursoUi.error("Producto no encontrado"));
                 }
             }
 
             @Override
-            public void onFailure(Call<DtoRespuestaProducto> call, Throwable t) {
+            public void onFailure(Call<DtoRespuestaProductoEnvoltura> call, Throwable t) {
                 resultado.postValue(RecursoUi.error("Sin conexión"));
             }
         });
@@ -131,7 +133,8 @@ public class RepositorioProductos {
                 e.nombre              = dto.nombre;
                 e.slug                = dto.slug;
                 e.descripcion         = dto.descripcion;
-                e.precio              = dto.precio;
+                // El backend envía el precio en "precioBase"; "precio" llega a 0.
+                e.precio              = dto.precio > 0 ? dto.precio : dto.precioBase;
                 e.materialPrincipal   = dto.materialPrincipal;
                 e.kmOrigen            = dto.kmOrigen;
                 e.fechaCache          = ahora;

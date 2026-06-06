@@ -45,6 +45,16 @@ android {
     }
 }
 
+// Toolchain de Java: fija el JDK usado para compilar Y para el JdkImageTransform de
+// AGP (que necesita 'jlink'). Así el build NO depende del JVM con el que el IDE/Gradle
+// arranca el daemon (el JRE de la extensión redhat.java no trae jlink y rompía el build).
+// Gradle localiza un JDK 21 completo ya instalado en ~/.gradle/jdks.
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 dependencies {
     // ── AndroidX base ────────────────────────────────────────────────────────
     implementation libs.appcompat
@@ -98,7 +108,10 @@ dependencies {
     // ── Tests ─────────────────────────────────────────────────────────────────
     testImplementation libs.junit
     testImplementation libs.mockito.core
+    // InstantTaskExecutorRule: ejecuta LiveData de forma síncrona en tests unitarios
+    testImplementation libs.arch.core.testing
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     androidTestImplementation libs.mockito.android
+    androidTestImplementation libs.arch.core.testing
 }

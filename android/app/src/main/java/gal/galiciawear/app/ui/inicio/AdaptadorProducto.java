@@ -100,7 +100,9 @@ public class AdaptadorProducto extends RecyclerView.Adapter<AdaptadorProducto.Vi
 
         void enlazar(DtoRespuestaProducto producto, OnProductoClickListener listener) {
             enlace.textoNombre.setText(producto.nombre);
-            enlace.textoPrecio.setText(String.format("%.2f €", producto.precio));
+            // El backend envía el precio en "precioBase"; "precio" puede llegar a 0.
+            double precio = producto.precio > 0 ? producto.precio : producto.precioBase;
+            enlace.textoPrecio.setText(String.format("%.2f €", precio));
 
             if (producto.disenador != null) {
                 enlace.textoMarca.setText(producto.disenador.nombreMarca);

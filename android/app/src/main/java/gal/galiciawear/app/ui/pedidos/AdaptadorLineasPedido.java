@@ -32,10 +32,23 @@ public class AdaptadorLineasPedido extends RecyclerView.Adapter<AdaptadorLineasP
     @Override
     public void onBindViewHolder(@NonNull VH holder, int pos) {
         DtoRespuestaPedido.DtoLineaPedido linea = lineas.get(pos);
-        holder.texto.setText(
-            linea.cantidad + "× " + linea.nombreProducto
-            + " — " + String.format("%.2f €", linea.precioUnitario * linea.cantidad)
-        );
+        StringBuilder texto = new StringBuilder()
+            .append(linea.cantidad).append("× ").append(linea.nombreVisible());
+        // Detalle de variante (talla / color) si está disponible.
+        if (linea.variante != null) {
+            String talla = linea.variante.talla;
+            String color = linea.variante.color;
+            if (talla != null || color != null) {
+                texto.append("  (");
+                if (talla != null) texto.append(talla);
+                if (talla != null && color != null) texto.append(", ");
+                if (color != null) texto.append(color);
+                texto.append(")");
+            }
+        }
+        texto.append("  —  ")
+            .append(String.format(java.util.Locale.getDefault(), "%.2f €", linea.totalLinea()));
+        holder.texto.setText(texto.toString());
     }
 
     @Override

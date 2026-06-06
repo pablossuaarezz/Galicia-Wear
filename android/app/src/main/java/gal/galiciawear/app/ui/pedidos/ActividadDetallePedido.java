@@ -7,11 +7,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+
+import java.util.Locale;
+
 import dagger.hilt.android.AndroidEntryPoint;
+import gal.galiciawear.app.R;
 import gal.galiciawear.app.databinding.ActividadDetallePedidoBinding;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaPedido;
 import gal.galiciawear.app.modelovista.ModeloVistaPedidos;
 import gal.galiciawear.app.utilidades.Constantes;
+import gal.galiciawear.app.utilidades.EstadoPedidoUi;
+import gal.galiciawear.app.utilidades.FormatoFechas;
 
 @AndroidEntryPoint
 public class ActividadDetallePedido extends AppCompatActivity {
@@ -51,12 +59,12 @@ public class ActividadDetallePedido extends AppCompatActivity {
 
     private void mostrarDetalle(DtoRespuestaPedido pedido) {
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Pedido " + pedido.numeroPedido);
+            getSupportActionBar().setTitle(getString(R.string.pedido_numero, pedido.numeroPedido));
         }
-        enlace.textoEstado.setText(pedido.estado);
-        enlace.textoTotal.setText(String.format("%.2f €", pedido.total));
+        pintarEstado(pedido.estado);
+        enlace.textoTotal.setText(String.format(Locale.getDefault(), "%.2f €", pedido.total));
         enlace.textoMetodoPago.setText(pedido.metodoPago);
-        enlace.textoFecha.setText(pedido.fechaCreacion);
+        enlace.textoFecha.setText(FormatoFechas.fechaConHora(pedido.fechaCreacion));
 
         if (pedido.envio != null) {
             enlace.textoSeguimiento.setText(
@@ -75,6 +83,17 @@ public class ActividadDetallePedido extends AppCompatActivity {
         if (pedido.lineas != null) {
             enlace.listaLineas.setLayoutManager(new LinearLayoutManager(this));
             enlace.listaLineas.setAdapter(new AdaptadorLineasPedido(pedido.lineas));
+        }
+    }
+
+    /** Badge de estado: texto en color fuerte y fondo tintado claro. */
+    private void pintarEstado(String estado) {
+        int color = ContextCompat.getColor(this, EstadoPedidoUi.color(estado));
+        enlace.textoEstado.setText(EstadoPedidoUi.etiqueta(estado));
+        enlace.textoEstado.setTextColor(color);
+        if (enlace.textoEstado.getBackground() != null) {
+            enlace.textoEstado.getBackground().mutate()
+                .setTint(ColorUtils.setAlphaComponent(color, 28));
         }
     }
 

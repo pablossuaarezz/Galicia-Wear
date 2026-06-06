@@ -8,6 +8,8 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 
+import static org.hamcrest.CoreMatchers.not;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,7 +57,7 @@ public class FlujoPantallaLoginTest {
         // (prevención de errores — no se hace llamada al servidor sin datos)
         Espresso.onView(ViewMatchers.withId(R.id.boton_login))
             .check(ViewAssertions.matches(
-                ViewMatchers.not(ViewMatchers.isEnabled())
+                not(ViewMatchers.isEnabled())
             ));
     }
 
@@ -85,7 +87,7 @@ public class FlujoPantallaLoginTest {
 
         Espresso.onView(ViewMatchers.withId(R.id.boton_login))
             .check(ViewAssertions.matches(
-                ViewMatchers.not(ViewMatchers.isEnabled())
+                not(ViewMatchers.isEnabled())
             ));
     }
 }

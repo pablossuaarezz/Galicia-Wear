@@ -2,40 +2,42 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="3dp">
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/superficie_variante"
+    app:strokeWidth="1dp"
+    app:cardBackgroundColor="@color/superficie"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <!-- Cabecera: número de pedido + badge de estado -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/texto_numero_pedido"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:layout_weight="1"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@color/texto_primario" />
-
-            <TextView
-                android:id="@+id/texto_fecha"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/texto_secundario"
-                android:layout_marginTop="2dp" />
+                android:textColor="@color/texto_primario"
+                tools:text="Pedido GW-2026-00042" />
 
             <TextView
                 android:id="@+id/texto_estado"
@@ -43,26 +45,63 @@
                 android:layout_height="wrap_content"
                 android:textSize="11sp"
                 android:textStyle="bold"
-                android:textColor="@color/primario"
                 android:background="@drawable/fondo_pill_estado"
                 android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp"
-                android:layout_marginTop="8dp" />
+                android:paddingVertical="5dp"
+                tools:text="Entregado"
+                tools:textColor="@color/exito" />
         </LinearLayout>
 
+        <!-- Fecha · número de artículos -->
         <TextView
-            android:id="@+id/texto_total"
+            android:id="@+id/texto_fecha"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/texto_primario" />
+            android:textSize="13sp"
+            android:textColor="@color/texto_secundario"
+            android:layout_marginTop="6dp"
+            tools:text="6 jun 2026 · 3 artículos" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_chevron_derecha"
-            android:contentDescription="@string/ver_detalle"
-            android:layout_marginStart="8dp" />
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="12dp" />
+
+        <!-- Resumen de productos + total -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/texto_resumen_productos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="13sp"
+                android:textColor="@color/texto_secundario"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginEnd="8dp"
+                tools:text="Camiseta Mariña, Sudadera Atlántica" />
+
+            <TextView
+                android:id="@+id/texto_total"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/primario"
+                tools:text="89,97 €" />
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_chevron_derecha"
+                android:contentDescription="@string/ver_detalle"
+                android:layout_marginStart="6dp"
+                app:tint="@color/texto_secundario" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

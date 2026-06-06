@@ -37,6 +37,25 @@ public class DtoRespuestaPedido {
         @SerializedName("estadoLinea")  public String estadoLinea;
         @SerializedName("variante")     public DtoRespuestaProducto.DtoVariante variante;
         @SerializedName("nombreProducto") public String nombreProducto;
+
+        /**
+         * Nombre legible del producto. El backend lo anida en
+         * {@code variante.producto.nombre}; este helper lo resuelve con
+         * varios fallbacks para no mostrar "null".
+         */
+        public String nombreVisible() {
+            if (nombreProducto != null && !nombreProducto.isEmpty()) return nombreProducto;
+            if (variante != null && variante.producto != null
+                    && variante.producto.nombre != null) {
+                return variante.producto.nombre;
+            }
+            return "Artículo";
+        }
+
+        /** Subtotal de la línea (precio unitario × cantidad). */
+        public double totalLinea() {
+            return precioUnitario * cantidad;
+        }
     }
 
     public static class DtoEnvio {

@@ -3,6 +3,7 @@ package gal.galiciawear.app.datos.remoto;
 import java.util.List;
 
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionCarritoItem;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionDireccion;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionDisenador;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionImagen;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionLogin;
@@ -10,7 +11,11 @@ import gal.galiciawear.app.datos.remoto.dto.DtoPeticionPedido;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionProducto;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionRegistro;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionVariante;
-import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaCarrito;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioCarrito;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioDireccion;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioListaDirecciones;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioListaPedidos;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioPedido;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaDisenador;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaImagenes;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaProductos;
@@ -67,32 +72,41 @@ public interface ServicioApi {
     );
 
     @GET("productos/{slug}")
-    Call<DtoRespuestaProducto> obtenerProducto(@Path("slug") String slug);
+    Call<DtoRespuestaProductoEnvoltura> obtenerProducto(@Path("slug") String slug);
 
     // ── Carrito ──────────────────────────────────────────────────────────────
+    // El backend responde envuelto en { "carrito": {...} } en GET/POST/DELETE.
 
     @GET("carrito")
-    Call<DtoRespuestaCarrito> obtenerCarrito();
+    Call<DtoEnvoltorioCarrito> obtenerCarrito();
 
     @POST("carrito/items")
-    Call<DtoRespuestaCarrito> añadirItemCarrito(@Body DtoPeticionCarritoItem cuerpo);
+    Call<DtoEnvoltorioCarrito> añadirItemCarrito(@Body DtoPeticionCarritoItem cuerpo);
 
     @DELETE("carrito/items/{varianteId}")
-    Call<DtoRespuestaCarrito> eliminarItemCarrito(@Path("varianteId") String varianteId);
+    Call<DtoEnvoltorioCarrito> eliminarItemCarrito(@Path("varianteId") String varianteId);
 
     @DELETE("carrito")
     Call<Void> vaciarCarrito();
 
+    // ── Direcciones ──────────────────────────────────────────────────────────
+
+    @GET("direcciones")
+    Call<DtoEnvoltorioListaDirecciones> listarDirecciones();
+
+    @POST("direcciones")
+    Call<DtoEnvoltorioDireccion> crearDireccion(@Body DtoPeticionDireccion cuerpo);
+
     // ── Pedidos ──────────────────────────────────────────────────────────────
 
     @POST("pedidos")
-    Call<DtoRespuestaPedido> crearPedido(@Body DtoPeticionPedido cuerpo);
+    Call<DtoEnvoltorioPedido> crearPedido(@Body DtoPeticionPedido cuerpo);
 
     @GET("pedidos")
-    Call<List<DtoRespuestaPedido>> listarPedidos();
+    Call<DtoEnvoltorioListaPedidos> listarPedidos();
 
     @GET("pedidos/{id}")
-    Call<DtoRespuestaPedido> obtenerPedido(@Path("id") String id);
+    Call<DtoEnvoltorioPedido> obtenerPedido(@Path("id") String id);
 
     @PATCH("pedidos/{id}/pagar")
     Call<DtoRespuestaPedido> pagarPedido(@Path("id") String id);

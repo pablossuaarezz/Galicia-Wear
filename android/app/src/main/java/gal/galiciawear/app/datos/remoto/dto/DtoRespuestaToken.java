@@ -7,7 +7,9 @@ public class DtoRespuestaToken {
     @SerializedName("tokenAcceso")
     public String tokenAcceso;
 
-    @SerializedName("tokenRefresh")
+    // El backend lo envía como "tokenRefresco" (no "tokenRefresh"): con el nombre
+    // equivocado el refresh token llegaba null y la sesión nunca se podía renovar.
+    @SerializedName("tokenRefresco")
     public String tokenRefresh;
 
     @SerializedName("usuario")

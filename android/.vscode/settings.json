@@ -1,0 +1,13 @@
+{
+  "//": "Igual que el settings.json de la carpeta padre, por si abres 'android' como raíz del workspace. El daemon de Gradle debe usar un JDK con 'jlink' (el JRE de redhat.java no lo tiene). REQUIERE recargar la ventana tras cambiar esto.",
+  "java.import.gradle.java.home": "/Applications/Android Studio.app/Contents/jbr/Contents/Home",
+  "java.jdt.ls.java.home": "/Applications/Android Studio.app/Contents/jbr/Contents/Home",
+  "java.import.gradle.wrapper.enabled": true,
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "/Applications/Android Studio.app/Contents/jbr/Contents/Home",
+      "default": true
+    }
+  ]
+}

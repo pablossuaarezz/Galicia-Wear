@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/fondo"
+    android:paddingHorizontal="24dp"
+    android:gravity="center_horizontal">
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="0.8" />
+
+    <!-- Icono de éxito: halo claro + círculo verde + check -->
+    <FrameLayout
+        android:id="@+id/contenedor_icono"
+        android:layout_width="140dp"
+        android:layout_height="140dp">
+
+        <View
+            android:id="@+id/halo_exito"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:background="@drawable/fondo_circulo_exito_halo" />
+
+        <ImageView
+            android:id="@+id/circulo_exito"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_gravity="center"
+            android:background="@drawable/fondo_circulo_exito"
+            android:src="@drawable/ic_check_grande"
+            android:scaleType="center"
+            android:contentDescription="@string/compra_completada_titulo" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/texto_titulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="@string/compra_completada_titulo"
+        android:textColor="@color/texto_primario"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/texto_subtitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/compra_completada_subtitulo"
+        android:textColor="@color/texto_secundario"
+        android:textSize="15sp"
+        android:lineSpacingExtra="3dp"
+        android:gravity="center" />
+
+    <!-- Tarjeta con el resumen del pedido -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/superficie_variante"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="@color/superficie">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/numero_pedido"
+                    android:textColor="@color/texto_secundario"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/texto_numero_pedido"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/texto_primario"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    tools:text="#GW-2026-0042" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/metodo_pago"
+                    android:textColor="@color/texto_secundario"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/texto_metodo_pago"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/texto_primario"
+                    android:textSize="14sp"
+                    tools:text="Tarjeta" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_eco"
+                    app:tint="@color/verde_sostenible"
+                    android:contentDescription="@string/icono_eco" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/entrega_estimada"
+                    android:textColor="@color/texto_secundario"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/texto_entrega"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/texto_primario"
+                    android:textSize="14sp"
+                    tools:text="24-48 h" />
+            </LinearLayout>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/total_pagado"
+                    android:textColor="@color/texto_primario"
+                    android:textStyle="bold"
+                    android:textSize="17sp" />
+                <TextView
+                    android:id="@+id/texto_total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/primario"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    tools:text="89,97 €" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/boton_ver_pedido"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="@string/ver_mi_pedido"
+        android:textSize="16sp"
+        app:cornerRadius="28dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/boton_seguir_comprando"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="20dp"
+        android:text="@string/seguir_comprando"
+        android:textSize="15sp" />
+
+</LinearLayout>

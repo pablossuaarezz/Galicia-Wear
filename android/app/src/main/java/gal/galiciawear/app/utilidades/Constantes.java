@@ -18,6 +18,14 @@ public final class Constantes {
     public static final String CLAVE_USUARIO_NOMBRE= "usuario_nombre";
     public static final String CLAVE_ONBOARDING_VISTO = "onboarding_visto";
 
+    // ── Búsquedas recientes ──────────────────────────────────────────────────
+    public static final String PREFS_BUSQUEDAS         = "galiciawear_busquedas";
+    public static final String CLAVE_BUSQUEDAS_RECIENTES = "recientes";
+    // Nº máximo de búsquedas recientes que se recuerdan (Ley de Miller: 7±2).
+    public static final int    MAX_BUSQUEDAS_RECIENTES = 8;
+    // Nº máximo de productos similares a mostrar cuando no hay resultados exactos.
+    public static final int    MAX_PRODUCTOS_SIMILARES = 12;
+
     // ── Intentos (extras) ────────────────────────────────────────────────────
     public static final String EXTRA_PRODUCTO_SLUG = "producto_slug";
     public static final String EXTRA_PEDIDO_ID     = "pedido_id";
@@ -27,6 +35,13 @@ public final class Constantes {
     public static final String EXTRA_PRENDA_ID     = "prenda_id";
     // Indica que el perfil de diseñador se abre como paso del alta (tras registrarse).
     public static final String EXTRA_ONBOARDING_DISENADOR = "onboarding_disenador";
+    // Pide a la actividad principal abrir directamente la pestaña del carrito.
+    public static final String EXTRA_ABRIR_CARRITO = "abrir_carrito";
+    // Datos del pedido recién creado para la pantalla de compra completada.
+    public static final String EXTRA_PEDIDO_NUMERO      = "pedido_numero";
+    public static final String EXTRA_PEDIDO_TOTAL       = "pedido_total";
+    public static final String EXTRA_PEDIDO_METODO_PAGO = "pedido_metodo_pago";
+    public static final String EXTRA_PEDIDO_ECO         = "pedido_eco";
 
     // ── Notificaciones ───────────────────────────────────────────────────────
     public static final int ID_NOTIF_PEDIDO     = 1001;

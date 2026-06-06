@@ -7,132 +7,98 @@
     android:orientation="vertical"
     android:background="@color/fondo">
 
-    <!-- Barra de búsqueda -->
+    <!-- Barra de búsqueda única: el usuario solo escribe, p. ej. "camiseta".
+         Icono de lupa al inicio y botón para limpiar al final (clear_text). -->
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/contenedor_busqueda"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/buscar_productos"
+        android:hint="@string/buscar_hint"
         android:layout_margin="12dp"
+        app:startIconDrawable="@drawable/ic_nav_buscar"
+        app:endIconMode="clear_text"
+        app:boxCornerRadiusTopStart="28dp"
+        app:boxCornerRadiusTopEnd="28dp"
+        app:boxCornerRadiusBottomStart="28dp"
+        app:boxCornerRadiusBottomEnd="28dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/entrada_busqueda"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:imeOptions="actionSearch"
-            android:inputType="text" />
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Filtros avanzados agrupados (Ley de Hick) -->
-    <com.google.android.material.card.MaterialCardView
+    <!-- Sección de búsquedas recientes (visible cuando aún no se ha buscado). -->
+    <LinearLayout
+        android:id="@+id/seccion_recientes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginBottom="8dp"
-        app:cardCornerRadius="8dp">
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_weight="1"
+                android:text="@string/busquedas_recientes"
+                android:textColor="@color/texto_primario"
+                android:textStyle="bold"
+                android:textSize="15sp" />
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="@string/material"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/entrada_material"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="@string/max_km"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/entrada_max_km"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-            <!-- Certificados de sostenibilidad como chips seleccionables -->
-            <com.google.android.material.chip.ChipGroup
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/boton_limpiar_recientes"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_gots"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="GOTS"
-                    style="@style/Widget.Material3.Chip.Filter" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_oeko_tex"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="OEKO-TEX"
-                    style="@style/Widget.Material3.Chip.Filter" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_grs"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="GRS"
-                    style="@style/Widget.Material3.Chip.Filter" />
-            </com.google.android.material.chip.ChipGroup>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
-
-                <Button
-                    android:id="@+id/boton_buscar"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="2"
-                    android:text="@string/buscar"
-                    android:layout_marginEnd="8dp" />
-
-                <Button
-                    android:id="@+id/boton_limpiar"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="@string/limpiar" />
-            </LinearLayout>
+                android:text="@string/borrar"
+                android:textColor="@color/primario"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chips_recientes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Cabecera de resultados: visible cuando se muestran productos similares. -->
+    <TextView
+        android:id="@+id/texto_cabecera"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="4dp"
+        android:textColor="@color/texto_secundario"
+        android:textSize="14sp"
+        android:visibility="gone" />
 
     <ProgressBar
         android:id="@+id/indicador_carga"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:layout_marginTop="24dp"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/resultados"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
+        android:padding="6dp"
         android:clipToPadding="false" />
 
 </LinearLayout>

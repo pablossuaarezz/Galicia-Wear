@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import gal.galiciawear.app.R;
 import gal.galiciawear.app.databinding.FragmentoPedidosBinding;
 import gal.galiciawear.app.modelovista.ModeloVistaPedidos;
 import gal.galiciawear.app.utilidades.Constantes;
@@ -42,21 +43,31 @@ public class FragmentoPedidos extends Fragment {
         });
         enlace.listaPedidos.setLayoutManager(new LinearLayoutManager(requireContext()));
         enlace.listaPedidos.setAdapter(adaptador);
+        enlace.listaPedidos.setHasFixedSize(true);
 
-        modeloVista.cargarMisPedidos();
+        enlace.refrescarPedidos.setColorSchemeResources(R.color.primario);
+        enlace.refrescarPedidos.setOnRefreshListener(() -> modeloVista.cargarMisPedidos());
 
         modeloVista.observarLista().observe(getViewLifecycleOwner(), recurso -> {
             if (recurso == null) return;
+            boolean cargando = recurso.estaCargando();
+            // El spinner central solo en la primera carga; luego usamos el del swipe.
             enlace.indicadorCarga.setVisibility(
-                recurso.estaCargando() ? View.VISIBLE : View.GONE
+                cargando && adaptador.getItemCount() == 0 ? View.VISIBLE : View.GONE
             );
+            enlace.refrescarPedidos.setRefreshing(
+                cargando && adaptador.getItemCount() > 0
+            );
+
             if (recurso.esExito() && recurso.datos != null) {
                 adaptador.establecerPedidos(recurso.datos);
-                enlace.textoVacio.setVisibility(
+                enlace.estadoVacio.setVisibility(
                     recurso.datos.isEmpty() ? View.VISIBLE : View.GONE
                 );
             }
         });
+
+        modeloVista.cargarMisPedidos();
     }
 
     @Override

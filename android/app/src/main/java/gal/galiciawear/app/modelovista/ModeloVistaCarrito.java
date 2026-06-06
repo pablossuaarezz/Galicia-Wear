@@ -1,7 +1,6 @@
 package gal.galiciawear.app.modelovista;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import javax.inject.Inject;
@@ -11,15 +10,18 @@ import gal.galiciawear.app.datos.repositorio.RepositorioCarrito;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaCarrito;
 import gal.galiciawear.app.utilidades.RecursoUi;
 
+/**
+ * ViewModel del carrito.
+ *
+ * Delega en el repositorio (fuente única de verdad) y expone su estado tal cual.
+ * Las operaciones de añadir/eliminar devuelven un LiveData de un solo uso que la
+ * pantalla observa con su propio ciclo de vida — así evitamos los observeForever()
+ * sin retirar que filtraban observadores en la versión anterior.
+ */
 @HiltViewModel
 public class ModeloVistaCarrito extends ViewModel {
 
     private final RepositorioCarrito repositorio;
-
-    // JUSTIFICACIÓN: inicializados eagerly para que los fragmentos puedan suscribirse
-    // en onViewCreated() antes de disparar la carga. Si fueran null, observe() petaría.
-    private final MutableLiveData<RecursoUi<DtoRespuestaCarrito>> estadoCarrito = new MutableLiveData<>();
-    private final MutableLiveData<RecursoUi<DtoRespuestaCarrito>> estadoOperacion = new MutableLiveData<>();
 
     @Inject
     public ModeloVistaCarrito(RepositorioCarrito repositorio) {
@@ -31,25 +33,28 @@ public class ModeloVistaCarrito extends ViewModel {
     }
 
     public LiveData<RecursoUi<DtoRespuestaCarrito>> observarCarrito() {
-        return estadoCarrito;
-    }
-
-    public LiveData<RecursoUi<DtoRespuestaCarrito>> observarOperacion() {
-        return estadoOperacion;
+        return repositorio.observarCarrito();
     }
 
     public void cargarCarrito() {
-        repositorio.obtenerCarrito()
-            .observeForever(valor -> estadoCarrito.postValue(valor));
+        repositorio.cargarCarrito();
     }
 
-    public void añadirAlCarrito(String varianteId, int cantidad) {
-        repositorio.añadirItem(varianteId, cantidad)
-            .observeForever(valor -> estadoOperacion.postValue(valor));
+    public LiveData<RecursoUi<DtoRespuestaCarrito>> añadirAlCarrito(String varianteId, int cantidad) {
+        return repositorio.añadirItem(varianteId, cantidad);
     }
 
-    public void eliminarDelCarrito(String varianteId) {
-        repositorio.eliminarItem(varianteId)
-            .observeForever(valor -> estadoOperacion.postValue(valor));
+    /** Fija la cantidad absoluta de una línea (el backend hace upsert por variante). */
+    public LiveData<RecursoUi<DtoRespuestaCarrito>> actualizarCantidad(String varianteId, int cantidad) {
+        return repositorio.añadirItem(varianteId, cantidad);
+    }
+
+    public LiveData<RecursoUi<DtoRespuestaCarrito>> eliminarDelCarrito(String varianteId) {
+        return repositorio.eliminarItem(varianteId);
+    }
+
+    /** El pedido se ha creado: el backend ya vació el carrito, lo reflejamos en local. */
+    public void vaciarTrasPedido() {
+        repositorio.vaciarTrasPedido();
     }
 }

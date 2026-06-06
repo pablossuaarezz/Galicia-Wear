@@ -1,17 +1,17 @@
 package gal.galiciawear.app.ui.principal;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.R;
 import gal.galiciawear.app.databinding.ActividadPrincipalBinding;
 import gal.galiciawear.app.modelovista.ModeloVistaCarrito;
+import gal.galiciawear.app.utilidades.Constantes;
 import gal.galiciawear.app.ui.buscador.FragmentoBuscador;
 import gal.galiciawear.app.ui.carrito.FragmentoCarrito;
 import gal.galiciawear.app.ui.inicio.FragmentoInicio;
@@ -51,6 +51,21 @@ public class ActividadPrincipal extends AppCompatActivity {
         configurarFragmentos();
         configurarNavegacionInferior();
         observarContadorCarrito();
+        atenderAperturaDirecta(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        atenderAperturaDirecta(intent);
+    }
+
+    /** Permite que otras pantallas (p. ej. "Ver cesta") abran una pestaña concreta. */
+    private void atenderAperturaDirecta(Intent intent) {
+        if (intent != null && intent.getBooleanExtra(Constantes.EXTRA_ABRIR_CARRITO, false)) {
+            enlace.navegacionInferior.setSelectedItemId(R.id.nav_carrito);
+        }
     }
 
     private void configurarFragmentos() {

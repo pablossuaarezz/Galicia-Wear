@@ -65,7 +65,17 @@ public class DtoRespuestaProducto {
         @SerializedName("color")  public String color;
         @SerializedName("stock")  public int stock;
         @SerializedName("precio") public Double precio;
+        // El backend envía el ajuste sobre el precio base del producto (no un precio
+        // absoluto). El precio real de la variante = producto.precioBase + ajustePrecio.
+        @SerializedName("ajustePrecio") public Double ajustePrecio;
         @SerializedName("sku")    public String sku;
+        // En las líneas de pedido el backend anida el producto dentro de la variante.
+        @SerializedName("producto") public DtoProductoResumen producto;
+    }
+
+    public static class DtoProductoResumen {
+        @SerializedName("nombre") public String nombre;
+        @SerializedName("slug")   public String slug;
     }
 
     public static class DtoCertificado {

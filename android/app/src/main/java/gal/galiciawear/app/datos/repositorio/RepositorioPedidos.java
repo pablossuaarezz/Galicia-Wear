@@ -8,6 +8,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import gal.galiciawear.app.datos.remoto.ServicioApi;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioListaPedidos;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioPedido;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionPedido;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaPedido;
 import gal.galiciawear.app.utilidades.RecursoUi;
@@ -32,18 +34,18 @@ public class RepositorioPedidos {
         resultado.setValue(RecursoUi.cargando());
 
         servicioApi.crearPedido(new DtoPeticionPedido(direccionId, metodoPago, envioEcologico))
-            .enqueue(new Callback<DtoRespuestaPedido>() {
+            .enqueue(new Callback<DtoEnvoltorioPedido>() {
                 @Override
-                public void onResponse(Call<DtoRespuestaPedido> call, Response<DtoRespuestaPedido> r) {
-                    if (r.isSuccessful() && r.body() != null) {
-                        resultado.postValue(RecursoUi.exito(r.body()));
+                public void onResponse(Call<DtoEnvoltorioPedido> call, Response<DtoEnvoltorioPedido> r) {
+                    if (r.isSuccessful() && r.body() != null && r.body().pedido != null) {
+                        resultado.postValue(RecursoUi.exito(r.body().pedido));
                     } else {
                         resultado.postValue(RecursoUi.error("Error al procesar el pedido"));
                     }
                 }
 
                 @Override
-                public void onFailure(Call<DtoRespuestaPedido> call, Throwable t) {
+                public void onFailure(Call<DtoEnvoltorioPedido> call, Throwable t) {
                     resultado.postValue(RecursoUi.error("Sin conexión"));
                 }
             });
@@ -55,19 +57,19 @@ public class RepositorioPedidos {
         MutableLiveData<RecursoUi<List<DtoRespuestaPedido>>> resultado = new MutableLiveData<>();
         resultado.setValue(RecursoUi.cargando());
 
-        servicioApi.listarPedidos().enqueue(new Callback<List<DtoRespuestaPedido>>() {
+        servicioApi.listarPedidos().enqueue(new Callback<DtoEnvoltorioListaPedidos>() {
             @Override
-            public void onResponse(Call<List<DtoRespuestaPedido>> call,
-                                   Response<List<DtoRespuestaPedido>> r) {
-                if (r.isSuccessful() && r.body() != null) {
-                    resultado.postValue(RecursoUi.exito(r.body()));
+            public void onResponse(Call<DtoEnvoltorioListaPedidos> call,
+                                   Response<DtoEnvoltorioListaPedidos> r) {
+                if (r.isSuccessful() && r.body() != null && r.body().pedidos != null) {
+                    resultado.postValue(RecursoUi.exito(r.body().pedidos));
                 } else {
                     resultado.postValue(RecursoUi.error("No se pudieron cargar los pedidos"));
                 }
             }
 
             @Override
-            public void onFailure(Call<List<DtoRespuestaPedido>> call, Throwable t) {
+            public void onFailure(Call<DtoEnvoltorioListaPedidos> call, Throwable t) {
                 resultado.postValue(RecursoUi.error("Sin conexión"));
             }
         });
@@ -79,18 +81,18 @@ public class RepositorioPedidos {
         MutableLiveData<RecursoUi<DtoRespuestaPedido>> resultado = new MutableLiveData<>();
         resultado.setValue(RecursoUi.cargando());
 
-        servicioApi.obtenerPedido(id).enqueue(new Callback<DtoRespuestaPedido>() {
+        servicioApi.obtenerPedido(id).enqueue(new Callback<DtoEnvoltorioPedido>() {
             @Override
-            public void onResponse(Call<DtoRespuestaPedido> call, Response<DtoRespuestaPedido> r) {
-                if (r.isSuccessful() && r.body() != null) {
-                    resultado.postValue(RecursoUi.exito(r.body()));
+            public void onResponse(Call<DtoEnvoltorioPedido> call, Response<DtoEnvoltorioPedido> r) {
+                if (r.isSuccessful() && r.body() != null && r.body().pedido != null) {
+                    resultado.postValue(RecursoUi.exito(r.body().pedido));
                 } else {
                     resultado.postValue(RecursoUi.error("Pedido no encontrado"));
                 }
             }
 
             @Override
-            public void onFailure(Call<DtoRespuestaPedido> call, Throwable t) {
+            public void onFailure(Call<DtoEnvoltorioPedido> call, Throwable t) {
                 resultado.postValue(RecursoUi.error("Sin conexión"));
             }
         });

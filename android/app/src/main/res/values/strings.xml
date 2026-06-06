@@ -54,19 +54,65 @@
     <string name="ver_en_ar">Ver en mi habitación</string>
 
     <!-- Buscador -->
-    <string name="buscar_productos">Buscar productos…</string>
-    <string name="max_km">Máx. km origen</string>
-    <string name="buscar">Buscar</string>
-    <string name="limpiar">Limpiar</string>
+    <string name="buscar_hint">¿Qué buscas? Ej. camiseta</string>
+    <string name="busquedas_recientes">Búsquedas recientes</string>
+    <string name="borrar">Borrar</string>
+    <string name="resultados_similares">No hay resultados para «%1$s». Quizás te interese:</string>
+    <string name="sin_resultados_busqueda">No encontramos nada parecido a «%1$s».</string>
 
     <!-- Carrito -->
+    <string name="mi_cesta">Mi cesta</string>
     <string name="carrito_vacio">Tu carrito está vacío</string>
-    <string name="hacer_pedido">Hacer pedido</string>
+    <string name="carrito_vacio_sugerencia">Explora nuestras prendas gallegas y añade tus favoritas.</string>
+    <string name="hacer_pedido">Tramitar pedido</string>
     <string name="eliminar_item">Eliminar artículo</string>
+    <string name="imagen_producto">Imagen del producto</string>
+    <string name="sumar_unidad">Añadir una unidad</string>
+    <string name="restar_unidad">Quitar una unidad</string>
+    <string name="total">Total</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="articulo_anadido">Añadido a la cesta</string>
+    <string name="articulo_eliminado">Artículo eliminado</string>
+    <string name="ver_carrito">Ver cesta</string>
 
     <!-- Pedidos -->
     <string name="sin_pedidos">Todavía no tienes pedidos</string>
+    <string name="sin_pedidos_sugerencia">Cuando hagas tu primera compra, aquí podrás seguir el estado de tus pedidos.</string>
+    <string name="mis_pedidos">Mis pedidos</string>
+    <string name="pedido_numero">Pedido %1$s</string>
+
+    <!-- Estados de pedido -->
+    <string name="estado_pendiente_pago">Pendiente de pago</string>
+    <string name="estado_pagado">Pagado</string>
+    <string name="estado_aceptado">En preparación</string>
+    <string name="estado_enviado">Enviado</string>
+    <string name="estado_entregado">Entregado</string>
+    <string name="estado_cancelado">Cancelado</string>
+    <string name="estado_devuelto">Devuelto</string>
+    <string name="estado_desconocido">En proceso</string>
     <string name="confirmar_pedido">Confirmar pedido</string>
+    <string name="resumen_pedido">Resumen del pedido</string>
+    <string name="direccion_envio">Dirección de envío</string>
+    <string name="sin_direcciones">Aún no tienes direcciones. Añade una para continuar.</string>
+    <string name="anadir_direccion">Añadir dirección</string>
+    <string name="nueva_direccion">Nueva dirección</string>
+    <string name="alias_direccion">Alias (ej. Casa, Trabajo)</string>
+    <string name="direccion_linea1">Dirección (calle y número)</string>
+    <string name="direccion_linea2">Piso, puerta… (opcional)</string>
+    <string name="codigo_postal">Código postal</string>
+    <string name="provincia">Provincia</string>
+    <string name="provincia_por_defecto">A Coruña</string>
+    <string name="guardar_direccion">Guardar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="direccion_guardada">Dirección guardada</string>
+    <string name="campo_obligatorio">Campo obligatorio</string>
+    <string name="error_codigo_postal">El código postal debe tener 5 dígitos</string>
+    <string name="envio_estandar">Envío estándar</string>
+    <string name="cargando_direcciones">Cargando direcciones…</string>
+    <string name="envio">Envío</string>
+    <string name="envio_gratis">Gratis</string>
+    <string name="pagar">Pagar</string>
+    <string name="error_generico">No se pudo completar la operación. Inténtalo de nuevo.</string>
     <string name="metodo_pago">Método de pago</string>
     <string name="tarjeta_credito">Tarjeta de crédito/débito</string>
     <string name="transferencia_bancaria">Transferencia bancaria</string>
@@ -75,6 +121,19 @@
     <string name="informacion_envio">Información de envío</string>
     <string name="articulos">Artículos</string>
     <string name="ver_detalle">Ver detalle</string>
+
+    <!-- Compra completada -->
+    <string name="compra_completada_titulo">¡Compra completada!</string>
+    <string name="compra_completada_subtitulo">Gracias por apoyar la moda gallega. Hemos recibido tu pedido y los diseñadores ya están preparándolo.</string>
+    <string name="numero_pedido">Nº de pedido</string>
+    <string name="total_pagado">Total pagado</string>
+    <string name="entrega_estimada">Entrega estimada</string>
+    <string name="entrega_estandar">2-3 días laborables</string>
+    <string name="entrega_eco">3-5 días (Correos Verde)</string>
+    <string name="ver_mi_pedido">Ver mi pedido</string>
+    <string name="seguir_comprando">Seguir comprando</string>
+    <string name="pago_tarjeta">Tarjeta</string>
+    <string name="pago_transferencia">Transferencia</string>
 
     <!-- Chat -->
     <string name="escribe_mensaje">Escribe un mensaje…</string>
@@ -145,4 +204,10 @@
 
     <!-- Accesibilidad -->
     <string name="icono_eco">Icono ecológico</string>
+
+    <!-- Plurales -->
+    <plurals name="num_articulos">
+        <item quantity="one">%d artículo</item>
+        <item quantity="other">%d artículos</item>
+    </plurals>
 </resources>

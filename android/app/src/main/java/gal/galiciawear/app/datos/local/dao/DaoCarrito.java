@@ -5,6 +5,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 
 import java.util.List;
 
@@ -15,6 +16,18 @@ public interface DaoCarrito {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertar(EntidadItemCarrito item);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertarTodos(List<EntidadItemCarrito> items);
+
+    /** Reemplaza por completo la caché local con el carrito recibido del backend. */
+    @Transaction
+    default void reemplazar(List<EntidadItemCarrito> items) {
+        vaciar();
+        if (items != null && !items.isEmpty()) {
+            insertarTodos(items);
+        }
+    }
 
     @Query("SELECT * FROM carrito_local")
     LiveData<List<EntidadItemCarrito>> observarItems();
@@ -28,6 +41,7 @@ public interface DaoCarrito {
     @Query("DELETE FROM carrito_local")
     void vaciar();
 
-    @Query("SELECT COUNT(*) FROM carrito_local")
+    /** Badge: suma de unidades (no número de líneas). COALESCE evita null con carrito vacío. */
+    @Query("SELECT COALESCE(SUM(cantidad), 0) FROM carrito_local")
     LiveData<Integer> contarItems();
 }
