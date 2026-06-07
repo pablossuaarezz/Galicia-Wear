@@ -68,3 +68,6 @@ test-results/
 # Artefactos generados
 *.tmp
 *.bak
+
+# Imágenes subidas (fotos de prenda)
+backend/uploads/

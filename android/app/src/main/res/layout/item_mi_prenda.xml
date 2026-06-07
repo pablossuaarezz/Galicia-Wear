@@ -2,69 +2,125 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="6dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="18dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/superficie_variante"
+    app:strokeWidth="1dp"
+    app:cardBackgroundColor="@color/superficie">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:id="@+id/imagen_prenda"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:scaleType="centerCrop"
-            android:background="@drawable/fondo_avatar"
-            android:contentDescription="@string/foto_prenda_desc" />
+        android:orientation="vertical"
+        android:padding="12dp">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/texto_nombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:maxLines="1"
-                android:ellipsize="end" />
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
-            <TextView
-                android:id="@+id/texto_precio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:layout_marginTop="2dp" />
+                <ImageView
+                    android:id="@+id/imagen_prenda"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:background="@color/superficie_variante"
+                    android:contentDescription="@string/foto_prenda_desc" />
+            </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/texto_estado"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@android:color/white"
-                android:background="@drawable/fondo_pill_estado"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="3dp"
-                android:layout_marginTop="6dp"
-                android:visibility="gone"
-                android:text="@string/prenda_inactiva" />
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/texto_nombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/texto_primario"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="Camiseta Mariña" />
+
+                <TextView
+                    android:id="@+id/texto_precio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="15sp"
+                    android:textColor="@color/primario"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp"
+                    tools:text="29,90 €" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="6dp">
+
+                    <TextView
+                        android:id="@+id/texto_estado"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/fondo_pill_estado"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="3dp"
+                        tools:text="Publicada"
+                        tools:textColor="@color/exito" />
+
+                    <TextView
+                        android:id="@+id/texto_resumen"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="@color/texto_secundario"
+                        android:layout_marginStart="8dp"
+                        tools:text="3 tallas" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
-        <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_chevron_derecha"
-            android:contentDescription="@string/editar_prenda" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/boton_editar"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/editar_prenda" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/boton_publicar"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/publicar" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

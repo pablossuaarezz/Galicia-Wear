@@ -211,6 +211,8 @@ export const servicioAutenticacion = {
     rol: Rol;
     nombre: string | null;
     apellidos: string | null;
+    telefono: string | null;
+    avatarUrl: string | null;
     fechaCreacion: Date;
   }> {
     const usuario = await repositorioAutenticacion.buscarPerfilCompleto(usuarioId);
@@ -223,6 +225,8 @@ export const servicioAutenticacion = {
       rol: usuario.rol,
       nombre: usuario.cliente?.nombre ?? usuario.disenador?.nombreMarca ?? null,
       apellidos: usuario.cliente?.apellidos ?? null,
+      telefono: usuario.cliente?.telefono ?? null,
+      avatarUrl: usuario.cliente?.avatarUrl ?? null,
       fechaCreacion: usuario.fechaCreacion,
     };
   },

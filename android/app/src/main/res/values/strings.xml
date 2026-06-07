@@ -138,9 +138,25 @@
     <!-- Chat -->
     <string name="escribe_mensaje">Escribe un mensaje…</string>
     <string name="enviar_mensaje">Enviar</string>
+    <string name="contactar_tienda">Contactar con la tienda</string>
+    <string name="contactar_tienda_pedido">Contactar con la tienda</string>
+    <string name="contactar_no_disponible">Esta tienda no está disponible para chat</string>
+    <string name="elegir_tienda">Elegir tienda</string>
+    <string name="soporte_titulo">Soporte</string>
+    <string name="soporte_conversaciones">Soporte / Mis conversaciones</string>
+    <string name="soporte_vacio">Aún no tienes conversaciones.\nContacta con una tienda desde un producto o un pedido.</string>
 
     <!-- Perfil -->
     <string name="cerrar_sesion">Cerrar sesión</string>
+    <string name="editar_perfil">Editar perfil</string>
+    <string name="telefono">Teléfono</string>
+    <string name="cambiar_foto">Cambiar foto</string>
+    <string name="foto_perfil">Foto de perfil</string>
+    <string name="quitar_foto">Quitar foto</string>
+    <string name="perfil_actualizado">Perfil actualizado</string>
+    <string name="error_nombre_obligatorio">El nombre es obligatorio</string>
+    <string name="error_apellidos_obligatorio">Los apellidos son obligatorios</string>
+    <string name="error_telefono">Teléfono no válido (9-15 dígitos)</string>
 
     <!-- Área de diseñador: perfil de marca -->
     <string name="mi_perfil_disenador">Mi perfil de diseñador</string>
@@ -166,6 +182,37 @@
     <string name="anadir_prenda">Añadir prenda</string>
     <string name="editar_prenda">Editar prenda</string>
     <string name="nueva_prenda">Nueva prenda</string>
+
+    <!-- Estudio del diseñador (hub) -->
+    <string name="estudio_titulo">Estudio</string>
+    <string name="estudio_hero_titulo">Crea tu próxima prenda</string>
+    <string name="estudio_hero_subtitulo">Diseña, sube fotos y publícala para que toda Galicia la vea.</string>
+    <string name="crear_prenda">Crear prenda</string>
+    <string name="mis_prendas_contador">%1$d prendas · %2$d publicadas</string>
+    <string name="estado_publicada">Publicada</string>
+    <string name="estado_borrador">Borrador</string>
+    <string name="publicar">Publicar</string>
+    <string name="despublicar">Despublicar</string>
+    <string name="prenda_publicada">Prenda publicada</string>
+    <string name="prenda_despublicada">Movida a borradores</string>
+    <string name="resumen_fotos">%1$d fotos</string>
+    <string name="resumen_variantes">%1$d tallas</string>
+
+    <!-- Asistente de creación de prenda (pasos) -->
+    <string name="paso_indicador">Paso %1$d de %2$d</string>
+    <string name="paso_datos">Datos</string>
+    <string name="paso_fotos">Fotos</string>
+    <string name="paso_tallas">Tallas y stock</string>
+    <string name="paso_publicar">Publicar</string>
+    <string name="atras">Atrás</string>
+    <string name="finalizar">Finalizar</string>
+    <string name="paso_datos_ayuda">Cuéntanos qué prenda es y de qué está hecha.</string>
+    <string name="paso_fotos_ayuda">Añade fotos por URL. La primera o la marcada será la principal.</string>
+    <string name="paso_tallas_ayuda">Define las tallas, colores y stock disponibles.</string>
+    <string name="paso_publicar_ayuda">Revisa y decide si publicarla ya o guardarla como borrador.</string>
+    <string name="publicar_ahora">Publicar ahora</string>
+    <string name="publicar_ahora_desc">Si lo desactivas, se guardará como borrador y no aparecerá en la tienda.</string>
+    <string name="resumen_prenda">Resumen de la prenda</string>
     <string name="nombre_prenda">Nombre de la prenda</string>
     <string name="descripcion">Descripción</string>
     <string name="precio_base">Precio base (€)</string>

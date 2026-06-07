@@ -116,6 +116,17 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false" />
 
+            <!-- Soporte postventa: chat directo con la tienda del pedido -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/boton_contactar_tienda"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/contactar_tienda_pedido"
+                app:icon="@drawable/ic_chat"
+                android:visibility="gone" />
+
         </LinearLayout>
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

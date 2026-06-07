@@ -18,7 +18,8 @@ export class RepositorioImagenes extends RepositorioBase<ImagenProducto> {
     return this.bd.imagenProducto.create({
       data: {
         productoId,
-        url: datos.url,
+        // El controlador garantiza una URL (directa o derivada del base64 subido).
+        url: datos.url ?? '',
         textoAlternativo: datos.textoAlternativo ?? null,
         posicion: datos.posicion ?? 0,
         esPrincipal: datos.esPrincipal ?? false,

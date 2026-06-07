@@ -14,6 +14,13 @@ export const dtoActualizarPerfilCliente = z
       .max(new Date(), 'La fecha de nacimiento no puede ser futura')
       .optional()
       .nullable(),
+    // Foto de perfil como data URI base64 (data:image/...;base64,XXXX) o URL.
+    // La app reduce la imagen antes de enviarla; aun así limitamos el tamaño.
+    avatarUrl: z
+      .string()
+      .max(8_000_000, 'La imagen es demasiado grande')
+      .optional()
+      .nullable(),
   })
   .strict();
 export type DatosActualizarPerfilCliente = z.infer<typeof dtoActualizarPerfilCliente>;

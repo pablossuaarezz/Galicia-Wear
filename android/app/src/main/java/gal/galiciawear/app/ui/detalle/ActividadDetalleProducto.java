@@ -155,7 +155,26 @@ public class ActividadDetalleProducto extends AppCompatActivity {
         if (producto.disenador != null) {
             enlace.textoMarca.setText(producto.disenador.nombreMarca);
             enlace.textoCiudad.setText(producto.disenador.ciudad);
+            // Chat de soporte directo con la tienda (Socket.IO). El id del diseñador
+            // (= id de Usuario) viene al nivel superior del producto en `disenadorId`.
+            enlace.botonContactarTienda.setVisibility(View.VISIBLE);
+            enlace.botonContactarTienda.setOnClickListener(v -> abrirChatTienda(
+                producto.disenadorId, producto.disenador.nombreMarca));
+        } else {
+            enlace.botonContactarTienda.setVisibility(View.GONE);
         }
+    }
+
+    /** Abre el chat de soporte con la tienda (diseñador) del producto. */
+    private void abrirChatTienda(String disenadorId, String nombreMarca) {
+        if (disenadorId == null || disenadorId.isEmpty()) {
+            Snackbar.make(enlace.getRoot(), R.string.contactar_no_disponible, Snackbar.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(this, gal.galiciawear.app.ui.chat.ActividadChat.class);
+        intent.putExtra(Constantes.EXTRA_DISENADOR_ID, disenadorId);
+        intent.putExtra(Constantes.EXTRA_DISENADOR_NOMBRE, nombreMarca);
+        startActivity(intent);
     }
 
     private void añadirAlCarrito() {

@@ -1,11 +1,14 @@
 package gal.galiciawear.app.ui.perfil;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -16,15 +19,25 @@ import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.databinding.FragmentoPerfilBinding;
 import gal.galiciawear.app.modelovista.ModeloVistaPerfil;
 import gal.galiciawear.app.ui.autenticacion.ActividadAutenticacion;
+import gal.galiciawear.app.ui.chat.ActividadConversaciones;
 import gal.galiciawear.app.ui.disenador.ActividadMisPrendas;
 import gal.galiciawear.app.ui.disenador.ActividadPerfilDisenador;
 import gal.galiciawear.app.utilidades.Constantes;
+import gal.galiciawear.app.utilidades.ImagenBase64;
 
 @AndroidEntryPoint
 public class FragmentoPerfil extends Fragment {
 
     private FragmentoPerfilBinding enlace;
     private ModeloVistaPerfil modeloVista;
+
+    // Al volver de la edición con éxito, recargamos el perfil.
+    private final ActivityResultLauncher<Intent> lanzadorEdicion =
+        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), resultado -> {
+            if (resultado.getResultCode() == android.app.Activity.RESULT_OK) {
+                modeloVista.cargarPerfil();
+            }
+        });
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
@@ -53,6 +66,13 @@ public class FragmentoPerfil extends Fragment {
                 startActivity(new Intent(requireContext(), ActividadMisPrendas.class)));
         }
 
+        enlace.botonEditarPerfil.setOnClickListener(v ->
+            lanzadorEdicion.launch(new Intent(requireContext(), ActividadEditarPerfil.class)));
+
+        // Soporte: bandeja de conversaciones (disponible para cliente y tienda).
+        enlace.botonSoporte.setOnClickListener(v ->
+            startActivity(new Intent(requireContext(), ActividadConversaciones.class)));
+
         modeloVista.cargarPerfil();
 
         modeloVista.observarPerfil().observe(getViewLifecycleOwner(), recurso -> {
@@ -71,6 +91,7 @@ public class FragmentoPerfil extends Fragment {
                         nombreCompleto.substring(0, 1).toUpperCase()
                     );
                 }
+                mostrarAvatar(recurso.datos.avatarUrl);
             }
         });
 
@@ -91,6 +112,15 @@ public class FragmentoPerfil extends Fragment {
                 startActivity(intent);
             }
         });
+    }
+
+    /** Muestra la foto de perfil (base64) o, si no hay, la inicial del nombre. */
+    private void mostrarAvatar(String avatarUrl) {
+        Bitmap bitmap = ImagenBase64.aBitmap(avatarUrl);
+        boolean hayFoto = bitmap != null;
+        if (hayFoto) enlace.imagenAvatar.setImageBitmap(bitmap);
+        enlace.imagenAvatar.setVisibility(hayFoto ? View.VISIBLE : View.GONE);
+        enlace.textoInicial.setVisibility(hayFoto ? View.GONE : View.VISIBLE);
     }
 
     @Override

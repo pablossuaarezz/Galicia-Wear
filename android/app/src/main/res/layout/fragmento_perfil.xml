@@ -45,6 +45,14 @@
                     android:textStyle="bold"
                     android:textColor="@android:color/white"
                     android:text="A" />
+
+                <ImageView
+                    android:id="@+id/imagen_avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    android:contentDescription="@string/foto_perfil" />
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
@@ -93,6 +101,29 @@
                     android:background="@drawable/fondo_pill_rol"
                     android:paddingHorizontal="20dp"
                     android:paddingVertical="7dp" />
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="20dp" />
+
+                <!-- Editar perfil (nombre, apellidos, teléfono y foto) -->
+                <Button
+                    android:id="@+id/boton_editar_perfil"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:text="@string/editar_perfil" />
+
+                <!-- Soporte: bandeja de conversaciones (cliente y tienda) -->
+                <Button
+                    android:id="@+id/boton_soporte"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/soporte_conversaciones"
+                    app:icon="@drawable/ic_chat" />
 
                 <com.google.android.material.divider.MaterialDivider
                     android:layout_width="match_parent"

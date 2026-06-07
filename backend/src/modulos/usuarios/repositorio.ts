@@ -60,6 +60,7 @@ export class RepositorioUsuarios extends RepositorioBase<UsuarioConPerfil> {
             ...(datos.fechaNacimiento !== undefined && {
               fechaNacimiento: datos.fechaNacimiento,
             }),
+            ...(datos.avatarUrl !== undefined && { avatarUrl: datos.avatarUrl }),
           },
         },
       },

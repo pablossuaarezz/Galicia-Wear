@@ -37,6 +37,21 @@ public class DtoRespuestaPedido {
         @SerializedName("estadoLinea")  public String estadoLinea;
         @SerializedName("variante")     public DtoRespuestaProducto.DtoVariante variante;
         @SerializedName("nombreProducto") public String nombreProducto;
+        // Tienda (diseñador) responsable de la línea: permite contactar con ella desde el pedido.
+        @SerializedName("disenadorId")  public String disenadorId;
+        @SerializedName("disenador")    public DtoDisenadorLinea disenador;
+
+        public static class DtoDisenadorLinea {
+            @SerializedName("nombreMarca") public String nombreMarca;
+        }
+
+        /** Nombre de la tienda para mostrar (marca), con fallback. */
+        public String nombreTienda() {
+            if (disenador != null && disenador.nombreMarca != null && !disenador.nombreMarca.isEmpty()) {
+                return disenador.nombreMarca;
+            }
+            return "la tienda";
+        }
 
         /**
          * Nombre legible del producto. El backend lo anida en

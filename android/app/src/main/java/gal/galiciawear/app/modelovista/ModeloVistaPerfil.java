@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionActualizarPerfil;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaUsuario;
 import gal.galiciawear.app.datos.repositorio.RepositorioAutenticacion;
 import gal.galiciawear.app.sesion.GestorSesion;
@@ -19,6 +20,7 @@ public class ModeloVistaPerfil extends ViewModel {
     private final GestorSesion gestorSesion;
 
     private final MutableLiveData<RecursoUi<DtoRespuestaUsuario>> estadoPerfil = new MutableLiveData<>();
+    private final MutableLiveData<RecursoUi<Void>> estadoActualizacion = new MutableLiveData<>();
     private final MutableLiveData<Boolean> cerroSesion = new MutableLiveData<>(false);
 
     @Inject
@@ -31,12 +33,21 @@ public class ModeloVistaPerfil extends ViewModel {
         return estadoPerfil;
     }
 
+    public LiveData<RecursoUi<Void>> observarActualizacion() {
+        return estadoActualizacion;
+    }
+
     public LiveData<Boolean> observarCierreSesion() {
         return cerroSesion;
     }
 
     public void cargarPerfil() {
         repositorio.obtenerPerfil().observeForever(v -> estadoPerfil.postValue(v));
+    }
+
+    /** Actualiza el perfil del cliente (campos editados y/o avatar). */
+    public void actualizarPerfil(DtoPeticionActualizarPerfil cuerpo) {
+        repositorio.actualizarPerfil(cuerpo).observeForever(v -> estadoActualizacion.postValue(v));
     }
 
     public void cerrarSesion() {

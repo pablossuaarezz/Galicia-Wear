@@ -3,6 +3,9 @@ package gal.galiciawear.app.ui.pedidos;
 import android.os.Bundle;
 import android.view.View;
 
+import android.content.Intent;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,13 +13,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.R;
 import gal.galiciawear.app.databinding.ActividadDetallePedidoBinding;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaPedido;
 import gal.galiciawear.app.modelovista.ModeloVistaPedidos;
+import gal.galiciawear.app.ui.chat.ActividadChat;
 import gal.galiciawear.app.utilidades.Constantes;
 import gal.galiciawear.app.utilidades.EstadoPedidoUi;
 import gal.galiciawear.app.utilidades.FormatoFechas;
@@ -84,6 +92,56 @@ public class ActividadDetallePedido extends AppCompatActivity {
             enlace.listaLineas.setLayoutManager(new LinearLayoutManager(this));
             enlace.listaLineas.setAdapter(new AdaptadorLineasPedido(pedido.lineas));
         }
+
+        configurarContactarTienda(pedido);
+    }
+
+    /**
+     * Botón de soporte postventa. Un pedido puede tener artículos de varias tiendas;
+     * si hay más de una, se muestra un selector para elegir con cuál contactar.
+     */
+    private void configurarContactarTienda(DtoRespuestaPedido pedido) {
+        // Tiendas distintas presentes en el pedido (id -> nombre de marca).
+        Map<String, String> tiendas = new LinkedHashMap<>();
+        if (pedido.lineas != null) {
+            for (DtoRespuestaPedido.DtoLineaPedido linea : pedido.lineas) {
+                if (linea.disenadorId != null && !linea.disenadorId.isEmpty()) {
+                    tiendas.put(linea.disenadorId, linea.nombreTienda());
+                }
+            }
+        }
+
+        if (tiendas.isEmpty()) {
+            enlace.botonContactarTienda.setVisibility(View.GONE);
+            return;
+        }
+
+        enlace.botonContactarTienda.setVisibility(View.VISIBLE);
+        enlace.botonContactarTienda.setOnClickListener(v -> {
+            if (tiendas.size() == 1) {
+                Map.Entry<String, String> unica = tiendas.entrySet().iterator().next();
+                abrirChatTienda(unica.getKey(), unica.getValue());
+            } else {
+                mostrarSelectorTienda(tiendas);
+            }
+        });
+    }
+
+    private void mostrarSelectorTienda(Map<String, String> tiendas) {
+        List<String> ids = new ArrayList<>(tiendas.keySet());
+        String[] nombres = tiendas.values().toArray(new String[0]);
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.elegir_tienda)
+            .setItems(nombres, (dialogo, indice) ->
+                abrirChatTienda(ids.get(indice), nombres[indice]))
+            .show();
+    }
+
+    private void abrirChatTienda(String disenadorId, String nombreMarca) {
+        Intent intent = new Intent(this, ActividadChat.class);
+        intent.putExtra(Constantes.EXTRA_DISENADOR_ID, disenadorId);
+        intent.putExtra(Constantes.EXTRA_DISENADOR_NOMBRE, nombreMarca);
+        startActivity(intent);
     }
 
     /** Badge de estado: texto en color fuerte y fondo tintado claro. */

@@ -129,6 +129,9 @@ model Cliente {
   apellidos                 String
   telefono                  String?
   fechaNacimiento           DateTime? @map("fecha_nacimiento")
+  // Foto de perfil como data URI base64 (la app la reduce antes de enviar).
+  // MEDIUMTEXT: admite imágenes de hasta 16 MB sin servidor de archivos.
+  avatarUrl                 String?   @db.MediumText @map("avatar_url")
   // JSON con preferencias eco: { certificados: ["GOTS"], maxKm: 100, ciudad: "CORUNA" }
   preferenciasSostenibilidad Json    @default("{}") @map("preferencias_sostenibilidad")
   direccionPredeterminadaId  String? @map("direccion_predeterminada_id")

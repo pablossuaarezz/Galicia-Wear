@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import gal.galiciawear.app.datos.remoto.ServicioApi;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionActualizarPerfil;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionLogin;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionRegistro;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaToken;
@@ -37,11 +38,14 @@ public class RepositorioAutenticacion {
 
     private final ServicioApi servicioApi;
     private final GestorSesion gestorSesion;
+    private final RepositorioChat repositorioChat;
 
     @Inject
-    public RepositorioAutenticacion(ServicioApi servicioApi, GestorSesion gestorSesion) {
+    public RepositorioAutenticacion(ServicioApi servicioApi, GestorSesion gestorSesion,
+                                    RepositorioChat repositorioChat) {
         this.servicioApi  = servicioApi;
         this.gestorSesion = gestorSesion;
+        this.repositorioChat = repositorioChat;
     }
 
     /**
@@ -161,6 +165,42 @@ public class RepositorioAutenticacion {
         return resultado;
     }
 
+    /**
+     * Actualiza el perfil del cliente (nombre, apellidos, teléfono y/o avatar).
+     * El backend responde 200; devolvemos un RecursoUi&lt;Void&gt; para que la UI
+     * gestione cargando/éxito/error de forma uniforme.
+     */
+    public MutableLiveData<RecursoUi<Void>> actualizarPerfil(DtoPeticionActualizarPerfil cuerpo) {
+        MutableLiveData<RecursoUi<Void>> resultado = new MutableLiveData<>();
+        resultado.setValue(RecursoUi.cargando());
+
+        servicioApi.actualizarPerfilCliente(cuerpo).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> r) {
+                if (r.isSuccessful()) {
+                    // Mantén el nombre local sincronizado (cabeceras, saludos, etc.).
+                    if (cuerpo.nombre != null) {
+                        gestorSesion.guardarDatosUsuario(
+                            gestorSesion.obtenerUsuarioId(),
+                            gestorSesion.obtenerUsuarioRol(),
+                            cuerpo.nombre
+                        );
+                    }
+                    resultado.postValue(RecursoUi.exito(null));
+                } else {
+                    resultado.postValue(RecursoUi.error(extraerMensajeError(r)));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                resultado.postValue(RecursoUi.error("Sin conexión: " + t.getMessage()));
+            }
+        });
+
+        return resultado;
+    }
+
     public void cerrarSesion() {
         Map<String, String> cuerpo = new HashMap<>();
         String tokenRefresh = gestorSesion.obtenerTokenRefresh();
@@ -173,6 +213,8 @@ public class RepositorioAutenticacion {
             @Override public void onResponse(Call<Void> c, Response<Void> r) { }
             @Override public void onFailure(Call<Void> c, Throwable t) { }
         });
+        // Cerrar el socket de chat para que no quede autenticado con la cuenta anterior.
+        repositorioChat.desconectar();
         gestorSesion.cerrarSesion();
     }
 

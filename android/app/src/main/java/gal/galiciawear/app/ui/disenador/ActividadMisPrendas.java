@@ -11,18 +11,20 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.List;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.R;
 import gal.galiciawear.app.databinding.ActividadMisPrendasBinding;
+import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProducto;
 import gal.galiciawear.app.modelovista.ModeloVistaDisenador;
 import gal.galiciawear.app.modelovista.ModeloVistaPrendas;
 import gal.galiciawear.app.utilidades.Constantes;
 
 /**
- * Catálogo de prendas del diseñador. Antes de permitir crear prendas comprueba
- * que el perfil de diseñador exista (es requisito de la relación en BD); si no,
- * invita a completarlo. Recarga la lista en cada onResume para reflejar altas
- * y ediciones realizadas en {@link ActividadEditarPrenda}.
+ * Estudio del diseñador: hub centrado en crear prendas. Comprueba que exista
+ * perfil de diseñador (requisito de BD) y muestra el catálogo propio con su
+ * estado de publicación, permitiendo crear, editar y publicar/despublicar.
  */
 @AndroidEntryPoint
 public class ActividadMisPrendas extends AppCompatActivity {
@@ -45,26 +47,30 @@ public class ActividadMisPrendas extends AppCompatActivity {
 
         enlace.barraHerramientas.setNavigationOnClickListener(v -> finish());
 
-        adaptador = new AdaptadorMiPrenda(this::abrirEdicion);
+        adaptador = new AdaptadorMiPrenda(new AdaptadorMiPrenda.AlActuar() {
+            @Override public void alEditar(DtoRespuestaProducto prenda) { abrirEdicion(prenda.id); }
+            @Override public void alPublicar(DtoRespuestaProducto prenda) { alternarPublicacion(prenda); }
+        });
         enlace.listaPrendas.setLayoutManager(new LinearLayoutManager(this));
         enlace.listaPrendas.setAdapter(adaptador);
 
-        enlace.botonAnadir.setOnClickListener(v -> abrirEdicion(null));
+        enlace.botonCrear.setOnClickListener(v -> abrirEdicion(null));
 
-        // El observer del perfil se registra una sola vez; onResume solo dispara la recarga.
+        // El observer del perfil se registra una sola vez; onResume dispara la recarga.
         modeloDisenador.observarPerfil().observe(this, recurso -> {
             if (recurso == null || recurso.estaCargando()) return;
             if (recurso.esExito()) {
                 perfilListo = recurso.datos != null;
                 if (perfilListo) {
-                    enlace.botonAnadir.setVisibility(View.VISIBLE);
+                    enlace.botonCrear.setEnabled(true);
                     cargarPrendas();
                 } else {
                     enlace.indicadorCarga.setVisibility(View.GONE);
-                    enlace.botonAnadir.setVisibility(View.GONE);
+                    enlace.botonCrear.setEnabled(false);
                     enlace.listaPrendas.setVisibility(View.GONE);
-                    enlace.textoVacio.setVisibility(View.VISIBLE);
+                    enlace.estadoVacio.setVisibility(View.VISIBLE);
                     enlace.textoVacio.setText(R.string.completar_perfil_primero);
+                    enlace.textoContador.setText("");
                 }
             } else if (recurso.esError()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
@@ -76,7 +82,6 @@ public class ActividadMisPrendas extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Verifica que exista perfil de diseñador antes de listar/crear prendas.
         enlace.indicadorCarga.setVisibility(View.VISIBLE);
         modeloDisenador.cargarPerfil();
     }
@@ -88,11 +93,13 @@ public class ActividadMisPrendas extends AppCompatActivity {
                 enlace.indicadorCarga.setVisibility(View.VISIBLE);
             } else if (recurso.esExito()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
-                boolean vacio = recurso.datos == null || recurso.datos.isEmpty();
-                enlace.textoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
+                List<DtoRespuestaProducto> prendas = recurso.datos;
+                boolean vacio = prendas == null || prendas.isEmpty();
+                enlace.estadoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
                 enlace.textoVacio.setText(R.string.sin_prendas);
                 enlace.listaPrendas.setVisibility(vacio ? View.GONE : View.VISIBLE);
-                adaptador.establecer(recurso.datos);
+                adaptador.establecer(prendas);
+                actualizarContador(prendas);
             } else if (recurso.esError()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
                 Snackbar.make(enlace.getRoot(), recurso.mensaje, Snackbar.LENGTH_LONG).show();
@@ -100,10 +107,34 @@ public class ActividadMisPrendas extends AppCompatActivity {
         });
     }
 
-    private void abrirEdicion(@Nullable gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProducto prenda) {
+    private void actualizarContador(List<DtoRespuestaProducto> prendas) {
+        if (prendas == null) { enlace.textoContador.setText(""); return; }
+        int total = prendas.size();
+        int publicadas = 0;
+        for (DtoRespuestaProducto p : prendas) if (p.activo) publicadas++;
+        enlace.textoContador.setText(
+            getString(R.string.mis_prendas_contador, total, publicadas));
+    }
+
+    private void alternarPublicacion(DtoRespuestaProducto prenda) {
+        boolean nuevoEstado = !prenda.activo;
+        modeloPrendas.publicarPrenda(prenda.id, nuevoEstado).observe(this, recurso -> {
+            if (recurso == null || recurso.estaCargando()) return;
+            if (recurso.esExito()) {
+                Snackbar.make(enlace.getRoot(),
+                    nuevoEstado ? R.string.prenda_publicada : R.string.prenda_despublicada,
+                    Snackbar.LENGTH_SHORT).show();
+                cargarPrendas();
+            } else if (recurso.esError()) {
+                Snackbar.make(enlace.getRoot(), recurso.mensaje, Snackbar.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void abrirEdicion(@Nullable String prendaId) {
         Intent intent = new Intent(this, ActividadEditarPrenda.class);
-        if (prenda != null) {
-            intent.putExtra(Constantes.EXTRA_PRENDA_ID, prenda.id);
+        if (prendaId != null) {
+            intent.putExtra(Constantes.EXTRA_PRENDA_ID, prendaId);
         }
         startActivity(intent);
     }

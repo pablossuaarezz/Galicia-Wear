@@ -16,6 +16,13 @@ public class DtoRespuestaUsuario {
     @SerializedName("apellidos")
     public String apellidos;
 
+    @SerializedName("telefono")
+    public String telefono;
+
+    // Foto de perfil como data URI base64 (o URL). Puede ser null.
+    @SerializedName("avatarUrl")
+    public String avatarUrl;
+
     @SerializedName("rol")
     public String rol;
 

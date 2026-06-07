@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
@@ -16,10 +17,18 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import gal.galiciawear.app.BuildConfig;
+import gal.galiciawear.app.datos.remoto.ServicioApi;
+import gal.galiciawear.app.datos.remoto.dto.DtoConversacion;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioConversaciones;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaMensaje;
 import gal.galiciawear.app.sesion.GestorSesion;
+import gal.galiciawear.app.utilidades.RecursoUi;
+import gal.galiciawear.app.utilidades.RespuestasApi;
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Repositorio de chat en tiempo real mediante Socket.IO.
@@ -37,18 +46,74 @@ public class RepositorioChat {
     private static final String TAG = "RepositorioChat";
 
     private final GestorSesion gestorSesion;
+    private final ServicioApi servicioApi;
     private Socket socket;
+    // Sala (peer) a la que unirse en cuanto el socket esté conectado. Necesario porque
+    // conectar() es asíncrono: si emitimos "unirse_sala" antes del handshake, se descarta.
+    private volatile String salaPendiente;
+    // Id del usuario con cuyo JWT se autenticó el socket actual. Permite detectar un
+    // cambio de sesión (logout + login con otra cuenta) y reconectar con el token nuevo.
+    private volatile String usuarioConectado;
 
     public final MutableLiveData<DtoRespuestaMensaje> nuevoMensaje = new MutableLiveData<>();
+    // Historial completo de la conversación, enviado por el servidor al unirse a la sala.
+    public final MutableLiveData<List<DtoRespuestaMensaje>> historial = new MutableLiveData<>();
     public final MutableLiveData<Boolean> estadoConexion = new MutableLiveData<>(false);
 
     @Inject
-    public RepositorioChat(GestorSesion gestorSesion) {
+    public RepositorioChat(GestorSesion gestorSesion, ServicioApi servicioApi) {
         this.gestorSesion = gestorSesion;
+        this.servicioApi = servicioApi;
+    }
+
+    // ── Bandeja de conversaciones (REST) ─────────────────────────────────────
+
+    public MutableLiveData<RecursoUi<List<DtoConversacion>>> listarConversaciones() {
+        MutableLiveData<RecursoUi<List<DtoConversacion>>> res = new MutableLiveData<>();
+        res.setValue(RecursoUi.cargando());
+        servicioApi.listarConversaciones().enqueue(new Callback<DtoEnvoltorioConversaciones>() {
+            @Override
+            public void onResponse(Call<DtoEnvoltorioConversaciones> c,
+                                   Response<DtoEnvoltorioConversaciones> r) {
+                if (r.isSuccessful() && r.body() != null) {
+                    res.postValue(RecursoUi.exito(r.body().conversaciones));
+                } else {
+                    res.postValue(RecursoUi.error(RespuestasApi.extraerMensajeError(r)));
+                }
+            }
+            @Override
+            public void onFailure(Call<DtoEnvoltorioConversaciones> c, Throwable t) {
+                res.postValue(RecursoUi.error("Sin conexión: " + t.getMessage()));
+            }
+        });
+        return res;
+    }
+
+    /** Marca como leídos los mensajes recibidos de un peer (fire-and-forget). */
+    public void marcarLeida(String peerId) {
+        servicioApi.marcarConversacionLeida(peerId).enqueue(new Callback<Void>() {
+            @Override public void onResponse(Call<Void> c, Response<Void> r) { /* sin acción */ }
+            @Override public void onFailure(Call<Void> c, Throwable t) { /* sin acción */ }
+        });
     }
 
     public void conectar() {
-        if (socket != null && socket.connected()) return;
+        String usuarioActual = gestorSesion.obtenerUsuarioId();
+
+        // Reutilizar el socket solo si ya está conectado para el MISMO usuario.
+        if (socket != null && socket.connected()
+                && usuarioActual != null && usuarioActual.equals(usuarioConectado)) {
+            return;
+        }
+
+        // Socket de otro usuario (cambio de sesión) o no conectado: cerrarlo y recrearlo
+        // para autenticar el handshake con el token de la cuenta actual.
+        if (socket != null) {
+            socket.disconnect();
+            socket.off();
+            socket = null;
+        }
+        usuarioConectado = usuarioActual;
 
         try {
             IO.Options opciones = new IO.Options();
@@ -66,26 +131,35 @@ public class RepositorioChat {
 
             socket = IO.socket(BuildConfig.URL_WEBSOCKET, opciones);
 
-            socket.on(Socket.EVENT_CONNECT, args ->
-                estadoConexion.postValue(true));
+            socket.on(Socket.EVENT_CONNECT, args -> {
+                estadoConexion.postValue(true);
+                // Unirse (o re-unirse tras una reconexión) a la sala pendiente una vez
+                // establecida la conexión: aquí sí está garantizado socket.connected().
+                if (salaPendiente != null) {
+                    socket.emit("unirse_sala", salaPendiente);
+                }
+            });
 
             socket.on(Socket.EVENT_DISCONNECT, args ->
                 estadoConexion.postValue(false));
 
             socket.on("nuevo_mensaje", args -> {
-                if (args.length > 0) {
-                    try {
-                        JSONObject json = (JSONObject) args[0];
-                        DtoRespuestaMensaje msg = new DtoRespuestaMensaje();
-                        msg.id              = json.optString("id");
-                        msg.contenido       = json.optString("contenido");
-                        msg.remitenteId     = json.optString("remitenteId");
-                        msg.remitenteNombre = json.optString("remitenteNombre");
-                        msg.fechaCreacion   = json.optString("fechaCreacion");
-                        nuevoMensaje.postValue(msg);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error parseando mensaje", e);
+                if (args.length > 0 && args[0] instanceof JSONObject) {
+                    DtoRespuestaMensaje msg = parsearMensaje((JSONObject) args[0]);
+                    if (msg != null) nuevoMensaje.postValue(msg);
+                }
+            });
+
+            // Al unirse a la sala el servidor envía el historial (array de mensajes).
+            socket.on("mensaje_historial", args -> {
+                if (args.length > 0 && args[0] instanceof JSONArray) {
+                    JSONArray arreglo = (JSONArray) args[0];
+                    List<DtoRespuestaMensaje> lista = new ArrayList<>();
+                    for (int i = 0; i < arreglo.length(); i++) {
+                        DtoRespuestaMensaje msg = parsearMensaje(arreglo.optJSONObject(i));
+                        if (msg != null) lista.add(msg);
                     }
+                    historial.postValue(lista);
                 }
             });
 
@@ -97,6 +171,9 @@ public class RepositorioChat {
     }
 
     public void unirseASala(String disenadorId) {
+        // Recordamos la sala para (re)unirnos en el evento CONNECT. Si ya estamos
+        // conectados (p. ej. al cambiar de conversación), nos unimos de inmediato.
+        salaPendiente = disenadorId;
         if (socket != null && socket.connected()) {
             socket.emit("unirse_sala", disenadorId);
         }
@@ -119,6 +196,28 @@ public class RepositorioChat {
         if (socket != null) {
             socket.disconnect();
             socket.off();
+            socket = null;
+        }
+        usuarioConectado = null;
+        salaPendiente = null;
+        estadoConexion.postValue(false);
+    }
+
+    /** Convierte el JSON de un mensaje (evento socket) en su DTO. */
+    private DtoRespuestaMensaje parsearMensaje(JSONObject json) {
+        if (json == null) return null;
+        try {
+            DtoRespuestaMensaje msg = new DtoRespuestaMensaje();
+            msg.id              = json.optString("id");
+            msg.contenido       = json.optString("contenido");
+            msg.remitenteId     = json.optString("remitenteId");
+            msg.remitenteNombre = json.optString("remitenteNombre");
+            msg.fechaCreacion   = json.optString("fechaCreacion");
+            msg.leido           = json.optBoolean("leido", false);
+            return msg;
+        } catch (Exception e) {
+            Log.e(TAG, "Error parseando mensaje", e);
+            return null;
         }
     }
 }

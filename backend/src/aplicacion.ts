@@ -7,6 +7,7 @@ import pinoHttp from 'pino-http';
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import { entorno } from './configuracion/entorno';
+import { DIR_SUBIDAS } from './configuracion/almacenamiento';
 import { registrador } from './utilidades/registrador';
 import { manejadorErrores } from './middlewares/manejadorErrores';
 import { especificacionSwagger } from './configuracion/swagger';
@@ -18,6 +19,7 @@ import { rutasCertificados } from './modulos/certificados/rutas';
 import { rutasProductos } from './modulos/productos/rutas';
 import { rutasCarrito } from './modulos/carrito/rutas';
 import { rutasPedidos } from './modulos/pedidos/rutas';
+import { rutasChat } from './modulos/chat/rutas';
 import { rutasAdmin } from './modulos/admin/rutas';
 
 export function crearAplicacion(): Application {
@@ -74,6 +76,13 @@ export function crearAplicacion(): Application {
     });
   });
 
+  // 7b. Imágenes subidas (fotos de prenda) servidas estáticamente desde disco.
+  //     En SQL solo se guarda la URL, así que no requiere migración.
+  aplicacion.use(
+    '/uploads',
+    express.static(DIR_SUBIDAS, { maxAge: '7d', fallthrough: true }),
+  );
+
   // 8. Rutas de la API REST
   aplicacion.use('/auth', rutasAutenticacion);
   aplicacion.use('/usuarios', rutasUsuarios);
@@ -83,6 +92,7 @@ export function crearAplicacion(): Application {
   aplicacion.use('/productos', rutasProductos);
   aplicacion.use('/carrito', rutasCarrito);
   aplicacion.use('/pedidos', rutasPedidos);
+  aplicacion.use('/chat', rutasChat);
   aplicacion.use('/admin', rutasAdmin);
 
   // 9. 404 controlado para cualquier ruta no definida

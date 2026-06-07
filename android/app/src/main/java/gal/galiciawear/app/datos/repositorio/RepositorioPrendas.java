@@ -11,6 +11,7 @@ import gal.galiciawear.app.datos.remoto.ServicioApi;
 import gal.galiciawear.app.datos.remoto.dto.DtoImagen;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionImagen;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionProducto;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionPublicar;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionVariante;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaImagenes;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaProductos;
@@ -113,6 +114,29 @@ public class RepositorioPrendas {
 
     public MutableLiveData<RecursoUi<Boolean>> eliminarPrenda(String id) {
         return ejecutarVacio(servicioApi.eliminarPrenda(id));
+    }
+
+    /** Publica (activo=true) o despublica (activo=false) una prenda. */
+    public MutableLiveData<RecursoUi<DtoRespuestaProducto>> publicarPrenda(String id, boolean activo) {
+        MutableLiveData<RecursoUi<DtoRespuestaProducto>> res = new MutableLiveData<>();
+        res.setValue(RecursoUi.cargando());
+        servicioApi.publicarPrenda(id, new DtoPeticionPublicar(activo))
+            .enqueue(new Callback<DtoRespuestaProductoEnvoltura>() {
+                @Override
+                public void onResponse(Call<DtoRespuestaProductoEnvoltura> c,
+                                       Response<DtoRespuestaProductoEnvoltura> r) {
+                    if (r.isSuccessful() && r.body() != null) {
+                        res.postValue(RecursoUi.exito(r.body().producto));
+                    } else {
+                        res.postValue(RecursoUi.error(RespuestasApi.extraerMensajeError(r)));
+                    }
+                }
+                @Override
+                public void onFailure(Call<DtoRespuestaProductoEnvoltura> c, Throwable t) {
+                    res.postValue(RecursoUi.error("Sin conexión: " + t.getMessage()));
+                }
+            });
+        return res;
     }
 
     // ── Variantes ──────────────────────────────────────────────────────────────

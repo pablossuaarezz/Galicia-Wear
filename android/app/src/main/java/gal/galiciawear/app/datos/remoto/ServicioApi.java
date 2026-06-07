@@ -2,6 +2,7 @@ package gal.galiciawear.app.datos.remoto;
 
 import java.util.List;
 
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionActualizarPerfil;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionCarritoItem;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionDireccion;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionDisenador;
@@ -9,9 +10,11 @@ import gal.galiciawear.app.datos.remoto.dto.DtoPeticionImagen;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionLogin;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionPedido;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionProducto;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionPublicar;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionRegistro;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionVariante;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioCarrito;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioConversaciones;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioDireccion;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioListaDirecciones;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioListaPedidos;
@@ -57,6 +60,9 @@ public interface ServicioApi {
 
     @GET("auth/yo")
     Call<DtoRespuestaUsuario> obtenerPerfil();
+
+    @PATCH("usuarios/yo/cliente")
+    Call<Void> actualizarPerfilCliente(@Body DtoPeticionActualizarPerfil cuerpo);
 
     // ── Productos ────────────────────────────────────────────────────────────
 
@@ -140,6 +146,10 @@ public interface ServicioApi {
     Call<DtoRespuestaProductoEnvoltura> actualizarPrenda(
         @Path("id") String id, @Body DtoPeticionProducto cuerpo);
 
+    @PATCH("productos/{id}")
+    Call<DtoRespuestaProductoEnvoltura> publicarPrenda(
+        @Path("id") String id, @Body DtoPeticionPublicar cuerpo);
+
     @DELETE("productos/{id}")
     Call<Void> eliminarPrenda(@Path("id") String id);
 
@@ -172,4 +182,13 @@ public interface ServicioApi {
     @DELETE("productos/{productoId}/imagenes/{id}")
     Call<Void> eliminarImagen(
         @Path("productoId") String productoId, @Path("id") String id);
+
+    // ── Chat de soporte (bandeja) ────────────────────────────────────────────
+    // El tiempo real va por Socket.IO; estos endpoints REST son para la bandeja.
+
+    @GET("chat/conversaciones")
+    Call<DtoEnvoltorioConversaciones> listarConversaciones();
+
+    @PATCH("chat/{peerId}/leer")
+    Call<Void> marcarConversacionLeida(@Path("peerId") String peerId);
 }

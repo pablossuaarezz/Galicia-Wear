@@ -51,6 +51,11 @@ public class ModeloVistaPrendas extends ViewModel {
         return repositorio.eliminarPrenda(id);
     }
 
+    /** Publica o despublica la prenda (control de visibilidad en el catálogo). */
+    public LiveData<RecursoUi<DtoRespuestaProducto>> publicarPrenda(String id, boolean activo) {
+        return repositorio.publicarPrenda(id, activo);
+    }
+
     // ── Variantes ──────────────────────────────────────────────────────────────
 
     public LiveData<RecursoUi<List<DtoVariante>>> listarVariantes(String productoId) {

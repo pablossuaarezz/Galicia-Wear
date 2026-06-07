@@ -1,206 +1,391 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/fondo">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/barra_herramientas"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="@string/editar_prenda"
-            app:navigationIcon="@drawable/ic_volver" />
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:orientation="vertical">
 
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/fondo"
+            app:elevation="0dp">
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/barra_herramientas"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:title="@string/nueva_prenda"
+                app:navigationIcon="@drawable/ic_volver" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!-- Cabecera de pasos -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campo_nombre"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progreso_pasos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/nombre_prenda">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/entrada_nombre"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textCapSentences" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campo_descripcion"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/descripcion">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/entrada_descripcion"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minLines="3"
-                    android:gravity="top"
-                    android:inputType="textMultiLine|textCapSentences" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campo_precio"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/precio_base">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/entrada_precio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberDecimal" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campo_km"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/km_origen">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/entrada_km"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
+                app:trackCornerRadius="4dp"
+                app:indicatorColor="@color/primario"
+                app:trackColor="@color/superficie_variante"
+                android:max="4"
+                tools:progress="25" />
 
             <TextView
+                android:id="@+id/texto_paso"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/material"
-                android:textSize="13sp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="4dp" />
-
-            <Spinner
-                android:id="@+id/selector_material"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-
-            <Button
-                android:id="@+id/boton_guardar_prenda"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="20dp"
-                android:text="@string/guardar_prenda" />
-
-            <!-- ── Variantes ───────────────────────────────────────────── -->
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="20dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/variantes_titulo"
+                android:textColor="@color/primario"
                 android:textStyle="bold"
-                android:textSize="17sp" />
-
-            <TextView
-                android:id="@+id/aviso_guardar_primero"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
                 android:textSize="13sp"
-                android:text="@string/guarda_prenda_primero" />
+                android:layout_marginTop="12dp"
+                tools:text="Paso 1 de 4 · Datos" />
 
             <TextView
-                android:id="@+id/texto_sin_variantes"
+                android:id="@+id/texto_paso_ayuda"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textSize="13sp"
-                android:visibility="gone"
-                android:text="@string/sin_variantes" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/lista_variantes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/boton_anadir_variante"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                android:text="@string/anadir_variante" />
-
-            <!-- ── Fotos (URL en SQL) ──────────────────────────────────── -->
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="20dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/fotos_titulo"
-                android:textStyle="bold"
-                android:textSize="17sp" />
-
-            <TextView
-                android:id="@+id/texto_sin_fotos"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textSize="13sp"
-                android:visibility="gone"
-                android:text="@string/sin_fotos" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/lista_fotos"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/boton_anadir_foto"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                android:text="@string/anadir_foto" />
-
-            <ProgressBar
-                android:id="@+id/indicador_carga"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                android:visibility="gone" />
-
+                android:textColor="@color/texto_secundario"
+                android:textSize="14sp"
+                android:layout_marginTop="2dp"
+                tools:text="Cuéntanos qué prenda es y de qué está hecha." />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-</LinearLayout>
+
+        <ViewFlipper
+            android:id="@+id/flipper_pasos"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- ── Paso 1: Datos ─────────────────────────────────────────── -->
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="20dp"
+                    android:paddingBottom="20dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/campo_nombre"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/nombre_prenda">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/entrada_nombre"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapSentences" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/campo_descripcion"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/descripcion">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/entrada_descripcion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minLines="3"
+                            android:gravity="top"
+                            android:inputType="textMultiLine|textCapSentences" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/campo_precio"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:hint="@string/precio_base">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/entrada_precio"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="numberDecimal" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/campo_km"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/km_origen">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/entrada_km"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/material"
+                        android:textColor="@color/texto_secundario"
+                        android:textSize="13sp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="4dp" />
+
+                    <Spinner
+                        android:id="@+id/selector_material"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp" />
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+
+            <!-- ── Paso 2: Fotos ─────────────────────────────────────────── -->
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="20dp"
+                    android:paddingBottom="20dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/boton_anadir_foto"
+                        style="@style/Widget.Material3.Button.TonalButton.Icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/anadir_foto"
+                        app:icon="@drawable/ic_mas" />
+
+                    <TextView
+                        android:id="@+id/texto_sin_fotos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:textColor="@color/texto_secundario"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        android:text="@string/sin_fotos" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/lista_fotos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false" />
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+
+            <!-- ── Paso 3: Tallas y stock ────────────────────────────────── -->
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="20dp"
+                    android:paddingBottom="20dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/boton_anadir_variante"
+                        style="@style/Widget.Material3.Button.TonalButton.Icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/anadir_variante"
+                        app:icon="@drawable/ic_mas" />
+
+                    <TextView
+                        android:id="@+id/texto_sin_variantes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:textColor="@color/texto_secundario"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        android:text="@string/sin_variantes" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/lista_variantes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false" />
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+
+            <!-- ── Paso 4: Publicar ──────────────────────────────────────── -->
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="20dp"
+                    android:paddingBottom="20dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="18dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/superficie_variante"
+                        app:strokeWidth="1dp"
+                        app:cardBackgroundColor="@color/superficie">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="18dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/resumen_prenda"
+                                android:textColor="@color/texto_secundario"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/resumen_nombre"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:textColor="@color/texto_primario"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:text="Camiseta Mariña" />
+
+                            <TextView
+                                android:id="@+id/resumen_precio"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="@color/primario"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                tools:text="29,90 €" />
+
+                            <TextView
+                                android:id="@+id/resumen_detalle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:textColor="@color/texto_secundario"
+                                android:textSize="14sp"
+                                tools:text="2 fotos · 3 tallas" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        app:cardCornerRadius="18dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/superficie_variante"
+                        app:strokeWidth="1dp"
+                        app:cardBackgroundColor="@color/superficie">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="18dp">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switch_publicar"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:checked="true"
+                                android:text="@string/publicar_ahora"
+                                android:textColor="@color/texto_primario"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:text="@string/publicar_ahora_desc"
+                                android:textColor="@color/texto_secundario"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </ViewFlipper>
+
+        <!-- Barra de navegación de pasos -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/superficie"
+            android:elevation="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/boton_atras"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/atras" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/boton_siguiente"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="2"
+                android:text="@string/siguiente"
+                app:cornerRadius="26dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/indicador_carga"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/primario"
+        android:visibility="gone" />
+
+</FrameLayout>

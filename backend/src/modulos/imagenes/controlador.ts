@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { servicioImagenes } from './servicio';
+import { guardarImagenBase64 } from '../../configuracion/almacenamiento';
 import type { DatosCrearImagen, DatosActualizarImagen } from './dto';
 
 export const controladorImagenes = {
@@ -14,10 +15,19 @@ export const controladorImagenes = {
 
   async crear(peticion: Request, respuesta: Response, siguiente: NextFunction): Promise<void> {
     try {
+      const datos = peticion.body as DatosCrearImagen;
+      // Si llega una imagen base64 (subida desde la app), se guarda como archivo
+      // y se almacena su URL pública; así la columna SQL guarda solo la ruta.
+      if (datos.base64) {
+        const rutaRelativa = guardarImagenBase64(datos.base64);
+        const base = `${peticion.protocol}://${peticion.get('host')}`;
+        datos.url = `${base}${rutaRelativa}`;
+        delete datos.base64;
+      }
       const imagen = await servicioImagenes.crear(
         peticion.params.productoId,
         peticion.usuario!.sub,
-        peticion.body as DatosCrearImagen,
+        datos,
       );
       respuesta.status(201).json({ imagen });
     } catch (error) {

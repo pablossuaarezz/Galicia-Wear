@@ -5,6 +5,7 @@ import { entorno } from './configuracion/entorno';
 import { registrador } from './utilidades/registrador';
 import { cerrarConexionBd } from './utilidades/prisma';
 import { conectarMongo, cerrarConexionMongo } from './utilidades/mongo';
+import { inicializarSockets } from './tiempoReal/servidorSockets';
 
 async function arrancar(): Promise<void> {
   // Conectar a MongoDB antes de levantar el servidor HTTP
@@ -23,8 +24,12 @@ async function arrancar(): Promise<void> {
     );
   });
 
+  // Gateway de chat en tiempo real (Socket.IO) enganchado al mismo servidor HTTP.
+  const io = inicializarSockets(servidor);
+
   const apagar = async (senal: string): Promise<void> => {
     registrador.info({ senal }, 'Señal recibida, cerrando servidor...');
+    await io.close();
     servidor.close(async () => {
       await cerrarConexionBd();
       await cerrarConexionMongo();

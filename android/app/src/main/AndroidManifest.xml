@@ -83,6 +83,13 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <!-- Edición del perfil del cliente (datos + foto) -->
+        <activity
+            android:name=".ui.perfil.ActividadEditarPerfil"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Detalle de pedido: estado, tracking, líneas -->
         <activity
             android:name=".ui.pedidos.ActividadDetallePedido"
@@ -95,6 +102,12 @@
             android:exported="false"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- Bandeja de conversaciones de soporte (cliente y tienda) -->
+        <activity
+            android:name=".ui.chat.ActividadConversaciones"
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <!-- ══════════════════════════════════════════════════════════════════
              ÁREA DE DISEÑADOR (accesible desde Perfil cuando rol == DISENADOR)

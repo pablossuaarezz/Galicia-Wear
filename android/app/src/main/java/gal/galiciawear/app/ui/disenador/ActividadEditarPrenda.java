@@ -1,9 +1,12 @@
 package gal.galiciawear.app.ui.disenador;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,26 +15,37 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.R;
 import gal.galiciawear.app.databinding.ActividadEditarPrendaBinding;
-import gal.galiciawear.app.databinding.DialogoFotoBinding;
 import gal.galiciawear.app.databinding.DialogoVarianteBinding;
+import gal.galiciawear.app.datos.remoto.dto.DtoImagen;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionImagen;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionProducto;
 import gal.galiciawear.app.datos.remoto.dto.DtoPeticionVariante;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProducto;
+import gal.galiciawear.app.datos.remoto.dto.DtoVariante;
 import gal.galiciawear.app.modelovista.ModeloVistaPrendas;
 import gal.galiciawear.app.utilidades.Constantes;
+import gal.galiciawear.app.utilidades.ImagenBase64;
+import gal.galiciawear.app.utilidades.RecursoUi;
 
 /**
- * Alta y edición de una prenda del diseñador. Primero se guardan los datos básicos
- * (POST/PATCH /productos); una vez la prenda existe, se habilitan las secciones de
- * variantes (talla/color/stock) y de fotos. Las fotos se guardan en SQL como URL
- * mediante POST /productos/{id}/imagenes.
+ * Asistente de creación/edición de prenda guiado por pasos:
+ *   1) Datos · 2) Fotos · 3) Tallas y stock · 4) Publicar.
+ *
+ * El paso 1 crea/actualiza la prenda (necesario para tener id antes de añadir
+ * fotos y variantes). El último paso publica o guarda como borrador (activo).
  */
 @AndroidEntryPoint
 public class ActividadEditarPrenda extends AppCompatActivity {
+
+    private static final int TOTAL_PASOS = 4;
+    private static final int PASO_DATOS = 0, PASO_FOTOS = 1, PASO_TALLAS = 2, PASO_PUBLICAR = 3;
 
     private ActividadEditarPrendaBinding enlace;
     private ModeloVistaPrendas modeloVista;
@@ -42,8 +56,16 @@ public class ActividadEditarPrenda extends AppCompatActivity {
     private String[] materialValores;
     private String[] tallaValores;
 
-    // null mientras la prenda no se ha creado todavía.
-    private String prendaId;
+    private String prendaId;        // null mientras la prenda no se ha creado
+    private int pasoActual = PASO_DATOS;
+    private int numFotos = 0;
+    private int numVariantes = 0;
+
+    private final ExecutorService ejecutorIo = Executors.newSingleThreadExecutor();
+
+    // Selector de imagen del sistema (sin permisos: SAF concede acceso al Uri).
+    private final ActivityResultLauncher<String> selectorFoto =
+        registerForActivityResult(new ActivityResultContracts.GetContent(), this::subirFoto);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,20 +94,62 @@ public class ActividadEditarPrenda extends AppCompatActivity {
         enlace.listaVariantes.setAdapter(adaptadorVariantes);
 
         adaptadorFotos = new AdaptadorFotoPrenda(new AdaptadorFotoPrenda.AlActuarSobreFoto() {
-            @Override public void alEliminar(gal.galiciawear.app.datos.remoto.dto.DtoImagen i) { eliminarFoto(i); }
-            @Override public void alMarcarPrincipal(gal.galiciawear.app.datos.remoto.dto.DtoImagen i) { marcarPrincipal(i); }
+            @Override public void alEliminar(DtoImagen i) { eliminarFoto(i); }
+            @Override public void alMarcarPrincipal(DtoImagen i) { marcarPrincipal(i); }
         });
         enlace.listaFotos.setLayoutManager(new LinearLayoutManager(this));
         enlace.listaFotos.setAdapter(adaptadorFotos);
 
-        enlace.botonGuardarPrenda.setOnClickListener(v -> guardarPrenda());
         enlace.botonAnadirVariante.setOnClickListener(v -> dialogoVariante());
-        enlace.botonAnadirFoto.setOnClickListener(v -> dialogoFoto());
+        enlace.botonAnadirFoto.setOnClickListener(v -> selectorFoto.launch("image/*"));
+        enlace.botonSiguiente.setOnClickListener(v -> onSiguiente());
+        enlace.botonAtras.setOnClickListener(v -> onAtras());
 
         if (prendaId != null) {
             cargarPrenda();
+        }
+        irAPaso(PASO_DATOS);
+    }
+
+    // ── Navegación entre pasos ──────────────────────────────────────────────────
+
+    private void irAPaso(int paso) {
+        pasoActual = paso;
+        enlace.flipperPasos.setDisplayedChild(paso);
+        enlace.progresoPasos.setProgressCompat(paso + 1, true);
+
+        int nombrePaso;
+        int ayudaPaso;
+        switch (paso) {
+            case PASO_FOTOS:    nombrePaso = R.string.paso_fotos;  ayudaPaso = R.string.paso_fotos_ayuda;  break;
+            case PASO_TALLAS:   nombrePaso = R.string.paso_tallas; ayudaPaso = R.string.paso_tallas_ayuda; break;
+            case PASO_PUBLICAR: nombrePaso = R.string.paso_publicar; ayudaPaso = R.string.paso_publicar_ayuda; break;
+            default:            nombrePaso = R.string.paso_datos;  ayudaPaso = R.string.paso_datos_ayuda;
+        }
+        enlace.textoPaso.setText(
+            getString(R.string.paso_indicador, paso + 1, TOTAL_PASOS) + " · " + getString(nombrePaso));
+        enlace.textoPasoAyuda.setText(ayudaPaso);
+
+        enlace.botonSiguiente.setText(paso == PASO_PUBLICAR ? R.string.finalizar : R.string.siguiente);
+        enlace.botonAtras.setText(paso == PASO_DATOS ? android.R.string.cancel : R.string.atras);
+
+        if (paso == PASO_PUBLICAR) actualizarResumen();
+    }
+
+    private void onSiguiente() {
+        switch (pasoActual) {
+            case PASO_DATOS:    guardarDatosYAvanzar(); break;
+            case PASO_FOTOS:    irAPaso(PASO_TALLAS); break;
+            case PASO_TALLAS:   irAPaso(PASO_PUBLICAR); break;
+            case PASO_PUBLICAR: finalizar(); break;
+        }
+    }
+
+    private void onAtras() {
+        if (pasoActual == PASO_DATOS) {
+            finish();
         } else {
-            mostrarSeccionesDependientes(false);
+            irAPaso(pasoActual - 1);
         }
     }
 
@@ -99,7 +163,6 @@ public class ActividadEditarPrenda extends AppCompatActivity {
             } else if (recurso.esExito() && recurso.datos != null) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
                 rellenar(recurso.datos);
-                mostrarSeccionesDependientes(true);
                 cargarVariantes();
                 cargarFotos();
             } else if (recurso.esError()) {
@@ -116,11 +179,12 @@ public class ActividadEditarPrenda extends AppCompatActivity {
         enlace.entradaKm.setText(String.valueOf(p.kmOrigen));
         int pos = indiceDe(materialValores, p.materialPrincipal);
         if (pos >= 0) enlace.selectorMaterial.setSelection(pos);
+        enlace.switchPublicar.setChecked(p.activo);
     }
 
-    // ── Guardar datos básicos ───────────────────────────────────────────────────
+    // ── Paso 1: datos básicos ───────────────────────────────────────────────────
 
-    private void guardarPrenda() {
+    private void guardarDatosYAvanzar() {
         String nombre = texto(enlace.entradaNombre);
         String descripcion = texto(enlace.entradaDescripcion);
         String precioTxt = texto(enlace.entradaPrecio);
@@ -141,7 +205,7 @@ public class ActividadEditarPrenda extends AppCompatActivity {
             enlace.campoDescripcion.setError("Mínimo 20 caracteres");
             valido = false;
         }
-        double precio = 0;
+        double precio;
         try {
             precio = Double.parseDouble(precioTxt);
         } catch (NumberFormatException e) {
@@ -154,43 +218,65 @@ public class ActividadEditarPrenda extends AppCompatActivity {
         if (!valido) return;
 
         int km = kmTxt.isEmpty() ? 0 : Integer.parseInt(kmTxt);
+        DtoPeticionProducto cuerpo = new DtoPeticionProducto(nombre, descripcion, precio, km, material);
 
-        DtoPeticionProducto cuerpo = new DtoPeticionProducto(
-            nombre, descripcion, precio, km, material);
-
-        enlace.botonGuardarPrenda.setEnabled(false);
+        enlace.botonSiguiente.setEnabled(false);
         modeloVista.guardarPrenda(prendaId, cuerpo).observe(this, recurso -> {
             if (recurso == null) return;
             if (recurso.estaCargando()) {
                 enlace.indicadorCarga.setVisibility(View.VISIBLE);
             } else if (recurso.esExito() && recurso.datos != null) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
-                enlace.botonGuardarPrenda.setEnabled(true);
+                enlace.botonSiguiente.setEnabled(true);
                 boolean eraNueva = prendaId == null;
                 prendaId = recurso.datos.id;
                 enlace.barraHerramientas.setTitle(R.string.editar_prenda);
-                mostrarSeccionesDependientes(true);
-                Snackbar.make(enlace.getRoot(), "Prenda guardada", Snackbar.LENGTH_SHORT).show();
-                if (eraNueva) {
-                    // Recién creada: sin variantes ni fotos aún; refrescamos los avisos.
-                    cargarVariantes();
-                    cargarFotos();
-                }
+                if (eraNueva) { cargarVariantes(); cargarFotos(); }
+                irAPaso(PASO_FOTOS);
             } else if (recurso.esError()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
-                enlace.botonGuardarPrenda.setEnabled(true);
+                enlace.botonSiguiente.setEnabled(true);
                 Snackbar.make(enlace.getRoot(), recurso.mensaje, Snackbar.LENGTH_LONG).show();
             }
         });
     }
 
-    private void mostrarSeccionesDependientes(boolean visible) {
-        int vis = visible ? View.VISIBLE : View.GONE;
-        enlace.avisoGuardarPrimero.setVisibility(visible ? View.GONE : View.VISIBLE);
-        enlace.listaVariantes.setVisibility(vis);
-        enlace.botonAnadirVariante.setVisibility(vis);
-        enlace.listaFotos.setVisibility(vis);
-        enlace.botonAnadirFoto.setVisibility(vis);
+    // ── Paso 4: publicar ────────────────────────────────────────────────────────
+
+    private void actualizarResumen() {
+        enlace.resumenNombre.setText(texto(enlace.entradaNombre));
+        String precioTxt = texto(enlace.entradaPrecio);
+        try {
+            enlace.resumenPrecio.setText(
+                String.format(Locale.getDefault(), "%.2f €", Double.parseDouble(precioTxt)));
+        } catch (NumberFormatException e) {
+            enlace.resumenPrecio.setText(precioTxt);
+        }
+        enlace.resumenDetalle.setText(
+            getString(R.string.resumen_fotos, numFotos) + " · "
+            + getString(R.string.resumen_variantes, numVariantes));
+    }
+
+    private void finalizar() {
+        if (prendaId == null) { finish(); return; }
+        boolean publicar = enlace.switchPublicar.isChecked();
+        enlace.botonSiguiente.setEnabled(false);
+        modeloVista.publicarPrenda(prendaId, publicar).observe(this, recurso -> {
+            if (recurso == null || recurso.estaCargando()) {
+                if (recurso != null) enlace.indicadorCarga.setVisibility(View.VISIBLE);
+                return;
+            }
+            enlace.indicadorCarga.setVisibility(View.GONE);
+            if (recurso.esExito()) {
+                Snackbar.make(enlace.getRoot(),
+                    publicar ? R.string.prenda_publicada : R.string.prenda_despublicada,
+                    Snackbar.LENGTH_SHORT).show();
+                enlace.getRoot().postDelayed(this::finish, 500);
+            } else {
+                enlace.botonSiguiente.setEnabled(true);
+                Snackbar.make(enlace.getRoot(), recurso.mensaje, Snackbar.LENGTH_LONG).show();
+            }
+        });
     }
 
     // ── Variantes ───────────────────────────────────────────────────────────────
@@ -200,6 +286,7 @@ public class ActividadEditarPrenda extends AppCompatActivity {
         modeloVista.listarVariantes(prendaId).observe(this, recurso -> {
             if (recurso == null || !recurso.esExito()) return;
             boolean vacio = recurso.datos == null || recurso.datos.isEmpty();
+            numVariantes = vacio ? 0 : recurso.datos.size();
             enlace.textoSinVariantes.setVisibility(vacio ? View.VISIBLE : View.GONE);
             adaptadorVariantes.establecer(recurso.datos);
         });
@@ -236,7 +323,7 @@ public class ActividadEditarPrenda extends AppCompatActivity {
             .show();
     }
 
-    private void eliminarVariante(gal.galiciawear.app.datos.remoto.dto.DtoVariante v) {
+    private void eliminarVariante(DtoVariante v) {
         new AlertDialog.Builder(this)
             .setMessage("¿Eliminar la variante " + v.talla + " · " + v.color + "?")
             .setPositiveButton(R.string.eliminar, (d, w) ->
@@ -245,7 +332,7 @@ public class ActividadEditarPrenda extends AppCompatActivity {
             .show();
     }
 
-    private void trasOperacionVariante(gal.galiciawear.app.utilidades.RecursoUi<Boolean> recurso) {
+    private void trasOperacionVariante(RecursoUi<Boolean> recurso) {
         if (recurso == null) return;
         if (recurso.esExito()) {
             cargarVariantes();
@@ -261,37 +348,41 @@ public class ActividadEditarPrenda extends AppCompatActivity {
         modeloVista.listarImagenes(prendaId).observe(this, recurso -> {
             if (recurso == null || !recurso.esExito()) return;
             boolean vacio = recurso.datos == null || recurso.datos.isEmpty();
+            numFotos = vacio ? 0 : recurso.datos.size();
             enlace.textoSinFotos.setVisibility(vacio ? View.VISIBLE : View.GONE);
             adaptadorFotos.establecer(recurso.datos);
         });
     }
 
-    private void dialogoFoto() {
-        DialogoFotoBinding d = DialogoFotoBinding.inflate(getLayoutInflater());
-        new AlertDialog.Builder(this)
-            .setTitle(R.string.anadir_foto)
-            .setView(d.getRoot())
-            .setPositiveButton(R.string.guardar, (dlg, w) -> {
-                String url = obtener(d.entradaUrl);
-                String alt = obtener(d.entradaAlt);
-                boolean principal = d.checkPrincipal.isChecked();
-                if (url.isEmpty() || !android.util.Patterns.WEB_URL.matcher(url).matches()) {
-                    Snackbar.make(enlace.getRoot(),
-                        "Introduce una URL de imagen válida", Snackbar.LENGTH_LONG).show();
+    /** Sube la foto elegida en el móvil: la reduce y la envía como base64. */
+    private void subirFoto(@Nullable Uri uri) {
+        if (uri == null) return;
+        if (prendaId == null) {
+            Snackbar.make(enlace.getRoot(), R.string.guarda_prenda_primero, Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        // La primera foto se marca como principal automáticamente.
+        boolean principal = numFotos == 0;
+        enlace.indicadorCarga.setVisibility(View.VISIBLE);
+        ejecutorIo.execute(() -> {
+            String dataUri = ImagenBase64.desdeUri(getContentResolver(), uri);
+            runOnUiThread(() -> {
+                if (dataUri == null) {
+                    enlace.indicadorCarga.setVisibility(View.GONE);
+                    Snackbar.make(enlace.getRoot(), R.string.error_generico, Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                modeloVista.crearImagen(prendaId, new DtoPeticionImagen(url, alt, principal))
+                modeloVista.crearImagen(prendaId, DtoPeticionImagen.desdeBase64(dataUri, null, principal))
                     .observe(this, this::trasOperacionFoto);
-            })
-            .setNegativeButton(android.R.string.cancel, null)
-            .show();
+            });
+        });
     }
 
-    private void marcarPrincipal(gal.galiciawear.app.datos.remoto.dto.DtoImagen i) {
+    private void marcarPrincipal(DtoImagen i) {
         modeloVista.marcarImagenPrincipal(prendaId, i.id).observe(this, this::trasOperacionFoto);
     }
 
-    private void eliminarFoto(gal.galiciawear.app.datos.remoto.dto.DtoImagen i) {
+    private void eliminarFoto(DtoImagen i) {
         new AlertDialog.Builder(this)
             .setMessage("¿Eliminar esta foto?")
             .setPositiveButton(R.string.eliminar, (d, w) ->
@@ -300,8 +391,9 @@ public class ActividadEditarPrenda extends AppCompatActivity {
             .show();
     }
 
-    private void trasOperacionFoto(gal.galiciawear.app.utilidades.RecursoUi<Boolean> recurso) {
-        if (recurso == null) return;
+    private void trasOperacionFoto(RecursoUi<Boolean> recurso) {
+        if (recurso == null || recurso.estaCargando()) return;
+        enlace.indicadorCarga.setVisibility(View.GONE);
         if (recurso.esExito()) {
             cargarFotos();
         } else if (recurso.esError()) {
@@ -330,6 +422,7 @@ public class ActividadEditarPrenda extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        ejecutorIo.shutdown();
         enlace = null;
     }
 }
