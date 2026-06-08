@@ -6,11 +6,30 @@ import {
 } from '../../utilidades/errores';
 import { repositorioCarrito } from '../carrito/repositorio';
 import { repositorioDirecciones } from '../direcciones/repositorio';
+import { servicioNotificaciones } from '../notificaciones/servicio';
+import type { TipoNotificacion } from '../mongo/esquemas/notificacionLog';
 import { repositorioPedidos, type PedidoDetalle } from './repositorio';
 import type { DatosCrearPedido } from './dto';
 
 const ENVIO_GRATUITO_DESDE = 50; // €
 const COSTE_ENVIO_DEFECTO = 4.9;
+
+// Diseñadores únicos con líneas en el pedido.
+function disenadoresDe(pedido: PedidoDetalle): string[] {
+  return [...new Set(pedido.lineas.map((l) => l.disenadorId))];
+}
+
+// Dispara una notificación de pedido sin bloquear el flujo: `crear` ya degrada con
+// elegancia (loguea y sigue) si Mongo o el socket fallan, así que aquí basta fire-and-forget.
+function notificarPedido(
+  destinatarioId: string,
+  tipo: TipoNotificacion,
+  titulo: string,
+  cuerpo: string,
+  pedidoId: string,
+): void {
+  void servicioNotificaciones.crear({ destinatarioId, tipo, titulo, cuerpo, datos: { pedidoId } });
+}
 
 export const servicioPedidos = {
   async checkout(clienteId: string, datos: DatosCrearPedido): Promise<PedidoDetalle> {
@@ -52,7 +71,7 @@ export const servicioPedidos = {
     const total = subtotal + costeEnvio;
 
     // 5. Crear pedido (transacción ACID en el repositorio)
-    return repositorioPedidos.crearDesdeCarrito({
+    const pedido = await repositorioPedidos.crearDesdeCarrito({
       carrito,
       clienteId,
       subtotal,
@@ -62,6 +81,18 @@ export const servicioPedidos = {
       metodoPago: datos.metodoPago,
       notas: datos.notas,
     });
+
+    // 6. Avisar a cada diseñador con líneas en el pedido (no bloqueante).
+    for (const disenadorId of disenadoresDe(pedido)) {
+      notificarPedido(
+        disenadorId,
+        'PEDIDO_CREADO',
+        'Nuevo pedido',
+        `Has recibido el pedido ${pedido.numeroPedido}`,
+        pedido.id,
+      );
+    }
+    return pedido;
   },
 
   async listar(usuarioId: string, rol: Rol): Promise<PedidoDetalle[]> {
@@ -93,7 +124,17 @@ export const servicioPedidos = {
     if (pedido.estado !== EstadoPedido.PENDIENTE_PAGO) {
       throw new ErrorReglaDeNegocio(`El pedido no está en estado PENDIENTE_PAGO (actual: ${pedido.estado})`);
     }
-    return repositorioPedidos.marcarComoPagado(id);
+    const pagado = await repositorioPedidos.marcarComoPagado(id);
+    for (const disenadorId of disenadoresDe(pagado)) {
+      notificarPedido(
+        disenadorId,
+        'PEDIDO_PAGADO',
+        'Pedido pagado',
+        `El pedido ${pagado.numeroPedido} ha sido pagado, ya puedes aceptarlo`,
+        pagado.id,
+      );
+    }
+    return pagado;
   },
 
   async aceptar(pedidoId: string, disenadorId: string): Promise<PedidoDetalle> {
@@ -106,7 +147,15 @@ export const servicioPedidos = {
     if (!tieneLineas) {
       throw new ErrorAccesoDenegado('No tienes líneas en este pedido');
     }
-    return repositorioPedidos.aceptarLineas(pedidoId, disenadorId);
+    const aceptado = await repositorioPedidos.aceptarLineas(pedidoId, disenadorId);
+    notificarPedido(
+      aceptado.clienteId,
+      'PEDIDO_ACEPTADO',
+      'Pedido aceptado',
+      `Tu pedido ${aceptado.numeroPedido} ha sido aceptado y se está preparando`,
+      aceptado.id,
+    );
+    return aceptado;
   },
 
   async cancelar(id: string, usuarioId: string, rol: Rol): Promise<PedidoDetalle> {
@@ -124,6 +173,17 @@ export const servicioPedidos = {
         `No se puede cancelar un pedido en estado ${pedido.estado}`,
       );
     }
-    return repositorioPedidos.cancelar(id);
+    const cancelado = await repositorioPedidos.cancelar(id);
+    // Si lo cancela el cliente, la contraparte son los diseñadores del pedido.
+    for (const disenadorId of disenadoresDe(cancelado)) {
+      notificarPedido(
+        disenadorId,
+        'PEDIDO_CANCELADO',
+        'Pedido cancelado',
+        `El pedido ${cancelado.numeroPedido} ha sido cancelado`,
+        cancelado.id,
+      );
+    }
+    return cancelado;
   },
 };

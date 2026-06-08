@@ -51,3 +51,13 @@ export const dtoActualizarPreferencias = z
   })
   .strict();
 export type DatosActualizarPreferencias = z.infer<typeof dtoActualizarPreferencias>;
+
+// Token de dispositivo para push FCM (best-effort). La plataforma es opcional (por defecto
+// android). Se guarda en Mongo (colección device_tokens), sin migración Prisma.
+export const dtoTokenFcm = z
+  .object({
+    token: z.string().trim().min(1, 'Token obligatorio').max(4096),
+    plataforma: z.string().trim().max(20).optional(),
+  })
+  .strict();
+export type DatosTokenFcm = z.infer<typeof dtoTokenFcm>;

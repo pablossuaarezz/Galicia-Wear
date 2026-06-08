@@ -15,7 +15,9 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.R;
-import gal.galiciawear.app.sesion.GestorSesion;
+import gal.galiciawear.app.datos.repositorio.RepositorioNotificaciones;
+import gal.galiciawear.app.ui.chat.ActividadChat;
+import gal.galiciawear.app.ui.pedidos.ActividadDetallePedido;
 import gal.galiciawear.app.ui.principal.ActividadPrincipal;
 import gal.galiciawear.app.utilidades.Constantes;
 
@@ -26,35 +28,30 @@ import gal.galiciawear.app.utilidades.Constantes;
  * incluso cuando la app está cerrada. Cubre el requisito DAM "Notificaciones
  * tiempo real" para el escenario: diseñador acepta pedido → cliente recibe push.
  *
- * El token FCM se envía al backend en el endpoint PUT /usuarios/yo/fcm-token
- * (pendiente de implementar en la API) para que el servidor pueda identificar
- * el dispositivo destino.
- *
- * NOTA: Requiere google-services.json real para funcionar en producción.
- * Con el stub actual, el servicio se registra pero no recibe tokens reales.
+ * NOTA (estado real): google-services.json es un STUB (project_number 000000000000),
+ * así que el push NO llega en esta demo. El camino fiable es in-app + Socket.IO. Este
+ * servicio queda cableado para cuando exista un proyecto Firebase real: onNewToken envía
+ * el token a PUT /usuarios/yo/fcm-token y onMessageReceived hace deep-link según el tipo.
  */
 @AndroidEntryPoint
 public class ServicioFcm extends FirebaseMessagingService {
 
     @Inject
-    GestorSesion gestorSesion;
+    RepositorioNotificaciones repositorioNotificaciones;
 
     /**
-     * Se llama cuando Firebase genera un nuevo token de registro para este dispositivo.
-     * Ocurre en el primer arranque o cuando se invalida el token anterior.
+     * Nuevo token de registro de este dispositivo (primer arranque o rotación de token).
+     * Se envía al backend (best-effort: solo si hay sesión iniciada).
      */
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-        // TODO Fase 7: Enviar token al backend → PUT /usuarios/yo/fcm-token
-        // El token identifica este dispositivo en el sistema de notificaciones.
-        // gestorSesion.guardarFcmToken(token); → implementar si se necesita
+        repositorioNotificaciones.registrarTokenFcm(token);
     }
 
     /**
-     * Se llama cuando llega un mensaje push mientras la app está en primer plano.
-     * Si la app está en segundo plano, FCM muestra la notificación automáticamente
-     * usando los campos "notification" del mensaje.
+     * Mensaje push con la app en primer plano. En segundo plano, FCM muestra la
+     * notificación automáticamente con los campos "notification" del mensaje.
      */
     @Override
     public void onMessageReceived(@NonNull RemoteMessage mensaje) {
@@ -72,21 +69,32 @@ public class ServicioFcm extends FirebaseMessagingService {
             }
         }
 
-        // Los datos del mensaje permiten un handling más específico
+        // `tipo` viene en data (p. ej. PEDIDO_PAGADO, MENSAJE_NUEVO) y guía el deep-link.
         String tipo = mensaje.getData().get("tipo");
         int idNotif = Constantes.ID_NOTIF_GENERICO;
-        if ("pedido".equals(tipo))  idNotif = Constantes.ID_NOTIF_PEDIDO;
-        if ("mensaje".equals(tipo)) idNotif = Constantes.ID_NOTIF_MENSAJE;
+        if (tipo != null && tipo.startsWith("PEDIDO_")) idNotif = Constantes.ID_NOTIF_PEDIDO;
+        if ("MENSAJE_NUEVO".equals(tipo))               idNotif = Constantes.ID_NOTIF_MENSAJE;
 
-        mostrarNotificacion(titulo, contenido, idNotif);
+        mostrarNotificacion(titulo, contenido, idNotif, tipo, mensaje);
     }
 
-    private void mostrarNotificacion(String titulo, String contenido, int id) {
-        Intent intent = new Intent(this, ActividadPrincipal.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    private void mostrarNotificacion(String titulo, String contenido, int id,
+                                     String tipo, RemoteMessage mensaje) {
+        Intent intent;
+        if (tipo != null && tipo.startsWith("PEDIDO_")) {
+            intent = new Intent(this, ActividadDetallePedido.class);
+            intent.putExtra(Constantes.EXTRA_PEDIDO_ID, mensaje.getData().get("pedidoId"));
+        } else if ("MENSAJE_NUEVO".equals(tipo)) {
+            intent = new Intent(this, ActividadChat.class);
+            intent.putExtra(Constantes.EXTRA_DISENADOR_ID, mensaje.getData().get("peerId"));
+            intent.putExtra(Constantes.EXTRA_DISENADOR_NOMBRE, mensaje.getData().get("nombre"));
+        } else {
+            intent = new Intent(this, ActividadPrincipal.class);
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
+            this, id, intent,
             PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE
         );
 

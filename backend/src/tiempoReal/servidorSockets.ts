@@ -38,6 +38,11 @@ export function inicializarSockets(servidor: ServidorHttp): Server {
     const usuario = socket.data.usuario as PayloadJwt;
     registrador.info({ usuario: usuario.sub }, '[socket] conectado');
 
+    // Sala personal: el servicio de notificaciones emite `nueva_notificacion` a
+    // `usuario:<sub>` y llega a cualquier dispositivo conectado del usuario, sin FCM.
+    // (No interfiere con las salas de chat 1:1; un socket puede estar en varias salas.)
+    void socket.join(`usuario:${usuario.sub}`);
+
     // El cliente entra a la sala de la conversación con `peerId` (id del otro usuario).
     socket.on('unirse_sala', async (peerId: unknown) => {
       if (typeof peerId !== 'string' || peerId.length === 0) return;

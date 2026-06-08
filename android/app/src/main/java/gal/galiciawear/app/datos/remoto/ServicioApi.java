@@ -18,6 +18,9 @@ import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioConversaciones;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioDireccion;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioListaDirecciones;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioListaPedidos;
+import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioNotificaciones;
+import gal.galiciawear.app.datos.remoto.dto.DtoContadorNotificaciones;
+import gal.galiciawear.app.datos.remoto.dto.DtoPeticionTokenFcm;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioPedido;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaDisenador;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaListaImagenes;
@@ -34,6 +37,7 @@ import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -191,4 +195,26 @@ public interface ServicioApi {
 
     @PATCH("chat/{peerId}/leer")
     Call<Void> marcarConversacionLeida(@Path("peerId") String peerId);
+
+    // ── Notificaciones (bandeja in-app) ──────────────────────────────────────
+    // El tiempo real va por Socket.IO ("nueva_notificacion"); estos endpoints son
+    // para el historial, el contador del badge y marcar leídas.
+
+    @GET("notificaciones")
+    Call<DtoEnvoltorioNotificaciones> listarNotificaciones(
+        @Query("pagina") int pagina, @Query("limite") int limite);
+
+    @GET("notificaciones/contador")
+    Call<DtoContadorNotificaciones> contadorNotificaciones();
+
+    @PATCH("notificaciones/{id}/leer")
+    Call<Void> marcarNotificacionLeida(@Path("id") String id);
+
+    @PATCH("notificaciones/leer-todas")
+    Call<Void> marcarTodasNotificacionesLeidas();
+
+    // ── Push FCM (best-effort) ───────────────────────────────────────────────
+
+    @PUT("usuarios/yo/fcm-token")
+    Call<Void> registrarTokenFcm(@Body DtoPeticionTokenFcm cuerpo);
 }

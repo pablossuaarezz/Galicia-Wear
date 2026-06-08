@@ -7,11 +7,14 @@ import {
   ErrorNoEncontrado,
   ErrorReglaDeNegocio,
 } from '../../utilidades/errores';
+import { registrador } from '../../utilidades/registrador';
+import { repositorioTokens } from '../notificaciones/tokens';
 import { repositorioUsuarios, type UsuarioConPerfil } from './repositorio';
 import type {
   DatosActualizarPerfilCliente,
   DatosCambiarContrasena,
   DatosActualizarPreferencias,
+  DatosTokenFcm,
 } from './dto';
 
 export const servicioUsuarios = {
@@ -68,5 +71,15 @@ export const servicioUsuarios = {
     const usuario = await repositorioUsuarios.buscarPorIdActivo(usuarioId);
     if (!usuario || !usuario.cliente) throw new ErrorNoEncontrado('Perfil de cliente');
     await repositorioUsuarios.actualizarPreferencias(usuarioId, preferencias);
+  },
+
+  // Registra el token FCM del dispositivo (best-effort). Si Mongo está caído, se loguea y
+  // se ignora: el push es opcional, no debe romper el alta del token.
+  async registrarTokenFcm(usuarioId: string, datos: DatosTokenFcm): Promise<void> {
+    try {
+      await repositorioTokens.guardar(usuarioId, datos.token, datos.plataforma);
+    } catch (error) {
+      registrador.warn({ err: error }, '[notif] no se pudo guardar el token FCM (ignorado)');
+    }
   },
 };

@@ -7,8 +7,8 @@
 
 ## Estado global
 
-- **Fase actual**: ✅ Fase 5 completa (Panel Admin JavaFX). Fases 0–5 cerradas.
-- **Última actualización**: 2026-06-03.
+- **Fase actual**: ✅ Fase 6 completa (Sistema de notificaciones extremo a extremo). Fases 0–6 cerradas.
+- **Última actualización**: 2026-06-08.
 - **Rama**: `main`.
 - **Regla activa desde Fase 2**: TODOS los identificadores en castellano. Ver [`CONVENCIONES.md`](./CONVENCIONES.md).
 
@@ -935,3 +935,144 @@ cd desktop-admin && mvn javafx:run     # login con el admin del seed
    > opcional para poder ver y validar los pendientes. El visor de logs lee la colección
    > `activity_logs` de MongoDB a través de la API, demostrando el uso real de la BBDD NoSQL desde
    > el panel sin acoplarlo a Mongo directamente.
+
+---
+
+---
+
+## Fase 6 — Sistema de notificaciones extremo a extremo ✅
+
+- **Última actualización**: 2026-06-08.
+- **Rama**: `main`.
+
+Notificaciones de pedidos y mensajes con tres capas: **persistencia + bandeja in-app**
+(historial, contador de no leídas, marcar leídas), **entrega en tiempo real** reutilizando el
+gateway Socket.IO del chat, y **push FCM best-effort** (cableado pero documentado como stub).
+
+### Parte A — Backend
+
+**Módulo nuevo `src/modulos/notificaciones/` (6 archivos):**
+
+| Archivo | Función |
+|---------|---------|
+| `repositorio.ts` | Acceso Mongo a `NotificacionLog`: `crear`, `listarDe`, `contarNoLeidas`, `marcarLeida`, `marcarTodasLeidas`, `guardarFcmMessageId`. Acota todo por `destinatarioId`. |
+| `servicio.ts` | **Helper único** `crear({destinatarioId, tipo, titulo, cuerpo, datos})` → persiste + emite `nueva_notificacion` a `usuario:<sub>` + push FCM best-effort. Degrada con elegancia (loguea y sigue) si Mongo/socket caen. Mapea a DTO estable. |
+| `dto.ts` | Zod de paginación (`pagina`, `limite`). |
+| `controlador.ts` · `rutas.ts` | 4 endpoints con `verificarJwt`. |
+| `fcm.ts` | Push best-effort: `firebase-admin` con import dinámico perezoso (activado por `FIREBASE_SERVICE_ACCOUNT`). Limpia tokens caducados. Nunca lanza. |
+| `tokens.ts` + `mongo/esquemas/deviceToken.ts` | Tokens FCM en colección Mongo `device_tokens` (sin migración Prisma). |
+
+**Endpoints (todos JWT):**
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET   | `/notificaciones` | Bandeja paginada → `{ notificaciones, total }` |
+| GET   | `/notificaciones/contador` | No leídas → `{ noLeidas }` (para el badge) |
+| PATCH | `/notificaciones/:id/leer` | Marca una leída → 204 |
+| PATCH | `/notificaciones/leer-todas` | Marca todas → `{ actualizadas }` |
+| PUT   | `/usuarios/yo/fcm-token` | Registra token FCM del dispositivo (best-effort) → 204 |
+
+**Gateway Socket.IO** (`tiempoReal/servidorSockets.ts`): al conectar, `socket.join('usuario:'+sub)`
+(sala personal, sin tocar la lógica de chat). El servicio emite con
+`io.to('usuario:'+destinatarioId).emit('nueva_notificacion', dto)`.
+
+**Triggers (todos fire-and-forget, no bloquean la request):**
+
+| Origen | Evento → destinatario |
+|--------|----------------------|
+| `pedidos/servicio.ts` checkout | PEDIDO_CREADO → cada diseñador con línea |
+| `pedidos/servicio.ts` pagar | PEDIDO_PAGADO → cada diseñador |
+| `pedidos/servicio.ts` aceptar | PEDIDO_ACEPTADO → cliente |
+| `pedidos/servicio.ts` cancelar | PEDIDO_CANCELADO → diseñadores |
+| `envios/servicio.ts` actualizar | PEDIDO_ENVIADO / PEDIDO_ENTREGADO → cliente |
+| `chat/servicio.ts` enviar | MENSAJE_NUEVO → destinatario (una por mensaje) |
+
+*(RESENA_RECIBIDA queda soportado en el helper pero sin trigger: no existe módulo de reseñas.)*
+
+**Tests nuevos (2 suites): 129/129 verdes** (antes 114; +15 casos en total con las fases previas).
+
+| Suite | Tests | Cubre |
+|-------|-------|-------|
+| `notificaciones.rutas.test.ts` | 6 | `servicioNotificaciones.crear` (persiste + emite + degrada sin Mongo) y las 4 rutas con `verificarJwt` |
+| `notificaciones.socket.test.ts` | 1 | Recepción de `nueva_notificacion` en la sala `usuario:<id>` |
+
+Se mockeó la capa de notificaciones en los tests de pedidos/chat/envíos para que los triggers
+no toquen Mongo (sin warnings de handles abiertos). `npx tsc --noEmit` limpio.
+
+### Parte B — Android
+
+| Capa | Clases / recursos |
+|------|-------------------|
+| DTOs | `DtoNotificacion`, `DtoEnvoltorioNotificaciones`, `DtoContadorNotificaciones`, `DtoPeticionTokenFcm` |
+| API | 5 endpoints añadidos a `ServicioApi` (listar, contador, leer, leer-todas, fcm-token) |
+| Repositorio | `RepositorioNotificaciones` (@Singleton): bandeja, contador, marcar, token FCM |
+| Tiempo real | `RepositorioChat.nuevaNotificacion` + listener `nueva_notificacion` (mismo socket autenticado) |
+| ViewModel | `ModeloVistaNotificaciones` (REST + tiempo real) |
+| UI bandeja | `FragmentoNotificaciones` cableado (lista, vacío, marcar leída + navegación por tipo) dentro de `ActividadNotificaciones` (toolbar + "marcar todas"), `AdaptadorNotificaciones` + `item_notificacion.xml` |
+| Entrada + badge | Campana con badge de no leídas en la barra de `FragmentoInicio` (`accion_campana.xml`, `menu_inicio.xml`); abre la bandeja, conecta el socket y refresca el contador en `onResume` y en tiempo real |
+| FCM | `ServicioFcm.onNewToken` → `PUT /usuarios/yo/fcm-token`; `onMessageReceived` con deep-link según `data.tipo` |
+
+**Navegación por tipo**: PEDIDO_* → `ActividadDetallePedido` (`EXTRA_PEDIDO_ID`);
+MENSAJE_NUEVO → `ActividadChat` (`EXTRA_DISENADOR_ID` + nombre).
+
+**Compilación**: `:app:assembleDebug` **BUILD SUCCESSFUL** con el JBR de Android Studio.
+
+### Decisiones técnicas destacables
+
+| Decisión | Por qué |
+|----------|---------|
+| Tiempo real = el mismo socket del chat (sala `usuario:<sub>`) | Entrega a cualquier dispositivo conectado sin depender de FCM. Es el **camino fiable** de la demo. |
+| Punto único de creación (`servicioNotificaciones.crear`) | Todos los triggers pasan por un helper que persiste + emite + push; un solo sitio que mantener y testear. |
+| Triggers fire-and-forget | Si Mongo o el socket fallan, el pedido/mensaje se completa igual (sin 500). Tolerancia a Mongo caído. |
+| Tokens FCM en Mongo `device_tokens` (no columna Prisma) | Evita una migración sobre el MySQL remoto; el push es opcional. |
+| `firebase-admin` con import dinámico perezoso | El backend no depende de él en compilación ni arranque; si no hay `FIREBASE_SERVICE_ACCOUNT` o no está instalado, el push se omite sin error. |
+| Campana + badge en Inicio (no 6ª pestaña) | La barra inferior ya tiene 5 pestañas; un icono en la barra superior con badge es menos invasivo. |
+
+### Caveat FCM (estado real)
+
+`android/app/google-services.json` es un **STUB** (`project_number 000000000000`), así que el
+**push real NO llega**. El camino fiable es **in-app + Socket.IO**, que sí entrega en tiempo real.
+Para activar push real hace falta un proyecto Firebase real (`google-services.json` real en la app
++ service account en `FIREBASE_SERVICE_ACCOUNT` del backend); todo el camino queda cableado.
+
+### Verificación local
+
+```bash
+# Backend
+cd backend && npx tsc --noEmit        # limpio (ignora TS6059 preexistentes de /tests)
+npm test                              # 129/129 verdes
+npm run dev                           # Mongo conectado
+
+# Android (con el JBR de Android Studio)
+cd ../android && ./gradlew :app:assembleDebug \
+  -Dorg.gradle.java.home="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+
+# Prueba end-to-end (backend + emulador):
+# Pedido: cliente crea y paga → el diseñador conectado recibe badge +1 (Nuevo pedido/Pedido pagado);
+#         acepta → el cliente recibe PEDIDO_ACEPTADO; al tocarla abre el detalle y queda leída (badge -1).
+# Chat:   enviar un mensaje → el destinatario recibe MENSAJE_NUEVO que abre el chat con ese interlocutor.
+```
+
+### Preguntas probables del tribunal — Fase 6
+
+1. **¿Por qué reutilizas el socket del chat para las notificaciones en vez de un canal aparte?**
+   > El socket del chat ya está autenticado con el mismo JWT y ya gestiona reconexión y ciclo de
+   > vida. Al conectar, el servidor une cada socket a una sala personal `usuario:<sub>` además de las
+   > salas de chat 1:1. Emitir una notificación es `io.to('usuario:'+id).emit('nueva_notificacion', …)`,
+   > que llega a **cualquier dispositivo conectado** de ese usuario. Crear un segundo socket
+   > duplicaría handshakes, tokens y reconexiones sin ningún beneficio.
+
+2. **Si MongoDB se cae, ¿se rompe el checkout o el envío de un mensaje?**
+   > No. El helper `servicioNotificaciones.crear` está envuelto en try/catch y los triggers lo llaman
+   > fire-and-forget (`void crear(...)`). Si la persistencia en Mongo falla, se loguea un warning y la
+   > función devuelve `null`; el pedido o el mensaje se completan igual. La notificación es un efecto
+   > secundario, nunca parte del contrato transaccional. Es el mismo principio que la auditoría
+   > fire-and-forget de la Fase 3.
+
+3. **El push FCM no funciona en la demo. ¿Por qué lo implementas entonces?**
+   > Porque el requisito de "notificaciones en tiempo real" lo cubre de forma fiable el camino in-app
+   > + Socket.IO, que sí funciona. El push FCM queda **cableado de extremo a extremo** (token del
+   > dispositivo → `PUT /usuarios/yo/fcm-token` → Mongo `device_tokens`; envío con `firebase-admin`;
+   > deep-link en `onMessageReceived`) pero degradado a best-effort porque `google-services.json` es
+   > un stub. Activar el push real es solo configuración (proyecto Firebase + service account), sin
+   > tocar código. Así demuestro la arquitectura completa sin depender de credenciales externas.

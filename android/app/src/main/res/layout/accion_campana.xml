@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- actionView del icono de notificaciones en la barra superior: campana + badge de no leídas. -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackgroundBorderless">
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_notificacion"
+        app:tint="@color/texto_primario"
+        android:contentDescription="@string/notificaciones_abrir" />
+
+    <TextView
+        android:id="@+id/badge_notificaciones"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="4dp"
+        android:minWidth="18dp"
+        android:gravity="center"
+        android:paddingHorizontal="5dp"
+        android:paddingVertical="1dp"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:background="@drawable/fondo_badge_chat"
+        android:visibility="gone" />
+
+</FrameLayout>

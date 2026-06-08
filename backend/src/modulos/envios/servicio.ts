@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { Envio, Transportista } from '@prisma/client';
 import { ErrorAccesoDenegado, ErrorNoEncontrado } from '../../utilidades/errores';
 import { repositorioPedidos } from '../pedidos/repositorio';
+import { servicioNotificaciones } from '../notificaciones/servicio';
 import { repositorioEnvios, type DatosActualizarEnvio } from './repositorio';
 
 // DTO aquí para mantenerlo junto a la lógica de negocio de este módulo
@@ -47,6 +48,32 @@ export const servicioEnvios = {
     const envio = await repositorioEnvios.buscarDePedido(pedidoId);
     if (!envio) throw new ErrorNoEncontrado('Envío — el pedido aún no está aceptado');
 
-    return repositorioEnvios.actualizar(pedidoId, disenadorId, datos as DatosActualizarEnvio);
+    const actualizado = await repositorioEnvios.actualizar(
+      pedidoId,
+      disenadorId,
+      datos as DatosActualizarEnvio,
+    );
+
+    // Avisar al cliente del cambio de estado de su envío (no bloqueante).
+    if (datos.marcarComoEnviado) {
+      void servicioNotificaciones.crear({
+        destinatarioId: pedido.clienteId,
+        tipo: 'PEDIDO_ENVIADO',
+        titulo: 'Pedido enviado',
+        cuerpo: `Tu pedido ${pedido.numeroPedido} ya va de camino`,
+        datos: { pedidoId },
+      });
+    }
+    if (datos.marcarComoEntregado) {
+      void servicioNotificaciones.crear({
+        destinatarioId: pedido.clienteId,
+        tipo: 'PEDIDO_ENTREGADO',
+        titulo: 'Pedido entregado',
+        cuerpo: `Tu pedido ${pedido.numeroPedido} ha sido entregado`,
+        datos: { pedidoId },
+      });
+    }
+
+    return actualizado;
   },
 };

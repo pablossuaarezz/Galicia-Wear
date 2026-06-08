@@ -6,6 +6,7 @@ import {
   dtoActualizarPerfilCliente,
   dtoCambiarContrasena,
   dtoActualizarPreferencias,
+  dtoTokenFcm,
 } from './dto';
 
 export const rutasUsuarios = Router();
@@ -87,4 +88,20 @@ rutasUsuarios.patch(
   '/yo/preferencias',
   validar(dtoActualizarPreferencias),
   controladorUsuarios.actualizarMisPreferencias,
+);
+
+/**
+ * @openapi
+ * /usuarios/yo/fcm-token:
+ *   put:
+ *     tags: [Usuarios]
+ *     summary: Registra el token FCM del dispositivo para push (best-effort, guardado en Mongo)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       204: { description: Token registrado (o ignorado si Mongo no está disponible) }
+ */
+rutasUsuarios.put(
+  '/yo/fcm-token',
+  validar(dtoTokenFcm),
+  controladorUsuarios.registrarTokenFcm,
 );

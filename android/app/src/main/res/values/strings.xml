@@ -248,6 +248,10 @@
     <string name="canal_notificaciones_id">galiciawear_notificaciones</string>
     <string name="canal_notificaciones_nombre">Notificaciones GaliciaWear</string>
     <string name="canal_notificaciones_descripcion">Actualizaciones de pedidos y mensajes de diseñadores</string>
+    <string name="notificaciones_titulo">Notificaciones</string>
+    <string name="notificaciones_vacio">No tienes notificaciones</string>
+    <string name="notificaciones_marcar_todas">Marcar todas como leídas</string>
+    <string name="notificaciones_abrir">Ver notificaciones</string>
 
     <!-- Accesibilidad -->
     <string name="icono_eco">Icono ecológico</string>

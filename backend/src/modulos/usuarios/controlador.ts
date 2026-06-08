@@ -4,6 +4,7 @@ import type {
   DatosActualizarPerfilCliente,
   DatosCambiarContrasena,
   DatosActualizarPreferencias,
+  DatosTokenFcm,
 } from './dto';
 
 export const controladorUsuarios = {
@@ -78,6 +79,22 @@ export const controladorUsuarios = {
         peticion.body as DatosActualizarPreferencias,
       );
       respuesta.status(200).json({ mensaje: 'Preferencias actualizadas' });
+    } catch (error) {
+      siguiente(error);
+    }
+  },
+
+  async registrarTokenFcm(
+    peticion: Request,
+    respuesta: Response,
+    siguiente: NextFunction,
+  ): Promise<void> {
+    try {
+      await servicioUsuarios.registrarTokenFcm(
+        peticion.usuario!.sub,
+        peticion.body as DatosTokenFcm,
+      );
+      respuesta.status(204).send();
     } catch (error) {
       siguiente(error);
     }

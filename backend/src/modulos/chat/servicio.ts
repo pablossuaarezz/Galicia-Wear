@@ -1,5 +1,6 @@
 import { Rol } from '@prisma/client';
 import { ErrorAccesoDenegado, ErrorNoEncontrado } from '../../utilidades/errores';
+import { servicioNotificaciones } from '../notificaciones/servicio';
 import { repositorioChat, type PerfilChat } from './repositorio';
 
 // Forma del mensaje tal y como lo espera el cliente Android (eventos Socket.IO
@@ -49,11 +50,23 @@ export const servicioChat = {
     }
 
     const mensaje = await repositorioChat.crear(remitenteId, destinatarioId, contenido);
+
+    // Notificación in-app/tiempo real para el destinatario (una por mensaje recibido).
+    // No bloqueante: si Mongo/socket fallan, el mensaje se entrega igual por el chat.
+    const nombreRemitente = nombreVisible(remitente);
+    void servicioNotificaciones.crear({
+      destinatarioId,
+      tipo: 'MENSAJE_NUEVO',
+      titulo: nombreRemitente,
+      cuerpo: contenido.length > 80 ? `${contenido.slice(0, 79)}…` : contenido,
+      datos: { peerId: remitenteId, nombre: nombreRemitente },
+    });
+
     return {
       id: mensaje.id,
       contenido: mensaje.cuerpo,
       remitenteId: mensaje.remitenteId,
-      remitenteNombre: nombreVisible(remitente),
+      remitenteNombre: nombreRemitente,
       fechaCreacion: mensaje.fechaEnvio.toISOString(),
       leido: false,
     };

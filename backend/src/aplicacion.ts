@@ -20,6 +20,7 @@ import { rutasProductos } from './modulos/productos/rutas';
 import { rutasCarrito } from './modulos/carrito/rutas';
 import { rutasPedidos } from './modulos/pedidos/rutas';
 import { rutasChat } from './modulos/chat/rutas';
+import { rutasNotificaciones } from './modulos/notificaciones/rutas';
 import { rutasAdmin } from './modulos/admin/rutas';
 
 export function crearAplicacion(): Application {
@@ -93,6 +94,7 @@ export function crearAplicacion(): Application {
   aplicacion.use('/carrito', rutasCarrito);
   aplicacion.use('/pedidos', rutasPedidos);
   aplicacion.use('/chat', rutasChat);
+  aplicacion.use('/notificaciones', rutasNotificaciones);
   aplicacion.use('/admin', rutasAdmin);
 
   // 9. 404 controlado para cualquier ruta no definida

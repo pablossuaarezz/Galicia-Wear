@@ -7,6 +7,11 @@ jest.mock('../src/utilidades/prisma', () => ({
   cerrarConexionBd: jest.fn(),
 }));
 
+// Los triggers de notificación son fire-and-forget; mockeamos el servicio para no tocar Mongo.
+jest.mock('../src/modulos/notificaciones/servicio', () => ({
+  servicioNotificaciones: { crear: jest.fn().mockResolvedValue(null) },
+}));
+
 jest.mock('../src/modulos/pedidos/repositorio', () => ({
   repositorioPedidos: {
     buscarPorId: jest.fn(),

@@ -13,10 +13,12 @@
         app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/barra_superior"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="@string/nombre_app"
-            app:subtitle="@string/slogan_app" />
+            app:subtitle="@string/slogan_app"
+            app:menu="@menu/menu_inicio" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout

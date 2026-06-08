@@ -109,6 +109,12 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <!-- Bandeja de notificaciones in-app (pedidos y mensajes) -->
+        <activity
+            android:name=".ui.notificaciones.ActividadNotificaciones"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <!-- ══════════════════════════════════════════════════════════════════
              ÁREA DE DISEÑADOR (accesible desde Perfil cuando rol == DISENADOR)
         ══════════════════════════════════════════════════════════════════ -->

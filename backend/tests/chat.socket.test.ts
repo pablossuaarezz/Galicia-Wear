@@ -7,6 +7,12 @@ import { io as Cliente, type Socket as SocketCliente } from 'socket.io-client';
 
 jest.mock('../src/utilidades/prisma', () => ({ prisma: {} as unknown, cerrarConexionBd: jest.fn() }));
 
+// El trigger MENSAJE_NUEVO de servicioChat.enviar es fire-and-forget; lo mockeamos para
+// no tocar Mongo en este test (su cometido es el chat, no las notificaciones).
+jest.mock('../src/modulos/notificaciones/servicio', () => ({
+  servicioNotificaciones: { crear: jest.fn().mockResolvedValue(null) },
+}));
+
 jest.mock('../src/modulos/chat/repositorio', () => ({
   repositorioChat: {
     perfilUsuario: jest.fn(),

@@ -43,6 +43,11 @@ const esquemaEntorno = z.object({
     .string()
     .regex(/^[0-9a-f]{64}$/i, 'IBAN_ENCRYPTION_KEY debe ser exactamente 64 caracteres hexadecimales')
     .default('0000000000000000000000000000000000000000000000000000000000000000'),
+
+  // Push FCM (OPCIONAL): ruta al JSON de service account de Firebase Admin. Si no se define,
+  // el envío de push se omite silenciosamente (in-app + Socket.IO siguen funcionando).
+  // El push real exige además un google-services.json real en la app (hoy es un stub).
+  FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
 });
 
 export type Entorno = z.infer<typeof esquemaEntorno>;

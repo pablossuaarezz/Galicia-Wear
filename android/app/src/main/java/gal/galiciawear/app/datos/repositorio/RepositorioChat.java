@@ -20,6 +20,7 @@ import gal.galiciawear.app.BuildConfig;
 import gal.galiciawear.app.datos.remoto.ServicioApi;
 import gal.galiciawear.app.datos.remoto.dto.DtoConversacion;
 import gal.galiciawear.app.datos.remoto.dto.DtoEnvoltorioConversaciones;
+import gal.galiciawear.app.datos.remoto.dto.DtoNotificacion;
 import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaMensaje;
 import gal.galiciawear.app.sesion.GestorSesion;
 import gal.galiciawear.app.utilidades.RecursoUi;
@@ -59,6 +60,9 @@ public class RepositorioChat {
     // Historial completo de la conversación, enviado por el servidor al unirse a la sala.
     public final MutableLiveData<List<DtoRespuestaMensaje>> historial = new MutableLiveData<>();
     public final MutableLiveData<Boolean> estadoConexion = new MutableLiveData<>(false);
+    // Notificaciones en tiempo real: el backend emite "nueva_notificacion" a la sala
+    // personal usuario:<sub>. Llega aquí porque el socket ya está autenticado con el JWT.
+    public final MutableLiveData<DtoNotificacion> nuevaNotificacion = new MutableLiveData<>();
 
     @Inject
     public RepositorioChat(GestorSesion gestorSesion, ServicioApi servicioApi) {
@@ -150,6 +154,15 @@ public class RepositorioChat {
                 }
             });
 
+            // Notificaciones in-app en tiempo real (pedidos y mensajes). El mismo socket
+            // sirve para chat y notificaciones; el backend nos unió a la sala personal.
+            socket.on("nueva_notificacion", args -> {
+                if (args.length > 0 && args[0] instanceof JSONObject) {
+                    DtoNotificacion notif = parsearNotificacion((JSONObject) args[0]);
+                    if (notif != null) nuevaNotificacion.postValue(notif);
+                }
+            });
+
             // Al unirse a la sala el servidor envía el historial (array de mensajes).
             socket.on("mensaje_historial", args -> {
                 if (args.length > 0 && args[0] instanceof JSONArray) {
@@ -201,6 +214,32 @@ public class RepositorioChat {
         usuarioConectado = null;
         salaPendiente = null;
         estadoConexion.postValue(false);
+    }
+
+    /** Convierte el JSON de una notificación (evento "nueva_notificacion") en su DTO. */
+    private DtoNotificacion parsearNotificacion(JSONObject json) {
+        if (json == null) return null;
+        try {
+            DtoNotificacion notif = new DtoNotificacion();
+            notif.id            = json.optString("id");
+            notif.tipo          = json.optString("tipo");
+            notif.titulo        = json.optString("titulo");
+            notif.cuerpo        = json.optString("cuerpo");
+            notif.leida         = json.optBoolean("leida", false);
+            notif.fechaCreacion = json.optString("fechaCreacion");
+            JSONObject datos = json.optJSONObject("datos");
+            if (datos != null) {
+                notif.datos = new HashMap<>();
+                for (java.util.Iterator<String> it = datos.keys(); it.hasNext(); ) {
+                    String clave = it.next();
+                    notif.datos.put(clave, datos.optString(clave));
+                }
+            }
+            return notif;
+        } catch (Exception e) {
+            Log.e(TAG, "Error parseando notificación", e);
+            return null;
+        }
     }
 
     /** Convierte el JSON de un mensaje (evento socket) en su DTO. */
