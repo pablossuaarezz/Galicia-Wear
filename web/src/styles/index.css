@@ -3,8 +3,90 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    /* Compensa la barra de navegación fija al saltar a un ancla. */
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    @apply bg-sand-50 font-sans text-tinta-800 antialiased;
+  }
+
+  /* Titulares equilibrados (sin "viudas" feas en los saltos de línea). */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  /* Selección con tinte atlántico. */
+  ::selection {
+    background-color: theme('colors.atlantic.500');
+    color: white;
+  }
+
+  /* Anillo de foco accesible y coherente (solo teclado). */
+  :focus-visible {
+    outline: 2px solid theme('colors.atlantic.500');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Barra de desplazamiento fina y discreta. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.piedra.300') transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: theme('colors.piedra.300');
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.piedra.400');
+  }
+
+  /* Imágenes responsivas por defecto. */
+  img {
+    max-width: 100%;
+  }
+}
+
+@layer utilities {
+  /* Marquesina con desvanecido en los bordes (franja de valores). */
+  .mascara-bordes {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8%,
+      black 92%,
+      transparent
+    );
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+}
+
+/* Respeto íntegro a quien prefiere menos movimiento: neutraliza animaciones,
+   transiciones y el scroll suave. Requisito de accesibilidad (WCAG). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

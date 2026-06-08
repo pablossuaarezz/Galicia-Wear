@@ -858,7 +858,7 @@ Proyecto **Maven** `gal.galiciawear:panel-admin` (Java 17 / JavaFX 21), arquitec
 |------|--------|
 | Arranque | `Lanzador` (main neutro para fat-JAR), `AplicacionPanel` (Application) |
 | Configuración | `Configuracion` (URL API por env), `GestorSesion` (tokens en `Preferences`) |
-| Modelo | records `UsuarioBasico`, `RespuestaAutenticacion`, `Estadisticas`, `Disenador`, `Producto`, `Pedido`, `LogActividad`, `ResultadoImportacion` |
+| Modelo | records `UsuarioBasico`, `RespuestaAutenticacion`, `Estadisticas`, `Disenador`, `Producto`,`Pedido`, `LogActividad`, `ResultadoImportacion` |
 | Servicio (capa modelo MVC) | `ClienteHttp` (OkHttp + Bearer + refresh en 401), `ServicioBase` y 7 servicios REST |
 | Núcleo | `Contexto` (DI manual), `Navegacion` (router FXML con controllerFactory) |
 | Util | `EjecutorTareas` (Task/hilos), `Alertas` (diálogos) |

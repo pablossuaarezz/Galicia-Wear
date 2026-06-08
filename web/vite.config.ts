@@ -14,7 +14,16 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     proxy: {
+      // El backend monta las rutas REST en la raíz (/productos, /auth, ...), no bajo /api.
+      // En producción nginx ya elimina el prefijo /api; aquí replicamos ese comportamiento
+      // con `rewrite` para que el código del cliente use siempre rutas relativas /api/*.
       '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (ruta) => ruta.replace(/^\/api/, ''),
+      },
+      // Las fotos de prenda se sirven en /uploads/... directamente desde el backend.
+      '/uploads': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       },

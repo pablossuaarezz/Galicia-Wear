@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GaliciaWear">
+  <defs>
+    <linearGradient id="mar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a97c8"/>
+      <stop offset="1" stop-color="#15527a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#mar)"/>
+  <!-- Olas atlánticas -->
+  <path d="M8 40c5 0 5-5 10-5s5 5 10 5 5-5 10-5 5 5 10 5 5-5 8-5" fill="none"
+        stroke="#eef6fb" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M8 48c5 0 5-5 10-5s5 5 10 5 5-5 10-5 5 5 10 5 5-5 8-5" fill="none"
+        stroke="#b0d4ec" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <!-- Hoja sostenible -->
+  <path d="M40 12c-9 1-15 7-15 15 0 1 .1 2 .3 3 8 .5 15.7-5.6 16.7-15 .1-1 0-2-.2-3z"
+        fill="#9cc684"/>
+  <path d="M41 13c-6 4-9 9-10 15" fill="none" stroke="#3f6128" stroke-width="1.6"
+        stroke-linecap="round"/>
+</svg>
