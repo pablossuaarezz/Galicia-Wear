@@ -14,14 +14,14 @@ gallegos con consumidores jóvenes (18-35 años) en A Coruña y Galicia. Ofrece 
 certificados sostenibles (GOTS, OEKO-TEX, km 0), envíos ecológicos vía Correos verde,
 chat directo con el diseñador y un probador de prendas con realidad aumentada.
 
-## Diferenciadores validados con entrevistas (Fases 0-2 de la propuesta emprendedora)
+## Diferenciadores
 
 - Filtros por **sostenibilidad** (materiales reciclados, km 0, certificados).
 - Foco **100% en diseñadores gallegos** (no fast fashion global).
 - **Envíos eco** (Correos verde, recogida en punto).
-- **Realidad aumentada** para probar prendas (mencionado por Carlos en entrevista 2).
-- **Comunidad y reseñas reales** (mencionado por Laura).
-- **Recomendaciones personalizadas** por preferencias eco (mencionado por María).
+- **Realidad aumentada** para probar prendas (stub ARCore).
+- **Comunidad y reseñas reales** de compradores verificados.
+- **Recomendaciones personalizadas** por preferencias eco del cliente.
 
 ---
 
@@ -114,8 +114,7 @@ Galicia Wear/
 ├── docs/
 │   ├── uml/          Diagramas PlantUML + Mermaid (Fase 1)
 │   ├── api/          Swagger + colección Postman (Fase 2)
-│   ├── memoria/      Fragmentos para la memoria DAM (Fase 8)
-│   └── AI_USAGE.md   Uso ético de IA (rúbrica apdo. 7)
+│   └── memoria/      Fragmentos para la memoria DAM (Fase 8)
 ├── .github/workflows/ci.yml
 ├── docker-compose.yml
 ├── PROGRESS.md       Bitácora viva de fases
@@ -159,5 +158,3 @@ Ver [PROGRESS.md](./PROGRESS.md) para el estado vivo.
 ## Licencia
 
 MIT © 2026 Pablo Suárez · TFG DAM 2024-26.
-
-Hecho con IA como pair-programmer ([docs/AI_USAGE.md](./docs/AI_USAGE.md)).

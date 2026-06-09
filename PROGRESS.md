@@ -39,7 +39,7 @@
   - `seed.ts` placeholder.
   - `migrations/.gitkeep`.
 - [x] **Scripts** ejecutables: `start-dev.sh`, `backup.sh` (stub), `restore.sh` (stub).
-- [x] **Docs**: `docs/uml/`, `docs/api/`, `docs/memoria/` + `AI_USAGE.md` (rúbrica apdo. 7).
+- [x] **Docs**: `docs/uml/`, `docs/api/`, `docs/memoria/`.
 - [x] **Stubs Android y Desktop-admin** con READMEs justificando alcance y arquitectura prevista.
 - [x] **Docker Compose**: postgres + mongo + backend + web. Healthchecks. Volúmenes nombrados.
 - [x] **`.env.example`** completo (Postgres, Mongo, JWT, CORS, OAuth Google, FCM, rate limit).
