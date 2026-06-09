@@ -10,6 +10,7 @@ import { usarMisPrendas } from '@/hooks/usarPanelDisenador';
 import { apiProductos } from '@/api/endpoints/productos';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { formatoPrecio } from '@/util/formatos';
+import { resolverImagen } from '@/util/imagenes';
 import { MATERIALES } from '@/util/constantes';
 import { mensajeDeError } from '@/util/validacion';
 import type { ProductoResumen } from '@/api/tipos';
@@ -76,7 +77,7 @@ export default function MisPrendas() {
               <Tarjeta key={prenda.id} className="flex items-center gap-4 p-4">
                 <div className="h-16 w-14 shrink-0 overflow-hidden rounded-lg bg-sand-100">
                   {imagen?.url ? (
-                    <img src={imagen.url} alt="" className="h-full w-full object-cover" />
+                    <img src={resolverImagen(imagen.url)} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center text-atlantic-300">
                       <Leaf className="h-5 w-5" aria-hidden />

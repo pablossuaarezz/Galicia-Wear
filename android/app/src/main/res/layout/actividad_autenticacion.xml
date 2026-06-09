@@ -20,7 +20,7 @@
         <ImageView
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:src="@drawable/ic_logo_galiciawear"
+            android:src="@drawable/logo_vieira_blanco"
             android:contentDescription="@string/logo_descripcion" />
 
         <TextView

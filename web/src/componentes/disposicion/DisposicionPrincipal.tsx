@@ -12,6 +12,10 @@ export function DisposicionPrincipal() {
   const outlet = useOutlet();
   const reducido = usarMovimientoReducido();
 
+  // Animamos la transición por sección de primer nivel (/catalogo, /cuenta, …): así cambiar de
+  // sub-pestaña dentro de cuenta o panel no re-monta la disposición lateral (sin parpadeos).
+  const segmento = '/' + (ubicacion.pathname.split('/')[1] ?? '');
+
   // Devuelve el scroll al inicio en cada navegación (salvo cambios solo de query).
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -31,7 +35,7 @@ export function DisposicionPrincipal() {
       <main id="contenido" className="flex-1">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={ubicacion.pathname}
+            key={segmento}
             initial={reducido ? { opacity: 0 } : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reducido ? { opacity: 0 } : { opacity: 0, y: -8 }}

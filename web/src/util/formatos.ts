@@ -21,6 +21,8 @@ const formateadorFechaHora = new Intl.DateTimeFormat('es-ES', {
   minute: '2-digit',
 });
 
+const formateadorHora = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
+
 const formateadorRelativo = new Intl.RelativeTimeFormat('es-ES', { numeric: 'auto' });
 
 /** Convierte un Decimal (string/number) a número seguro. */
@@ -49,6 +51,14 @@ export function formatoFechaHora(valor: Date | string | null | undefined): strin
   const fecha = valor instanceof Date ? valor : new Date(valor);
   if (Number.isNaN(fecha.getTime())) return '—';
   return formateadorFechaHora.format(fecha);
+}
+
+/** "14:30" — hora corta para las burbujas del chat. */
+export function formatoHora(valor: Date | string | null | undefined): string {
+  if (!valor) return '';
+  const fecha = valor instanceof Date ? valor : new Date(valor);
+  if (Number.isNaN(fecha.getTime())) return '';
+  return formateadorHora.format(fecha);
 }
 
 /** "hace 3 horas" — para la bandeja de notificaciones. */

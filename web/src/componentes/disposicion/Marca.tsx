@@ -1,52 +1,35 @@
-// Logotipo de la marca: olas atlánticas + nombre. Enlaza al inicio.
+// Logotipo de marca GaliciaWear (vieira gallega). Usa los archivos oficiales del kit de marca:
+// el wordmark (icono + "GALICIAWEAR") o solo el icono, en negro (fondos claros) o blanco
+// (fondos oscuros). Enlaza al inicio.
 import { Link } from 'react-router-dom';
 import { cx } from '@/util/cx';
 
-function OlasMarca({ className }: { className?: string }) {
-  return (
-    <span
-      className={cx(
-        'flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-b from-atlantic-400 to-atlantic-700 text-white shadow-suave',
-        className,
-      )}
-      aria-hidden
-    >
-      <svg width="22" height="22" viewBox="0 0 64 64" fill="none">
-        <path
-          d="M8 40c5 0 5-5 10-5s5 5 10 5 5-5 10-5 5 5 10 5 5-5 8-5"
-          stroke="#eef6fb"
-          strokeWidth="3.6"
-          strokeLinecap="round"
-        />
-        <path
-          d="M8 50c5 0 5-5 10-5s5 5 10 5 5-5 10-5 5 5 10 5 5-5 8-5"
-          stroke="#b0d4ec"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          opacity="0.85"
-        />
-        <path
-          d="M41 12c-9 1-15 7-15 15 0 1 .1 2 .3 3 8 .5 15.7-5.6 16.7-15 .1-1 0-2-.2-3z"
-          fill="#9cc684"
-        />
-      </svg>
-    </span>
-  );
+interface PropsMarca {
+  className?: string;
+  /** wordmark = icono + texto; icono = solo la vieira. */
+  variante?: 'wordmark' | 'icono';
+  /** negro para fondos claros, blanco para fondos oscuros. */
+  color?: 'negro' | 'blanco';
+  /** Altura en píxeles (el ancho se ajusta solo). */
+  alto?: number;
+  /** Alias retro-compatible de variante="icono". */
+  soloIcono?: boolean;
 }
 
-export function Marca({ className, soloIcono = false }: { className?: string; soloIcono?: boolean }) {
+export function Marca({ className, variante, color = 'negro', alto, soloIcono }: PropsMarca) {
+  const tipo = variante ?? (soloIcono ? 'icono' : 'wordmark');
+  const archivo = `/marca/${tipo === 'icono' ? 'icono' : 'wordmark'}-${color}.png`;
+  const altura = alto ?? (tipo === 'icono' ? 44 : 38);
+
   return (
-    <Link
-      to="/"
-      className={cx('inline-flex items-center gap-2.5', className)}
-      aria-label="GaliciaWear — inicio"
-    >
-      <OlasMarca />
-      {!soloIcono && (
-        <span className="font-display text-lg font-extrabold tracking-tight text-atlantic-900">
-          Galicia<span className="text-galego-600">Wear</span>
-        </span>
-      )}
+    <Link to="/" className={cx('inline-flex shrink-0 items-center', className)}>
+      <img
+        src={archivo}
+        alt="GaliciaWear"
+        style={{ height: altura }}
+        className="w-auto select-none"
+        draggable={false}
+      />
     </Link>
   );
 }

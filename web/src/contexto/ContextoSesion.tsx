@@ -19,6 +19,7 @@ import {
   limpiarSesion,
   registrarCierreForzado,
 } from '@/api/clienteApi';
+import { desconectarSocket } from '@/tiempoReal/socket';
 import type { EntradaLogin, EntradaRegistro, PerfilUsuario, Rol } from '@/api/tipos';
 
 interface ValorSesion {
@@ -67,6 +68,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
     return registrarCierreForzado(() => {
       setUsuario(null);
       clienteConsultas.clear();
+      desconectarSocket();
     });
   }, [clienteConsultas]);
 
@@ -90,6 +92,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
     async function cerrarSesion(): Promise<void> {
       await apiAuth.logout();
       limpiarSesion();
+      desconectarSocket();
       setUsuario(null);
       clienteConsultas.clear();
     }

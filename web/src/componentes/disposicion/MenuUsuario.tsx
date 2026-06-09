@@ -2,7 +2,7 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LayoutDashboard, LogOut, MapPin, Package, User } from 'lucide-react';
+import { LayoutDashboard, LogOut, MapPin, MessageSquare, Package, User } from 'lucide-react';
 import { Avatar } from '@/componentes/ui';
 import { usarClicFuera } from '@/hooks/usarClicFuera';
 import { usarSesion } from '@/contexto/ContextoSesion';
@@ -84,6 +84,16 @@ export function MenuUsuario() {
                 </Link>
               ))
             )}
+
+            <Link
+              to="/mensajes"
+              role="menuitem"
+              onClick={() => setAbierto(false)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-tinta-700 transition-colors hover:bg-atlantic-50 hover:text-atlantic-700"
+            >
+              <MessageSquare className="h-4 w-4" aria-hidden />
+              Mensajes
+            </Link>
 
             <div className="my-1 border-t border-piedra-100" />
             <button

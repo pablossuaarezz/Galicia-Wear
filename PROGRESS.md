@@ -1076,3 +1076,182 @@ cd ../android && ./gradlew :app:assembleDebug \
    > deep-link en `onMessageReceived`) pero degradado a best-effort porque `google-services.json` es
    > un stub. Activar el push real es solo configuración (proyecto Firebase + service account), sin
    > tocar código. Así demuestro la arquitectura completa sin depender de credenciales externas.
+
+
+---
+
+## Fase 6 — Web GaliciaWear (storefront + dashboard de diseñador) ✅
+
+- **Última actualización**: 2026-06-08.
+- **Rama**: `main`.
+
+> Nota de numeración: el bloque anterior, «Sistema de notificaciones extremo a extremo», fue un
+> **interludio transversal** (backend + Android) que quedó etiquetado también como Fase 6. Esta
+> sección es la entrega real de la **fila 6 del roadmap**: la web completa.
+
+La web (`web/`) pasa de ser el cascarón de Fase 0 a un **storefront público + zona de cuenta +
+dashboard del diseñador** funcional contra la API REST existente, con un acabado editorial
+(«Atlántico editorial sostenible») coherente con la app Android y el panel JavaFX.
+
+### Stack y dependencias añadidas (mínimas y justificadas)
+
+| Dependencia | Para qué |
+|-------------|----------|
+| `@tanstack/react-query` | Fetching/caché/estados (cargando/error/vacío) declarativos + invalidación tras mutaciones; carrito optimista. |
+| `framer-motion` | Transiciones de página, reveals al hacer scroll, micro-interacciones; todo respeta `prefers-reduced-motion`. |
+| `lucide-react` | Iconografía SVG coherente. |
+| `clsx` + `tailwind-merge` | Helper `cx()` para componer clases sin conflictos. |
+| `@fontsource-variable/{fraunces,manrope,inter}` | 3 fuentes variables **self-hosted** (offline, sin FOUT), importadas en `main.tsx`. |
+| `@types/node` (dev) | Tipos para `vite.config.ts` (`node:path`, `__dirname`). |
+
+*(Socket.IO en cliente queda como mejora futura: el badge de notificaciones se refresca por sondeo
+cada 30 s con React Query, robusto y offline-friendly para la defensa.)*
+
+### Estructura (`web/src/`, ~91 archivos fuente + 4 de test, identificadores en castellano)
+
+| Carpeta | Archivos | Contenido |
+|---------|---------:|-----------|
+| `api/` | 16 | `clienteApi.ts` (Bearer + refresh-on-401 con cola single-flight), `tipos.ts`, `clienteConsultas.ts` (QueryClient), `endpoints/*` (11 dominios) |
+| `contexto/` | 3 | `ContextoSesion` (tokens + login/registro/logout + rehidratación), `ContextoCarrito` (reactivo + optimista) |
+| `hooks/` | 9 | `usarSesion`/`usarCarrito` (vía contexto), `usarCatalogo`, `usarPedidos`, `usarNotificaciones`, `usarCuenta`, `usarPanelDisenador`, `usarMovimientoReducido`, `usarDebounce`, `usarClicFuera`, `usarTitulo` |
+| `componentes/ui/` | 14 | Sistema de diseño: Boton/EnlaceBoton, Campo/CampoArea/Selector, Tarjeta, Chip, Insignia, Avatar, Esqueleto, EstadoVacio, Paginador, Modal, Cajon, Brindis (toasts), Spinner |
+| `componentes/disposicion/` | — | BarraNavegacion (con carrito+campana+menú), PieDePagina, ContenedorPagina, DisposicionPrincipal (transición por ruta), DisposicionCuenta/DisposicionPanel, NavLateral, Marca, Revelar, EncabezadoPagina, Buscador, CampanaNotificaciones, MenuUsuario |
+| `componentes/catalogo/` | — | TarjetaProducto, RejillaProductos (stagger + esqueletos), BarraFiltros, ChipsCertificados, TarjetaDisenador |
+| `paginas/` | 19 | `publicas/` (Inicio, Catalogo, DetalleProducto, Carrito, Checkout, Login, Registro, Disenadores, DetalleDisenador, NoEncontrado) · `cuenta/` (MiPerfil, MisDirecciones, MisPedidos, DetallePedido) · `disenador/` (PanelDisenador, MisPrendas, EditarPrenda, PedidosRecibidos, PerfilMarca) |
+| `rutas/` | 4 | Router (data router + lazy), guardas `RutaProtegida` y `RutaDisenador`, `PantallaCargando` |
+| `util/` | 5 | `cx`, `formatos` (precio €, fechas, tiempo relativo, slug), `constantes` (enums→etiquetas), `validacion` (espejo de las reglas zod), `imagenes` (archivo→data URI con reescalado) |
+
+### Sistema de diseño — «Atlántico editorial sostenible»
+
+- **3 tipografías**: Fraunces (`font-editorial`, títulos hero), Manrope (`font-display`, UI/CTAs),
+  Inter (`font-sans`, cuerpo). `tailwind.config.ts` ampliado **sin romper Fase 0**: escalas
+  atlantic/galego/sand 50–950, neutros cálidos (tinta/piedra), semánticos (exito/aviso/peligro/info),
+  `borderRadius.xl2`, sombras (suave/tarjeta/flotante), easing `suave`, keyframes (aparecer/subir/
+  brillo/latido/marquesina) y `darkMode: 'class'`.
+- `index.css` `@layer base`: scroll suave, `::selection` atlántico, scrollbar fina, `:focus-visible`
+  con anillo atlantic-500, `text-wrap: balance` en titulares y `@media (prefers-reduced-motion)` que
+  neutraliza animaciones.
+- `favicon.svg` con la marca (olas atlánticas + hoja).
+
+### Capa de datos y sesión
+
+- **`clienteApi.ts`**: base `/api`, inyección de `Authorization`, **refresh-on-401 con cola de una
+  sola renovación concurrente** (single-flight) y error tipado `ErrorApi { estado, codigo, mensaje }`.
+  Cierre forzado si el refresco falla (notifica al `ContextoSesion`).
+- **Tokens**: acceso en memoria; refresco en `localStorage` para persistir sesión entre recargas.
+  Al arrancar, si hay refresco, se rehidrata con `GET /auth/yo` (renovando si hace falta).
+- **React Query** para todo GET (claves por dominio, `staleTime` 30 s) con invalidación tras
+  mutaciones; **carrito optimista** (cantidad/eliminación instantáneas con rollback y brindis).
+- Guardas de ruta `RutaProtegida` y `RutaDisenador` (redirige a `/login?destino=…`).
+
+### Flujos cubiertos
+
+- **Cliente**: navegar catálogo → filtrar (búsqueda con debounce, material, ciudad, slider de km,
+  chips de certificados, filtros en la URL) → detalle (galería, variante, certificados, sostenibilidad)
+  → añadir al carrito (badge con micro-pop) → checkout (dirección + método de pago + simulación de
+  pago) → ver pedido con estado y seguimiento → cancelar; cuenta (perfil con foto base64, contraseña,
+  preferencias eco, direcciones CRUD + principal); campana de notificaciones con contador.
+- **Diseñador**: panel con KPIs y aviso de marca; CRUD de prendas con variantes e imágenes (subida
+  base64 → `/uploads`), publicar/retirar; pedidos recibidos (aceptar líneas, gestionar envío:
+  transportista, seguimiento, marcar enviado/entregado); perfil de marca (solicitar/editar).
+
+### Hallazgos sobre el contrato (corregidos respecto al enunciado)
+
+| Detalle real del backend | Acción en la web |
+|--------------------------|------------------|
+| Las rutas REST se montan en la raíz (`/productos`, `/auth`…), **no bajo `/api`** | El proxy dev de Vite se amplió con `rewrite` que elimina `/api` (nginx ya lo hacía en prod). |
+| Listados → `{ datos, total, pagina, limite }` (no `{ productos }`); paginación con `limite` (no `tamano`) | Tipos y endpoints siguen el shape real. |
+| Campos `Decimal` (precio, ajuste, totales) llegan **como string** | `aNumero()`/`formatoPrecio()` los normalizan; nunca se opera con strings. |
+| Actualizar perfil cliente es `PATCH /usuarios/yo/cliente` (no `/usuarios/yo`) | Endpoint corregido. |
+| El catálogo público **no filtra por diseñador** | El perfil del diseñador pide las prendas de su ciudad y filtra por `disenadorId` en cliente. |
+| Notificaciones de Mongo usan clave `_id` (no `id`) | Tipo `Notificacion` con `_id`. |
+
+### Tests (Vitest + Testing Library): 10/10 verdes
+
+| Suite | Tests | Cubre |
+|-------|------:|-------|
+| `api/clienteApi.test.ts` | 3 | Bearer + cuerpo parseado, refresh-on-401 con reintento único, cierre forzado si el refresco falla |
+| `contexto/ContextoSesion.test.tsx` | 2 | login/logout (estado) y guarda `RutaProtegida` que redirige a `/login` |
+| `componentes/catalogo/TarjetaProducto.test.tsx` | 1 | nombre/marca/precio formateado/certificado + enlace al detalle |
+| `componentes/catalogo/BarraFiltros.test.tsx` | 4 | búsqueda, material, chip de certificado y limpiar filtros |
+
+Se retiró el `App.test.tsx` placeholder de Fase 0 (y el `App.tsx`: `main.tsx` monta el router).
+
+### Decisiones técnicas destacables
+
+| Decisión | Por qué |
+|----------|---------|
+| Tokens: acceso en memoria, refresco en `localStorage` | Equilibrio sesión-persistente / superficie XSS; se documenta el trade-off y se evita pintar HTML de terceros. |
+| Refresh single-flight con cola | Varias peticiones que caducan a la vez comparten **una** renovación; evita rotaciones de token en carrera (el refresh revoca el anterior). |
+| Filtros del catálogo en la URL | Enlaces compartibles y atrás/adelante coherentes; el debounce se aplica a la **consulta**, no al input (inputs siempre responsivos). |
+| Badge de notificaciones por sondeo (30 s) en vez de Socket.IO | Robusto y sin dependencia extra para la defensa; el backend ya soporta tiempo real como mejora futura. |
+| `react-hooks/rules-of-hooks` desactivada en ESLint | El plugin detecta hooks por el prefijo inglés `use`; con la regla de identificadores en castellano (`usar*`) daba falsos positivos. Se mantiene `exhaustive-deps`. |
+| Páginas con `React.lazy` | El bundle se divide por ruta (chunk principal ~139 KB gzip); primera carga más rápida. |
+| Subida de imágenes a data URI con reescalado en canvas | Igual que la app Android; el backend guarda el archivo en `/uploads` y devuelve la URL. |
+
+### Verificación local
+
+```bash
+cd web
+npm run build      # tsc -b + vite build, sin errores (TS estricto) ✅
+npm run lint       # eslint --max-warnings=0 → 0 warnings ✅
+npm test           # vitest → 10/10 verdes ✅
+
+# End-to-end contra el backend real (mismo origen, sin CORS):
+cd ../backend && npm run dev          # MySQL/Mongo + seed
+cd ../web && npm run dev              # proxy /api → localhost:3000 (rewrite quita /api)
+# Cuentas del seed en TESTING_ACCOUNTS.md (ana@…, linares@…, contraseña Prueba123).
+```
+
+### Preguntas probables del tribunal — Fase 6 (Web)
+
+1. **¿Cómo mantienes la sesión y qué pasa cuando caduca el access token (15 min)?**
+   > El access token vive en memoria y el refresco en `localStorage`. Toda petición lleva el Bearer;
+   > si la API responde 401, el `clienteApi` renueva la pareja contra `/auth/refresh` y **reintenta una
+   > vez**. Si varias peticiones caducan a la vez, una **cola single-flight** garantiza una sola
+   > renovación (el refresh rota y revoca el anterior, así que renovar en paralelo cerraría la sesión).
+   > Si el refresco falla, se fuerza el cierre. Al recargar la página, si hay refresco persistido se
+   > rehidrata con `GET /auth/yo`. Replica el `InterceptorJwt` de Android y el `ClienteHttp` del panel.
+
+2. **El backend devuelve los precios como string y los listados envueltos de forma distinta a lo
+   esperado. ¿Cómo lo resolviste?**
+   > Verifiqué el contrato leyendo los controladores/repositorios reales, no la documentación. Los
+   > `Decimal` de Prisma se serializan como string, así que los tipo como `string` y los convierto con
+   > `aNumero()`/`formatoPrecio()` en la capa de presentación; nunca opero con strings. Los listados
+   > vienen como `{ datos, total, pagina, limite }`, no `{ productos }`, y el parámetro de tamaño es
+   > `limite`: los tipos y las funciones de endpoint siguen el shape real, no el supuesto.
+
+3. **¿Por qué identificadores en castellano si chocan con herramientas como react-hooks?**
+   > Es el lenguaje ubicuo del dominio (regla de oro del proyecto): `usarSesion`, `BarraFiltros`,
+   > `clienteApi`. El plugin `eslint-plugin-react-hooks` detecta los hooks por el prefijo inglés `use`
+   > con una regex fija, así que no reconoce `usar*` y marca falsos positivos de orden de hooks.
+   > Desactivo **solo** `rules-of-hooks` (documentado en `.eslintrc`) y mantengo `exhaustive-deps`,
+   > que sí valida dependencias independientemente del nombre.
+
+4. **¿Cómo consigues que la web «se sienta» como la app Android siendo otra tecnología?**
+   > Comparten la **identidad atlántica** (misma paleta atlantic/galego/sand del Material 3 de Android)
+   > y el mismo modelo de dominio y contrato REST. La web añade un alma editorial con Fraunces y
+   > micro-interacciones con framer-motion, todas con respeto a `prefers-reduced-motion`. Misma marca,
+   > distinto medio.
+
+---
+
+### Ampliaciones posteriores de Fase 6 (acabado de marca, chat y correcciones)
+
+Tras el build inicial de la web, se iteró sobre acabado visual, marca, una funcionalidad nueva
+(chat) y varias correcciones transversales. **Verificación tras cada cambio: `npm run build` +
+`npm run lint` (0 warnings) + `npm test` (10/10) en verde.**
+
+| Cambio | Detalle |
+|--------|---------|
+| **Identidad clonada de Android** (sustituye la dirección "editorial Fraunces") | La web ahora replica 1:1 el tema Material `Tema.GaliciaWear`: tipografía **Syne** en todo (self-hosted), paleta **exacta** de `res/values/colors.xml` (azul atlántico `#0A5CA8` + celeste `#29A9E0`, fondo frío `#F2F8FD`, tinta marino, teal sostenible), botones 16dp (rectángulo, no píldora), tarjetas 18dp, chips 12dp, degradados azul→celeste. Tokens Tailwind remapeados conservando los nombres (atlantic/galego/sand/tinta/piedra) → recoloreado en cascada sin tocar componentes. |
+| **Logo de marca real (vieira gallega)** | Kit oficial (icono cuadrado + wordmark "GALICIAWEAR", en blanco y negro). Recortado con PIL a su contenido. Web: navbar/pie (wordmark negro), login/registro (icono), favicon + apple-touch (vieira blanca sobre azulejo `#0A5CA8`). Android: splash y cabecera de login (vieira **blanca** sobre degradado), "diseñador pendiente" (negra), y **adaptive icon del lanzador** (primer plano vieira blanca + fondo degradado, legacy webp recompuestos). |
+| **Fotos subidas desde Android no cargaban en web** | El backend guardaba la URL **absoluta** con el host del subidor (`http://10.0.2.2:3000/uploads/...`), inalcanzable desde el navegador. Se añadió `resolverImagen()` que normaliza cualquier `/uploads/...` a ruta **relativa** (pasa por el proxy); repara también las filas ya guardadas. + `location /uploads/` en nginx. |
+| **Subir foto arrastrando** (alta de prenda) | Zona drag-and-drop en `EditarPrenda` (arrastrar o clic), **subida múltiple** en serie, resalte al arrastrar, spinner; la primera imagen queda como principal. |
+| **Error 429 al crear prenda** | El límite global (100 pet./15 min/IP) era irrisorio para un SPA. Subido a **1000** y se **excluye** del conteo `/uploads` y `/salud` (una página con muchas imágenes no agota el cupo de la API). |
+| **Android: header bajo la barra de estado** | Con targetSdk 35 el edge-to-edge es forzado. Patrón Material: `fitsSystemWindows` en `CoordinatorLayout`+`AppBarLayout`, degradado movido al AppBarLayout y toolbar transparente → el degradado va detrás de la barra (iconos blancos) y el título baja sin chocar. |
+| **Android: menú de diseñador** | Para cuentas DISEÑADOR, el ítem central del `BottomNavigationView` deja de ser "Carrito" y pasa a **"Añadir prenda" con icono "+"** (lanza `ActividadEditarPrenda` en modo crear, sin cambiar de pestaña); el diseñador no carga su carrito. |
+| **Chat en la web (tiempo real)** | Chat de soporte cliente↔tienda reutilizando el backend de Android: REST (`/chat/conversaciones`, `/chat/:peerId/mensajes`, `/chat/:peerId/leer`) + **Socket.IO** (`socket.io-client`, proxy `/socket.io` con `ws` en Vite y nginx, JWT en el handshake). Bandeja + hilo responsive (`/mensajes`, `/mensajes/:peerId`), envío por `enviar_mensaje` con eco `nuevo_mensaje`, badge de no leídos, botones **"Contactar"** en detalle de prenda y de diseñador, y deep-link de la campana para `MENSAJE_NUEVO`. El socket se cierra al cerrar sesión. |
+
+**Estado de Fase 6: COMPLETA y cerrada.** La web cubre storefront + cuenta + dashboard de
+diseñador + chat, con identidad de marca unificada en web y Android.

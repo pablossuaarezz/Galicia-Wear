@@ -1,13 +1,14 @@
 // Carrito de la compra: líneas editables, resumen con envío (gratis ≥ 50 €) y paso a checkout.
 import { Link } from 'react-router-dom';
 import { Leaf, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
-import { Boton, EnlaceBoton, EstadoVacio, Tarjeta } from '@/componentes/ui';
+import { EnlaceBoton, EstadoVacio, Tarjeta } from '@/componentes/ui';
 import { ContenedorPagina } from '@/componentes/disposicion/ContenedorPagina';
 import { EncabezadoPagina } from '@/componentes/disposicion/EncabezadoPagina';
 import { usarCarrito } from '@/contexto/ContextoCarrito';
 import { usarSesion } from '@/contexto/ContextoSesion';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { aNumero, formatoPrecio } from '@/util/formatos';
+import { resolverImagen } from '@/util/imagenes';
 import { ENVIO_GRATUITO_DESDE } from '@/util/constantes';
 import { TALLAS } from '@/util/constantes';
 import { cx } from '@/util/cx';
@@ -30,7 +31,7 @@ function LineaCarrito({ item }: { item: ItemCarrito }) {
         className="h-24 w-20 shrink-0 overflow-hidden rounded-lg border border-piedra-100 bg-sand-100"
       >
         {imagen?.url ? (
-          <img src={imagen.url} alt={imagen.textoAlternativo ?? producto.nombre} className="h-full w-full object-cover" />
+          <img src={resolverImagen(imagen.url)} alt={imagen.textoAlternativo ?? producto.nombre} className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-atlantic-300">
             <Leaf className="h-6 w-6" aria-hidden />

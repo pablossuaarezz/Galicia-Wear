@@ -25,7 +25,7 @@
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_logo_galiciawear"
+            android:src="@drawable/logo_vieira_blanco"
             android:contentDescription="@string/logo_descripcion" />
     </com.google.android.material.card.MaterialCardView>
 

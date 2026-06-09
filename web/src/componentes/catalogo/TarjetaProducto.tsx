@@ -6,6 +6,7 @@ import { Leaf, MapPin } from 'lucide-react';
 import { cx } from '@/util/cx';
 import { Insignia } from '@/componentes/ui';
 import { formatoPrecio } from '@/util/formatos';
+import { resolverImagen } from '@/util/imagenes';
 import { CERTIFICADOS, CIUDADES, MATERIALES } from '@/util/constantes';
 import type { ProductoResumen } from '@/api/tipos';
 
@@ -24,7 +25,7 @@ export function TarjetaProducto({ producto }: { producto: ProductoResumen }) {
       <div className="relative aspect-[4/5] overflow-hidden bg-sand-100">
         {hayFoto ? (
           <img
-            src={imagen!.url}
+            src={resolverImagen(imagen!.url)}
             alt={alt}
             loading="lazy"
             onError={() => setFalloImagen(true)}

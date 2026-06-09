@@ -1,96 +1,109 @@
-// JUSTIFICACIÓN: identidad "Atlántico editorial sostenible". Paleta inspirada en Galicia
-// (azul atlántico + verde castaño + papel arena) coherente con la app Android (Material 3).
-// Se AMPLÍA la base de Fase 0 (no se rompe): se completan escalas 50–950, se añaden neutros
-// cálidos (tinta/piedra), colores semánticos, radios, sombras suaves y tokens de movimiento.
+// JUSTIFICACIÓN: identidad clonada 1:1 de la app Android (Material 3, tema "Tema.GaliciaWear").
+// Paleta de la bandera de Galicia (azul atlántico #0A5CA8 + celeste #29A9E0 sobre campo blanco
+// con tinte celeste) y tipografía Syne en todo. Los nombres de token se conservan (atlantic,
+// galego, sand, tinta, piedra) pero sus valores ahora son los hex EXACTOS de res/values/colors.xml.
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  // Tema claro por defecto; el oscuro es un extra activable con la clase `dark`.
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        // Azul atlántico — color de marca. 500/700/900 conservan los valores de Fase 0.
+        // Azul atlántico — primario de marca (primario #0A5CA8 / oscuro #06396B / claro #4FB3E8).
         atlantic: {
-          50: '#eef6fb',
-          100: '#d4e7f4',
-          200: '#b0d4ec',
-          300: '#7fb8dd',
-          400: '#4a97c8',
-          500: '#1e6fa3',
-          600: '#195d8a',
-          700: '#15527a',
-          800: '#103f5e',
-          900: '#0c2f48',
-          950: '#081f30',
+          50: '#F2F8FD', // fondo (campo de la bandera, blanco con tinte celeste)
+          100: '#E3F2FC', // celeste_muy_claro
+          200: '#D4E9FA', // contenedor_primario
+          300: '#9AD4F2', // celeste_claro
+          400: '#4FB3E8', // primario_claro
+          500: '#0A5CA8', // primario  ← color de marca
+          600: '#084C8C',
+          700: '#06396B', // primario_oscuro
+          800: '#08304F',
+          900: '#0D2A40', // texto_primario (tinta azul marino)
+          950: '#081A29', // fondo_oscuro
         },
-        // Verde gallego — acentos de sostenibilidad. 50/500/700 conservan los de Fase 0.
+        // Celeste — acento de la bandera gallega (#29A9E0).
+        celeste: {
+          100: '#E3F2FC',
+          200: '#D4E9FA',
+          300: '#9AD4F2',
+          400: '#4FB3E8',
+          500: '#29A9E0', // acento / celeste
+          600: '#1E8FC4',
+          700: '#1573A3',
+        },
+        // "galego" se reutiliza como el verde sostenible virado a TEAL del Android
+        // (verde_sostenible #00838F, verde_claro #4DD0E1). Mantiene la semántica eco.
         galego: {
-          50: '#f1f7ee',
-          100: '#e0efd8',
-          200: '#c3deb4',
-          300: '#9cc684',
-          400: '#79ab5c',
-          500: '#5c8a3a',
-          600: '#486e2d',
-          700: '#3f6128',
-          800: '#324d20',
-          900: '#2a401d',
+          50: '#E0F4F1', // fondo_badge_km
+          100: '#C9EDE9',
+          200: '#A7E0DC',
+          300: '#4DD0E1', // verde_claro
+          400: '#26B6C4',
+          500: '#00838F', // verde_sostenible
+          600: '#016B76',
+          700: '#015560',
+          800: '#06424B',
+          900: '#0A363D',
         },
-        // Arena/papel — fondos cálidos editoriales. 50/200 conservan los de Fase 0.
+        // "sand" se reutiliza como las superficies frías (fondo / superficie_variante).
         sand: {
-          50: '#fbf8f3',
-          100: '#f6f0e6',
-          200: '#ecddc4',
-          300: '#e0c9a3',
-          400: '#d2b07f',
+          50: '#F2F8FD', // fondo
+          100: '#E3EFF8', // superficie_variante
+          200: '#D4E9FA', // contenedor_primario
+          300: '#C2DDF0',
+          400: '#9AD4F2',
         },
-        // Tinta — neutro cálido para textos (más amable que el gris puro).
+        // Tinta — texto en azul marino (texto_primario/secundario/deshabilitado).
         tinta: {
-          50: '#f7f6f4',
-          100: '#e9e7e2',
-          200: '#d3cfc6',
-          300: '#b3ada0',
-          400: '#8d8676',
-          500: '#6e6757',
-          600: '#564f43',
-          700: '#423d34',
-          800: '#2c2823',
-          900: '#1c1915',
+          50: '#F2F6FA',
+          100: '#E3EFF8',
+          200: '#CBDBE8',
+          300: '#A7B7C4', // texto_deshabilitado
+          400: '#7C92A4',
+          500: '#5B7185', // texto_secundario
+          600: '#3E5568',
+          700: '#244055',
+          800: '#15324A',
+          900: '#0D2A40', // texto_primario
         },
-        // Piedra — neutro frío para bordes, superficies y datos.
+        // Piedra — grises azulados para bordes y superficies sutiles.
         piedra: {
-          50: '#f6f7f8',
-          100: '#eceef0',
-          200: '#dce0e3',
-          300: '#c2c8cd',
-          400: '#9aa3ab',
-          500: '#788289',
-          600: '#5e676d',
-          700: '#4c5359',
-          800: '#3f454a',
-          900: '#373b3f',
+          50: '#F2F6FA',
+          100: '#E3EFF8', // superficie_variante (bordes sutiles, como en la app)
+          200: '#D2E2EE',
+          300: '#B6CADB',
+          400: '#8BA3B6',
+          500: '#6B8497',
+          600: '#51697B',
+          700: '#3D5365',
+          800: '#2B3F4F',
+          900: '#1C3046',
         },
-        // Semánticos: suave (fondo), DEFAULT (icono/texto), fuerte (énfasis).
-        exito: { suave: '#e7f4ec', DEFAULT: '#2f8f5b', fuerte: '#1f6b41' },
-        aviso: { suave: '#fbf0d9', DEFAULT: '#c8861a', fuerte: '#955f0f' },
-        peligro: { suave: '#fae8e6', DEFAULT: '#c0392b', fuerte: '#8f261b' },
-        info: { suave: '#e6f1f8', DEFAULT: '#1e6fa3', fuerte: '#15527a' },
+        // Semánticos — exactos del Android (error/exito/aviso) + info = primario.
+        exito: { suave: '#E4F3E6', DEFAULT: '#2E7D32', fuerte: '#1B5E20' },
+        aviso: { suave: '#FCEFD9', DEFAULT: '#EF8C00', fuerte: '#B36A00' },
+        peligro: { suave: '#FBE4E4', DEFAULT: '#C62828', fuerte: '#8E1C1C' },
+        info: { suave: '#E3F2FC', DEFAULT: '#0A5CA8', fuerte: '#06396B' },
       },
       fontFamily: {
-        // Las familias "* Variable" las registran los paquetes @fontsource-variable.
-        sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['"Manrope Variable"', 'Manrope', 'Inter', 'sans-serif'],
-        editorial: ['"Fraunces Variable"', 'Georgia', 'serif'],
+        // Syne en todo, igual que `android:fontFamily=@font/syne` global de la app.
+        sans: ['"Syne Variable"', 'Syne', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['"Syne Variable"', 'Syne', 'system-ui', 'sans-serif'],
+        editorial: ['"Syne Variable"', 'Syne', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        xl2: '1.25rem',
+        // Formas de marca del tema Android: Media 18dp (tarjetas), Grande 28dp.
+        xl2: '1.125rem', // 18px — cardCornerRadius de la app
+        grande: '1.75rem', // 28px — Forma.GaliciaWear.Grande
       },
       boxShadow: {
-        suave: '0 1px 2px rgba(12, 47, 72, 0.04), 0 1px 3px rgba(12, 47, 72, 0.06)',
-        tarjeta: '0 2px 8px rgba(12, 47, 72, 0.06), 0 8px 24px rgba(12, 47, 72, 0.05)',
-        flotante: '0 12px 32px rgba(12, 47, 72, 0.14), 0 4px 12px rgba(12, 47, 72, 0.08)',
+        // Elevaciones suaves (2–3dp) con sombra en azul marino de marca.
+        suave: '0 1px 2px rgba(13, 42, 64, 0.05), 0 1px 3px rgba(13, 42, 64, 0.07)',
+        tarjeta: '0 2px 8px rgba(13, 42, 64, 0.07), 0 8px 24px rgba(13, 42, 64, 0.06)',
+        flotante: '0 12px 32px rgba(13, 42, 64, 0.16), 0 4px 12px rgba(13, 42, 64, 0.09)',
       },
       transitionTimingFunction: {
         suave: 'cubic-bezier(0.22, 1, 0.36, 1)',

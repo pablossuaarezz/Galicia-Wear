@@ -9,6 +9,7 @@ import { usarClicFuera } from '@/hooks/usarClicFuera';
 import { usarContadorNotificaciones, usarNotificaciones } from '@/hooks/usarNotificaciones';
 import { usarSesion } from '@/contexto/ContextoSesion';
 import { formatoTiempoRelativo } from '@/util/formatos';
+import type { Notificacion } from '@/api/tipos';
 
 export function CampanaNotificaciones() {
   const [abierto, setAbierto] = useState(false);
@@ -20,10 +21,16 @@ export function CampanaNotificaciones() {
 
   usarClicFuera(contenedor, () => setAbierto(false), abierto);
 
-  function abrirAviso(id: string, pedidoId?: string) {
-    marcarLeida(id);
+  function abrirAviso(notif: Notificacion) {
+    marcarLeida(notif._id);
     setAbierto(false);
-    if (pedidoId) {
+    const peerId = typeof notif.datos?.peerId === 'string' ? notif.datos.peerId : undefined;
+    const pedidoId = typeof notif.datos?.pedidoId === 'string' ? notif.datos.pedidoId : undefined;
+    const nombre = typeof notif.datos?.nombre === 'string' ? notif.datos.nombre : undefined;
+    if (peerId) {
+      // MENSAJE_NUEVO → abre la conversación con el remitente.
+      navegar(`/mensajes/${peerId}`, { state: { nombre } });
+    } else if (pedidoId) {
       navegar(esDisenador ? '/panel/pedidos' : `/cuenta/pedidos/${pedidoId}`);
     }
   }
@@ -87,13 +94,11 @@ export function CampanaNotificaciones() {
               ) : (
                 <ul>
                   {notificaciones.map((n) => {
-                    const pedidoId =
-                      typeof n.datos?.pedidoId === 'string' ? n.datos.pedidoId : undefined;
                     return (
                       <li key={n._id}>
                         <button
                           type="button"
-                          onClick={() => abrirAviso(n._id, pedidoId)}
+                          onClick={() => abrirAviso(n)}
                           className={cx(
                             'flex w-full gap-3 border-b border-piedra-50 px-4 py-3 text-left transition-colors hover:bg-sand-50',
                             !n.leida && 'bg-atlantic-50/50',

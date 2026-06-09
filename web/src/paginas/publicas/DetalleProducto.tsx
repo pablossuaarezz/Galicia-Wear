@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Leaf, MapPin, Minus, Plus, ShieldCheck, ShoppingBag, Store } from 'lucide-react';
+import { ArrowLeft, Leaf, MapPin, MessageSquare, Minus, Plus, ShieldCheck, ShoppingBag, Store } from 'lucide-react';
 import { Boton, EnlaceBoton, Esqueleto, EstadoVacio, Insignia, Tarjeta } from '@/componentes/ui';
 import { usarBrindis } from '@/componentes/ui/Brindis';
 import { ContenedorPagina } from '@/componentes/disposicion/ContenedorPagina';
@@ -13,6 +13,7 @@ import { usarSesion } from '@/contexto/ContextoSesion';
 import { usarCarrito } from '@/contexto/ContextoCarrito';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { aNumero, formatoFecha, formatoPrecio } from '@/util/formatos';
+import { resolverImagen } from '@/util/imagenes';
 import { CERTIFICADOS, CIUDADES, MATERIALES, TALLAS } from '@/util/constantes';
 import { cx } from '@/util/cx';
 import type { ProductoDetalle, Variante } from '@/api/tipos';
@@ -51,7 +52,7 @@ function Galeria({ producto }: { producto: ProductoDetalle }) {
       >
         {hayFoto ? (
           <img
-            src={actual.url}
+            src={resolverImagen(actual.url)}
             alt={actual.textoAlternativo ?? producto.nombre}
             className="h-full w-full object-cover"
             onError={() => setFallos((f) => ({ ...f, [activa]: true }))}
@@ -77,7 +78,7 @@ function Galeria({ producto }: { producto: ProductoDetalle }) {
               aria-label={`Ver imagen ${indice + 1}`}
             >
               {!fallos[indice] ? (
-                <img src={imagen.url} alt="" className="h-full w-full object-cover" />
+                <img src={resolverImagen(imagen.url)} alt="" className="h-full w-full object-cover" />
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-atlantic-300">
                   <Leaf className="h-5 w-5" aria-hidden />
@@ -268,6 +269,19 @@ export default function DetalleProducto() {
               {sinStock ? 'Sin stock' : 'Añadir al carrito'}
             </Boton>
           </div>
+
+          {!esDisenador && (
+            <EnlaceBoton
+              to={`/mensajes/${producto.disenadorId}`}
+              state={{ nombre: producto.disenador.nombreMarca }}
+              variante="secundario"
+              ancho
+              className="mt-3"
+              iconoIzquierda={<MessageSquare className="h-4 w-4" />}
+            >
+              Contactar con la tienda
+            </EnlaceBoton>
+          )}
 
           {/* Certificados */}
           {producto.certificados.length > 0 && (

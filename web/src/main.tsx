@@ -5,9 +5,9 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 
-// Fuentes variables self-hosted (Fraunces editorial, Manrope display, Inter cuerpo).
-import '@fontsource-variable/fraunces';
-import '@fontsource-variable/manrope';
+// Fuente variable self-hosted: Syne (la misma que usa la app Android en toda la interfaz).
+// Inter queda como reserva de cuerpo para máxima legibilidad si Syne no carga.
+import '@fontsource-variable/syne';
 import '@fontsource-variable/inter';
 import './styles/index.css';
 

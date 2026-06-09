@@ -44,6 +44,8 @@
     <string name="nav_carrito">Carrito</string>
     <string name="nav_pedidos">Pedidos</string>
     <string name="nav_perfil">Perfil</string>
+    <!-- Diseñador: el ítem central del menú pasa a ser "Añadir prenda" (+) -->
+    <string name="nav_anadir_prenda">Añadir prenda</string>
 
     <!-- Productos -->
     <string name="sin_productos">No hay productos disponibles</string>

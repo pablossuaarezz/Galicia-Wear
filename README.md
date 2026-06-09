@@ -143,14 +143,14 @@ Ver [PROGRESS.md](./PROGRESS.md) para el estado vivo.
 | 0 | ✅ | Inicialización monorepo, Docker, CI, README |
 | 1 | ✅ | Modelado UML + ER PostgreSQL (10 diagramas) |
 | 2a | ✅ | Schema Prisma + infra backend (logger, errores, middlewares) + módulo **autenticación** + tests |
-| 2b | ⏳ | Módulos `usuarios`, `disenadores`, `direcciones`, `certificados` |
-| 2c | ⏳ | Módulos `productos`, `variantes`, `carritos` |
-| 2d | ⏳ | Módulos `pedidos`, `envios`, `resenas`, `mensajes` |
-| 2e | ⏳ | Socket.IO + workers + Swagger + seed |
-| 3 | ⏳ | Persistencia avanzada: Mongo + backup.sh + import/export XML/JSON |
-| 4 | ⏳ | App Android (10 pantallas, FCM, ARCore stub) |
-| 5 | ⏳ | JavaFX admin + dashboard tiempo real + jpackage |
-| 6 | ⏳ | Web completa (storefront + dashboard diseñador) |
+| 2b | ✅ | Módulos `usuarios`, `disenadores`, `direcciones`, `certificados` |
+| 2c | ✅ | Módulos `productos`, `variantes`, `carritos` |
+| 2d | ✅ | Módulos `pedidos`, `envios`, `resenas`, `mensajes` |
+| 2e | ✅ | Socket.IO + workers + Swagger + seed |
+| 3 | ✅ | Persistencia avanzada: Mongo + backup.sh + import/export XML/JSON |
+| 4 | ✅ | App Android (10 pantallas, FCM, ARCore stub) |
+| 5 | ✅ | JavaFX admin + dashboard tiempo real + jpackage |
+| 6 | ✅ | Web completa (storefront + dashboard diseñador) |
 | 7 | ⏳ | Seguridad transversal + cobertura ≥60% + CI completa |
 | 8 | ⏳ | Documentación memoria + capturas + defensa oral |
 

@@ -2,16 +2,18 @@
 // filtra por diseñador, se piden las prendas de su ciudad y se filtran por disenadorId.
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { ExternalLink, Globe, MapPin } from 'lucide-react';
+import { ExternalLink, Globe, MapPin, MessageSquare } from 'lucide-react';
 import { Avatar, EnlaceBoton, Esqueleto, EstadoVacio } from '@/componentes/ui';
 import { ContenedorPagina } from '@/componentes/disposicion/ContenedorPagina';
 import { RejillaProductos } from '@/componentes/catalogo/RejillaProductos';
 import { usarDisenador, usarCatalogo } from '@/hooks/usarCatalogo';
+import { usarSesion } from '@/contexto/ContextoSesion';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { CIUDADES } from '@/util/constantes';
 
 export default function DetalleDisenador() {
   const { id } = useParams<{ id: string }>();
+  const { esDisenador } = usarSesion();
   const consulta = usarDisenador(id);
   const disenador = consulta.data;
   usarTitulo(disenador?.nombreMarca);
@@ -64,20 +66,32 @@ export default function DetalleDisenador() {
               <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-tinta-600">
                 {disenador.biografia}
               </p>
-              {disenador.urlWeb && (
-                <EnlaceBoton
-                  to={disenador.urlWeb}
-                  variante="secundario"
-                  tamano="sm"
-                  className="mt-4"
-                  target="_blank"
-                  rel="noreferrer"
-                  iconoIzquierda={<Globe className="h-4 w-4" />}
-                  iconoDerecha={<ExternalLink className="h-3.5 w-3.5" />}
-                >
-                  Web de la marca
-                </EnlaceBoton>
-              )}
+              <div className="mt-4 flex flex-wrap gap-3">
+                {!esDisenador && (
+                  <EnlaceBoton
+                    to={`/mensajes/${disenador.usuarioId}`}
+                    state={{ nombre: disenador.nombreMarca }}
+                    variante="primario"
+                    tamano="sm"
+                    iconoIzquierda={<MessageSquare className="h-4 w-4" />}
+                  >
+                    Contactar
+                  </EnlaceBoton>
+                )}
+                {disenador.urlWeb && (
+                  <EnlaceBoton
+                    to={disenador.urlWeb}
+                    variante="secundario"
+                    tamano="sm"
+                    target="_blank"
+                    rel="noreferrer"
+                    iconoIzquierda={<Globe className="h-4 w-4" />}
+                    iconoDerecha={<ExternalLink className="h-3.5 w-3.5" />}
+                  >
+                    Web de la marca
+                  </EnlaceBoton>
+                )}
+              </div>
             </div>
           </div>
         </ContenedorPagina>

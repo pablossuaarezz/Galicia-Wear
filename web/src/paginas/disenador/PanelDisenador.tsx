@@ -1,6 +1,5 @@
 // Resumen del panel del diseñador: aviso de perfil de marca (si falta o está pendiente),
 // KPIs sencillos (prendas, ventas, pendientes de aceptar) y accesos rápidos.
-import { Link } from 'react-router-dom';
 import { AlertTriangle, Clock, Package, Plus, ShoppingBag, Store } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { EnlaceBoton, Esqueleto, Insignia, Tarjeta } from '@/componentes/ui';

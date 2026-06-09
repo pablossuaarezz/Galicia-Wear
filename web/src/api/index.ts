@@ -11,3 +11,4 @@ export { apiUsuarios } from './endpoints/usuarios';
 export { apiVariantes } from './endpoints/variantes';
 export { apiImagenes } from './endpoints/imagenes';
 export { apiNotificaciones } from './endpoints/notificaciones';
+export { apiChat } from './endpoints/chat';

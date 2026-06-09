@@ -1,17 +1,18 @@
 // Alta y edición de prenda. En alta solo se piden los datos; al crearla se navega al modo
 // edición, donde ya se pueden gestionar variantes (talla·color·stock) e imágenes (subida base64).
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ImagePlus, Plus, Star, Trash2 } from 'lucide-react';
-import { Boton, Campo, CampoArea, Esqueleto, Insignia, Selector, Tarjeta } from '@/componentes/ui';
+import { ArrowLeft, Plus, Star, Trash2, UploadCloud } from 'lucide-react';
+import { Boton, Campo, CampoArea, Esqueleto, Insignia, Selector, Spinner, Tarjeta } from '@/componentes/ui';
 import { usarBrindis } from '@/componentes/ui/Brindis';
 import { usarPrendaMia } from '@/hooks/usarPanelDisenador';
 import { apiProductos } from '@/api/endpoints/productos';
 import { apiVariantes } from '@/api/endpoints/variantes';
 import { apiImagenes } from '@/api/endpoints/imagenes';
 import { usarTitulo } from '@/hooks/usarTitulo';
-import { archivoADataUri } from '@/util/imagenes';
+import { cx } from '@/util/cx';
+import { archivoADataUri, resolverImagen } from '@/util/imagenes';
 import { mensajeDeError } from '@/util/validacion';
 import { CODIGOS_MATERIAL, CODIGOS_TALLA, MATERIALES, TALLAS } from '@/util/constantes';
 import type {
@@ -261,29 +262,58 @@ function SeccionImagenes({ producto }: { producto: ProductoDetalle }) {
   const brindis = usarBrindis();
   const entrada = useRef<HTMLInputElement>(null);
   const [subiendo, setSubiendo] = useState(false);
+  const [arrastrando, setArrastrando] = useState(false);
 
   function invalidar() {
     clienteConsultas.invalidateQueries({ queryKey: ['prendaMia', producto.id] });
   }
 
-  async function subir(archivo: File | undefined) {
-    if (!archivo) return;
+  // Sube una o varias imágenes en serie (selector o arrastre). La primera es la principal solo
+  // si la prenda aún no tenía ninguna. Ignora lo que no sea imagen.
+  async function subirVarias(archivos: File[]) {
+    const imagenes = archivos.filter((a) => a.type.startsWith('image/'));
+    if (imagenes.length === 0) {
+      if (archivos.length > 0) brindis.error('Solo se admiten archivos de imagen');
+      return;
+    }
     setSubiendo(true);
+    let faltaPrincipal = producto.imagenes.length === 0;
     try {
-      const dataUri = await archivoADataUri(archivo, 1200, 0.82);
-      await apiImagenes.crear(producto.id, {
-        base64: dataUri,
-        esPrincipal: producto.imagenes.length === 0,
-        textoAlternativo: producto.nombre,
-      });
+      for (const archivo of imagenes) {
+        const dataUri = await archivoADataUri(archivo, 1200, 0.82);
+        await apiImagenes.crear(producto.id, {
+          base64: dataUri,
+          esPrincipal: faltaPrincipal,
+          textoAlternativo: producto.nombre,
+        });
+        faltaPrincipal = false;
+      }
       invalidar();
-      brindis.exito('Imagen añadida');
+      brindis.exito(imagenes.length > 1 ? `${imagenes.length} imágenes añadidas` : 'Imagen añadida');
     } catch (error) {
       brindis.error(mensajeDeError(error, 'No se pudo subir la imagen'));
     } finally {
       setSubiendo(false);
       if (entrada.current) entrada.current.value = '';
     }
+  }
+
+  function alArrastrarSobre(evento: DragEvent<HTMLLabelElement>) {
+    evento.preventDefault();
+    if (!subiendo) setArrastrando(true);
+  }
+
+  function alSalir(evento: DragEvent<HTMLLabelElement>) {
+    evento.preventDefault();
+    // Evita el parpadeo al pasar por elementos hijos: solo se apaga al salir del recuadro.
+    if (!evento.currentTarget.contains(evento.relatedTarget as Node | null)) setArrastrando(false);
+  }
+
+  function alSoltar(evento: DragEvent<HTMLLabelElement>) {
+    evento.preventDefault();
+    setArrastrando(false);
+    if (subiendo) return;
+    void subirVarias(Array.from(evento.dataTransfer.files));
   }
 
   const marcarPrincipal = useMutation({
@@ -300,35 +330,16 @@ function SeccionImagenes({ producto }: { producto: ProductoDetalle }) {
 
   return (
     <Tarjeta className="p-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-semibold text-tinta-900">Imágenes</h2>
-        <input
-          ref={entrada}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => subir(e.target.files?.[0])}
-        />
-        <Boton
-          variante="secundario"
-          tamano="sm"
-          cargando={subiendo}
-          iconoIzquierda={<ImagePlus className="h-4 w-4" />}
-          onClick={() => entrada.current?.click()}
-        >
-          Subir imagen
-        </Boton>
-      </div>
+      <h2 className="font-display text-lg font-semibold text-tinta-900">Imágenes</h2>
+      <p className="mt-1 text-sm text-tinta-500">
+        Arrastra varias fotos o haz clic para subirlas. La primera será la principal.
+      </p>
 
-      {producto.imagenes.length === 0 ? (
-        <p className="mt-4 rounded-xl bg-sand-50 px-4 py-6 text-center text-sm text-tinta-500">
-          Sube al menos una imagen para que la prenda luzca en el catálogo.
-        </p>
-      ) : (
+      {producto.imagenes.length > 0 && (
         <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
           {producto.imagenes.map((imagen) => (
             <div key={imagen.id} className="group relative overflow-hidden rounded-xl border border-piedra-100 bg-sand-100">
-              <img src={imagen.url} alt={imagen.textoAlternativo ?? ''} className="aspect-square w-full object-cover" />
+              <img src={resolverImagen(imagen.url)} alt={imagen.textoAlternativo ?? ''} className="aspect-square w-full object-cover" />
               {imagen.esPrincipal && (
                 <Insignia tono="galego" className="absolute left-1.5 top-1.5 gap-1">
                   <Star className="h-3 w-3" aria-hidden />
@@ -359,6 +370,45 @@ function SeccionImagenes({ producto }: { producto: ProductoDetalle }) {
           ))}
         </div>
       )}
+
+      {/* Zona de arrastrar y soltar (también clic para seleccionar). */}
+      <label
+        onDragOver={alArrastrarSobre}
+        onDragEnter={alArrastrarSobre}
+        onDragLeave={alSalir}
+        onDrop={alSoltar}
+        className={cx(
+          'mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl2 border-2 border-dashed px-6 py-10 text-center transition-colors',
+          arrastrando
+            ? 'border-atlantic-500 bg-atlantic-50'
+            : 'border-piedra-200 bg-sand-50 hover:border-atlantic-300 hover:bg-atlantic-50/50',
+        )}
+      >
+        <input
+          ref={entrada}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => subirVarias(Array.from(e.target.files ?? []))}
+        />
+        {subiendo ? (
+          <>
+            <Spinner tamano={24} className="text-atlantic-500" />
+            <span className="text-sm font-medium text-tinta-600">Subiendo…</span>
+          </>
+        ) : (
+          <>
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-atlantic-100 text-atlantic-600">
+              <UploadCloud className="h-6 w-6" aria-hidden />
+            </span>
+            <span className="text-sm font-medium text-tinta-700">
+              {arrastrando ? 'Suelta las fotos aquí' : 'Arrastra fotos aquí o haz clic para subir'}
+            </span>
+            <span className="text-xs text-tinta-400">JPG o PNG · varias a la vez · se reducen solas</span>
+          </>
+        )}
+      </label>
     </Tarjeta>
   );
 }

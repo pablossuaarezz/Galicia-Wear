@@ -45,6 +45,12 @@ export function crearAplicacion(): Application {
     max: entorno.RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
+    // No se cuentan recursos estáticos ni el health-check: una página del catálogo con muchas
+    // imágenes de /uploads no debe agotar el cupo de la API (evita 429 espurios en la web).
+    skip: (peticion) =>
+      peticion.path.startsWith('/uploads') ||
+      peticion.path === '/salud' ||
+      peticion.path === '/',
   });
   aplicacion.use(limiteGlobal);
 

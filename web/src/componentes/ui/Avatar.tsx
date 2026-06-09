@@ -23,8 +23,9 @@ export function Avatar({ nombre, url, tamano = 40, className }: PropsAvatar) {
   return (
     <span
       className={cx(
+        // Avatar circular con degradado azul → celeste, igual que fondo_avatar de la app.
         'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full',
-        'bg-atlantic-100 font-display font-semibold text-atlantic-700',
+        'bg-gradient-to-br from-atlantic-500 to-celeste-500 font-display font-bold text-white',
         className,
       )}
       style={{ width: tamano, height: tamano, fontSize: tamano * 0.4 }}

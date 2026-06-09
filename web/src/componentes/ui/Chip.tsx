@@ -13,11 +13,12 @@ export function Chip({ activo = false, iconoIzquierda, className, children, ...r
       type="button"
       aria-pressed={activo}
       className={cx(
-        'inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium',
+        // Chip de filtro Material (Widget.GaliciaWear.Chip): esquinas 12dp y borde celeste.
+        'inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-sm font-semibold',
         'transition-colors duration-200 ease-suave',
         activo
           ? 'border-atlantic-500 bg-atlantic-500 text-white shadow-suave'
-          : 'border-piedra-200 bg-white text-tinta-600 hover:border-atlantic-300 hover:text-atlantic-700',
+          : 'border-celeste-300 bg-white text-atlantic-700 hover:border-celeste-500 hover:bg-atlantic-50',
         className,
       )}
       {...resto}

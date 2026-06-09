@@ -81,7 +81,7 @@ export default function Registro() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-12">
       <div className="mb-7 flex flex-col items-center text-center">
-        <Marca soloIcono className="mb-4" />
+        <Marca variante="icono" alto={68} className="mb-4" />
         <h1 className="font-editorial text-3xl font-semibold text-tinta-900">Únete a GaliciaWear</h1>
         <p className="mt-2 text-sm text-tinta-500">Crea tu cuenta en menos de un minuto.</p>
       </div>

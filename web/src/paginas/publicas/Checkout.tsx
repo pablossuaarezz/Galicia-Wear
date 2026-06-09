@@ -1,8 +1,8 @@
 // Checkout: elegir dirección (o crear una), método de pago y confirmar. Crea el pedido
 // (POST /pedidos) y simula el pago (PATCH /pedidos/:id/pagar, stub), mostrando la confirmación
 // con el número GW-AAAA-NNNNN.
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, CreditCard, MapPin, PartyPopper, Plus } from 'lucide-react';
 import { Boton, EnlaceBoton, EstadoVacio, Modal, Tarjeta } from '@/componentes/ui';
@@ -23,12 +23,11 @@ import type { EntradaDireccion, MetodoPago, Pedido } from '@/api/tipos';
 
 export default function Checkout() {
   usarTitulo('Finalizar compra');
-  const navegar = useNavigate();
   const brindis = usarBrindis();
   const clienteConsultas = useQueryClient();
   const { items, resumen, estaVacio, cargando } = usarCarrito();
   const consultaDirecciones = usarDirecciones();
-  const direcciones = consultaDirecciones.data ?? [];
+  const direcciones = useMemo(() => consultaDirecciones.data ?? [], [consultaDirecciones.data]);
 
   const [direccionId, setDireccionId] = useState<string | null>(null);
   const [metodoPago, setMetodoPago] = useState<MetodoPago>('TARJETA');

@@ -4,18 +4,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/fondo">
+    android:background="@color/fondo"
+    android:fitsSystemWindows="true">
 
+    <!-- El degradado vive en el AppBarLayout y `fitsSystemWindows` añade como padding el inset
+         de la barra de estado: el degradado se extiende DETRÁS de la barra del móvil (iconos
+         blancos) y el título queda por debajo sin chocar. El toolbar va transparente. -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
+        android:background="@drawable/fondo_cabecera"
+        android:fitsSystemWindows="true"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/barra_superior"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
             app:title="@string/nombre_app"
             app:subtitle="@string/slogan_app"
             app:menu="@menu/menu_inicio" />

@@ -308,6 +308,25 @@ export interface Pedido {
   envio: Envio | null;
 }
 
+// ---- Chat (soporte cliente ↔ tienda) ----
+
+export interface ConversacionChat {
+  peerId: string;
+  nombre: string;
+  ultimoMensaje: string;
+  fechaUltimo: string;
+  noLeidos: number;
+}
+
+export interface MensajeChat {
+  id: string;
+  contenido: string;
+  remitenteId: string;
+  remitenteNombre: string;
+  fechaCreacion: string;
+  leido: boolean;
+}
+
 // ---- Notificaciones (origen Mongo: clave _id, no id) ----
 
 export interface Notificacion {

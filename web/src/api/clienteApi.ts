@@ -58,6 +58,11 @@ export function obtenerTokenRefresco(): string | null {
   }
 }
 
+/** Token de acceso vigente (en memoria). Lo usa el cliente de Socket.IO para el handshake. */
+export function obtenerTokenAcceso(): string | null {
+  return tokenAcceso;
+}
+
 export function hayTokenRefresco(): boolean {
   return Boolean(obtenerTokenRefresco());
 }

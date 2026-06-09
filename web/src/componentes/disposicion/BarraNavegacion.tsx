@@ -60,7 +60,7 @@ export function BarraNavegacion() {
   return (
     <header className="sticky top-0 z-40 border-b border-piedra-100 bg-sand-50/85 backdrop-blur-md">
       <ContenedorPagina className="flex h-16 items-center gap-3">
-        <Marca className="shrink-0" />
+        <Marca alto={36} className="shrink-0" />
 
         <nav className="ml-3 hidden items-center gap-1 lg:flex" aria-label="Principal">
           {ENLACES.map((enlace) => (

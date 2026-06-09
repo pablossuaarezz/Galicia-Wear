@@ -22,9 +22,9 @@ const VALORES = [
 function Hero() {
   const reducido = usarMovimientoReducido();
   return (
-    <section className="relative overflow-hidden border-b border-piedra-100 bg-gradient-to-br from-atlantic-50 via-sand-50 to-galego-50">
+    <section className="relative overflow-hidden border-b border-piedra-100 bg-gradient-to-br from-atlantic-100 via-sand-50 to-celeste-100">
       <div
-        className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-atlantic-100/50 blur-3xl"
+        className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-celeste-200/60 blur-3xl"
         aria-hidden
       />
       <ContenedorPagina ancho="ancho" className="relative py-20 sm:py-28">

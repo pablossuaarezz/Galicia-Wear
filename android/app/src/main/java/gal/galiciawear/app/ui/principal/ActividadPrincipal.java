@@ -2,18 +2,23 @@ package gal.galiciawear.app.ui.principal;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import gal.galiciawear.app.R;
 import gal.galiciawear.app.databinding.ActividadPrincipalBinding;
 import gal.galiciawear.app.modelovista.ModeloVistaCarrito;
+import gal.galiciawear.app.sesion.GestorSesion;
 import gal.galiciawear.app.utilidades.Constantes;
 import gal.galiciawear.app.ui.buscador.FragmentoBuscador;
 import gal.galiciawear.app.ui.carrito.FragmentoCarrito;
+import gal.galiciawear.app.ui.disenador.ActividadEditarPrenda;
 import gal.galiciawear.app.ui.inicio.FragmentoInicio;
 import gal.galiciawear.app.ui.notificaciones.FragmentoNotificaciones;
 import gal.galiciawear.app.ui.pedidos.FragmentoPedidos;
@@ -28,8 +33,11 @@ import gal.galiciawear.app.ui.perfil.FragmentoPerfil;
 @AndroidEntryPoint
 public class ActividadPrincipal extends AppCompatActivity {
 
+    @Inject GestorSesion gestorSesion;
+
     private ActividadPrincipalBinding enlace;
     private ModeloVistaCarrito modeloVistaCarrito;
+    private boolean esDisenador;
 
     // Referencias a los fragmentos para attach/detach eficiente
     private final FragmentoInicio fragInicio          = new FragmentoInicio();
@@ -46,11 +54,17 @@ public class ActividadPrincipal extends AppCompatActivity {
         enlace = ActividadPrincipalBinding.inflate(getLayoutInflater());
         setContentView(enlace.getRoot());
 
-        modeloVistaCarrito = new ViewModelProvider(this).get(ModeloVistaCarrito.class);
+        esDisenador = Constantes.ROL_DISENADOR.equals(gestorSesion.obtenerUsuarioRol());
 
         configurarFragmentos();
+        configurarMenuSegunRol();
         configurarNavegacionInferior();
-        observarContadorCarrito();
+        // El diseñador no tiene carrito: ni se crea su ViewModel ni se observa el contador
+        // (su ítem central es "Añadir prenda").
+        if (!esDisenador) {
+            modeloVistaCarrito = new ViewModelProvider(this).get(ModeloVistaCarrito.class);
+            observarContadorCarrito();
+        }
         atenderAperturaDirecta(getIntent());
     }
 
@@ -78,11 +92,28 @@ public class ActividadPrincipal extends AppCompatActivity {
             .commit();
     }
 
+    /**
+     * Para cuentas de DISEÑADOR, el ítem central del menú deja de ser "Carrito" y pasa a ser
+     * "Añadir prenda" con un icono "+". Al pulsarlo se abre el alta de prenda (acción, no pestaña).
+     */
+    private void configurarMenuSegunRol() {
+        if (!esDisenador) return;
+        MenuItem central = enlace.navegacionInferior.getMenu().findItem(R.id.nav_carrito);
+        central.setIcon(R.drawable.ic_mas);
+        central.setTitle(R.string.nav_anadir_prenda);
+    }
+
     private void configurarNavegacionInferior() {
         enlace.navegacionInferior.setOnItemSelectedListener(item -> {
-            Fragment destino;
             int id = item.getItemId();
 
+            // Diseñador: el botón central es una ACCIÓN ("Añadir prenda"), no una pestaña.
+            if (id == R.id.nav_carrito && esDisenador) {
+                startActivity(new Intent(this, ActividadEditarPrenda.class));
+                return false; // no cambia la pestaña seleccionada
+            }
+
+            Fragment destino;
             if (id == R.id.nav_inicio)         destino = fragInicio;
             else if (id == R.id.nav_buscador)  destino = fragBuscador;
             else if (id == R.id.nav_carrito)   destino = fragCarrito;

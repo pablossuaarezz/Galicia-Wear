@@ -34,7 +34,9 @@ const esquemaEntorno = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900000),
-  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
+  // 1000 peticiones / 15 min por IP: holgado para un SPA (catálogo, sondeo, subidas) pero
+  // sigue cortando abuso. El login tiene su propio límite estricto (LOGIN_RATE_LIMIT_MAX).
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(1000),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
 
   // Clave AES-256-GCM para cifrar IBANs (64 chars hex = 32 bytes).

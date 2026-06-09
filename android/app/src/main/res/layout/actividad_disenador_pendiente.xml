@@ -11,7 +11,7 @@
     <ImageView
         android:layout_width="96dp"
         android:layout_height="96dp"
-        android:src="@drawable/ic_logo_galiciawear"
+        android:src="@drawable/logo_vieira_negro"
         android:contentDescription="@string/logo_descripcion"
         android:layout_marginBottom="24dp" />
 

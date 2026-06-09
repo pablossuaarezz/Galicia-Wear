@@ -27,6 +27,13 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
+      // Socket.IO (chat en tiempo real): se proxya con soporte WebSocket (ws: true) para que
+      // el cliente conecte al mismo origen (igual que en producción tras nginx).
+      '/socket.io': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
   test: {
