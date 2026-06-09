@@ -21,7 +21,6 @@ ajusta a la arquitectura prevista:
 - **DI**: Hilt.
 - **UI**: Material Design 3, paleta azul atlántico + verde galego.
 - **Tiempo real**: Socket.IO client + FCM.
-- **AR**: pantalla stub preparada para ARCore (probador de prendas).
 - **Tests**: JUnit 5 + Mockito + Espresso (≥40% cobertura).
 
 ## Pantallas previstas (10)

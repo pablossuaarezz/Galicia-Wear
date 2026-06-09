@@ -9,9 +9,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Vibración para feedback de notificaciones -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Cámara: para la funcionalidad AR (stub ARCore) del detalle de producto -->
+    <!-- Cámara: para subir fotos de perfil y de prendas -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
 
     <application
         android:name=".AppGaliciawear"
@@ -64,7 +63,7 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Detalle de producto con galería, variantes y botón AR stub -->
+        <!-- Detalle de producto con galería y variantes -->
         <activity
             android:name=".ui.detalle.ActividadDetalleProducto"
             android:exported="false"

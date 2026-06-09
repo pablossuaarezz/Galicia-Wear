@@ -56,7 +56,7 @@
 | `app.ts` separado de `index.ts` | Permite tests con Supertest sin abrir puertos. |
 | Web: Vite + Nginx en runtime | Imagen final ~25 MB. Build estático rápido. |
 | Postgres 16 + Mongo 7 alpine | Imagen mínima, soporte LTS. |
-| OAuth Google + ARCore + Firebase como stubs | Eran "opcionales" en el prompt. Se preparan flags en `.env.example`. |
+| OAuth Google + Firebase como stubs | Funcionalidades opcionales; se preparan flags en `.env.example`. |
 | Cobertura objetivo backend ≥60% (Fase 7) | Realista para TFG; supera "testing básico" de la rúbrica. |
 
 ### Pendientes detectados (a resolver en su fase)
@@ -762,7 +762,7 @@ curl -X POST http://localhost:3000/pedidos \
 | 2 | Onboarding (3 slides) | `ActividadIncorporacion` + `AdaptadorIncorporacion` | Ley de Hick: solo 3 pantallas, 2 botones |
 | 3 | Login / Registro | `ActividadAutenticacion` + `FragmentoLogin` + `FragmentoRegistro` | Prevención errores: botón desactivado; errores en TextInputLayout |
 | 4 | Hub principal (5 tabs) | `ActividadPrincipal` + `FragmentoInicio/Buscador/Carrito/Pedidos/Perfil` | Ley de Fitts: BottomNav en zona pulgar; badge carrito |
-| 5 | Detalle producto | `ActividadDetalleProducto` | Chips variantes (Hick); botón AR stub; Snackbar con acción |
+| 5 | Detalle producto | `ActividadDetalleProducto` | Chips variantes (Hick); Snackbar con acción |
 | 6 | Buscador con filtros | `FragmentoBuscador` | Chips certificados (GOTS/OEKO-TEX/GRS); filtros persistentes en ViewModel |
 | 7 | Carrito + Checkout | `FragmentoCarrito` + `ActividadCheckout` | Envío eco switch; ACID en backend |
 | 8 | Mis pedidos | `FragmentoPedidos` + `ActividadDetallePedido` | Tracking + número de seguimiento |

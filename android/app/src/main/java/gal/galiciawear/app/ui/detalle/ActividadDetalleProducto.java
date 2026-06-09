@@ -3,7 +3,6 @@ package gal.galiciawear.app.ui.detalle;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -63,15 +62,6 @@ public class ActividadDetalleProducto extends AppCompatActivity {
 
         // Mantiene el badge del carrito al día también desde el detalle.
         modeloVistaCarrito.cargarCarrito();
-
-        // Botón AR stub — demuestra preparación para ARCore sin implementación completa
-        // JUSTIFICACIÓN: La entrevista con Carlos mencionó RA; lo dejamos como stub
-        // documentado para la defensa oral.
-        enlace.botonVerEnHabitacion.setOnClickListener(v ->
-            Toast.makeText(this,
-                "Realidad Aumentada: requiere ARCore configurado con google-services real",
-                Toast.LENGTH_LONG).show()
-        );
     }
 
     private void cargarProducto(String slug) {

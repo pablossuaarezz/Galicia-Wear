@@ -164,7 +164,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Botones flotantes en la parte inferior — Ley de Fitts -->
+    <!-- Botón flotante en la parte inferior — Ley de Fitts -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -175,19 +175,9 @@
         android:elevation="8dp">
 
         <Button
-            android:id="@+id/boton_ver_en_habitacion"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_weight="1"
-            android:text="@string/ver_en_ar"
-            android:layout_marginEnd="8dp" />
-
-        <Button
             android:id="@+id/boton_anadir_carrito"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:layout_weight="2"
             android:text="@string/añadir_carrito" />
     </LinearLayout>
 

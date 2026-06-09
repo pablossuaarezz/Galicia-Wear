@@ -12,14 +12,13 @@
 GaliciaWear es un **marketplace de moda sostenible local** que conecta a diseñadores
 gallegos con consumidores jóvenes (18-35 años) en A Coruña y Galicia. Ofrece filtros por
 certificados sostenibles (GOTS, OEKO-TEX, km 0), envíos ecológicos vía Correos verde,
-chat directo con el diseñador y un probador de prendas con realidad aumentada.
+chat directo con el diseñador y recomendaciones personalizadas por perfil eco.
 
 ## Diferenciadores
 
 - Filtros por **sostenibilidad** (materiales reciclados, km 0, certificados).
 - Foco **100% en diseñadores gallegos** (no fast fashion global).
 - **Envíos eco** (Correos verde, recogida en punto).
-- **Realidad aumentada** para probar prendas (stub ARCore).
 - **Comunidad y reseñas reales** de compradores verificados.
 - **Recomendaciones personalizadas** por preferencias eco del cliente.
 
@@ -147,7 +146,7 @@ Ver [PROGRESS.md](./PROGRESS.md) para el estado vivo.
 | 2d | ✅ | Módulos `pedidos`, `envios`, `resenas`, `mensajes` |
 | 2e | ✅ | Socket.IO + workers + Swagger + seed |
 | 3 | ✅ | Persistencia avanzada: Mongo + backup.sh + import/export XML/JSON |
-| 4 | ✅ | App Android (10 pantallas, FCM, ARCore stub) |
+| 4 | ✅ | App Android (10 pantallas, FCM, notificaciones) |
 | 5 | ✅ | JavaFX admin + dashboard tiempo real + jpackage |
 | 6 | ✅ | Web completa (storefront + dashboard diseñador) |
 | 7 | ⏳ | Seguridad transversal + cobertura ≥60% + CI completa |
