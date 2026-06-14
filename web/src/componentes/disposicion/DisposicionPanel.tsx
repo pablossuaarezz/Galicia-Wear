@@ -1,6 +1,6 @@
 // Sub-disposición del dashboard del diseñador: encabezado + navegación lateral + contenido.
 import { Outlet } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Store } from 'lucide-react';
+import { LayoutDashboard, MessagesSquare, Package, ShoppingBag, Store } from 'lucide-react';
 import { ContenedorPagina } from './ContenedorPagina';
 import { EncabezadoPagina } from './EncabezadoPagina';
 import { NavLateral, type EnlaceLateral } from './NavLateral';
@@ -10,6 +10,7 @@ const ENLACES: EnlaceLateral[] = [
   { a: '/panel/prendas', texto: 'Mis prendas', Icono: Package },
   { a: '/panel/pedidos', texto: 'Pedidos recibidos', Icono: ShoppingBag },
   { a: '/panel/marca', texto: 'Perfil de marca', Icono: Store },
+  { a: '/mensajes', texto: 'Mensajes', Icono: MessagesSquare },
 ];
 
 export function DisposicionPanel() {

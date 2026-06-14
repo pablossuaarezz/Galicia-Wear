@@ -1,6 +1,6 @@
 // Sub-disposición de la zona de cuenta del cliente: encabezado + navegación lateral + contenido.
 import { Outlet } from 'react-router-dom';
-import { MapPin, Package, User } from 'lucide-react';
+import { MapPin, MessagesSquare, Package, User } from 'lucide-react';
 import { ContenedorPagina } from './ContenedorPagina';
 import { EncabezadoPagina } from './EncabezadoPagina';
 import { NavLateral, type EnlaceLateral } from './NavLateral';
@@ -9,6 +9,7 @@ const ENLACES: EnlaceLateral[] = [
   { a: '/cuenta/perfil', texto: 'Mi perfil', Icono: User },
   { a: '/cuenta/direcciones', texto: 'Mis direcciones', Icono: MapPin },
   { a: '/cuenta/pedidos', texto: 'Mis pedidos', Icono: Package },
+  { a: '/mensajes', texto: 'Mensajes', Icono: MessagesSquare },
 ];
 
 export function DisposicionCuenta() {

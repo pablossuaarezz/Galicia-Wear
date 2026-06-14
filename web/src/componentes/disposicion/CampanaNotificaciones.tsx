@@ -22,7 +22,7 @@ export function CampanaNotificaciones() {
   usarClicFuera(contenedor, () => setAbierto(false), abierto);
 
   function abrirAviso(notif: Notificacion) {
-    marcarLeida(notif._id);
+    marcarLeida(notif.id);
     setAbierto(false);
     const peerId = typeof notif.datos?.peerId === 'string' ? notif.datos.peerId : undefined;
     const pedidoId = typeof notif.datos?.pedidoId === 'string' ? notif.datos.pedidoId : undefined;
@@ -95,7 +95,7 @@ export function CampanaNotificaciones() {
                 <ul>
                   {notificaciones.map((n) => {
                     return (
-                      <li key={n._id}>
+                      <li key={n.id}>
                         <button
                           type="button"
                           onClick={() => abrirAviso(n)}

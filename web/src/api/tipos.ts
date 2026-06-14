@@ -327,18 +327,16 @@ export interface MensajeChat {
   leido: boolean;
 }
 
-// ---- Notificaciones (origen Mongo: clave _id, no id) ----
+// ---- Notificaciones (DTO estable del backend, ver NotificacionDto) ----
 
 export interface Notificacion {
-  _id: string;
-  destinatarioId: string;
+  id: string;
   tipo: TipoNotificacion;
   titulo: string;
   cuerpo: string;
   datos?: Record<string, unknown>;
   leida: boolean;
   fechaCreacion: string;
-  fechaLectura?: string;
 }
 
 // ---- Cuerpos de petición (mutaciones) ----

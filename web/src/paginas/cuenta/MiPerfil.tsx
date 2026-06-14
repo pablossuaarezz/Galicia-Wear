@@ -1,9 +1,11 @@
 // Mi perfil (cliente): datos personales con foto, cambio de contraseña y preferencias de
 // sostenibilidad. Cada bloque es un formulario independiente con su propia mutación.
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Camera, KeyRound, Leaf, Save } from 'lucide-react';
+import { Camera, KeyRound, Leaf, MessagesSquare, Save } from 'lucide-react';
 import { Avatar, Boton, Campo, Chip, Esqueleto, Selector, Tarjeta } from '@/componentes/ui';
+import { ListaConversaciones } from '@/componentes/chat/ListaConversaciones';
 import { usarBrindis } from '@/componentes/ui/Brindis';
 import { usarPerfil } from '@/hooks/usarCuenta';
 import { usarSesion } from '@/contexto/ContextoSesion';
@@ -273,6 +275,25 @@ function PreferenciasEco() {
   );
 }
 
+function MisChats() {
+  return (
+    <Tarjeta className="overflow-hidden p-0">
+      <div className="flex items-center justify-between gap-2 px-6 pt-6">
+        <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold text-tinta-900">
+          <MessagesSquare className="h-5 w-5 text-atlantic-500" aria-hidden />
+          Mis chats
+        </h2>
+        <Link to="/mensajes" className="text-sm font-medium text-atlantic-600 hover:text-atlantic-800">
+          Ver todo
+        </Link>
+      </div>
+      <div className="mt-4 max-h-80 overflow-y-auto border-t border-piedra-100">
+        <ListaConversaciones />
+      </div>
+    </Tarjeta>
+  );
+}
+
 export default function MiPerfil() {
   usarTitulo('Mi perfil');
   const { data: usuario, isLoading } = usarPerfil();
@@ -299,6 +320,7 @@ export default function MiPerfil() {
   return (
     <div className="space-y-6">
       <DatosPersonales />
+      <MisChats />
       <CambioContrasena />
       <PreferenciasEco />
     </div>

@@ -18,7 +18,7 @@
     "prisma:migrate": "prisma migrate dev --schema=../database/schema.prisma",
     "prisma:deploy": "prisma migrate deploy --schema=../database/schema.prisma",
     "prisma:studio": "prisma studio --schema=../database/schema.prisma",
-    "seed": "tsx ../database/seed.ts"
+    "seed": "NODE_PATH=./node_modules tsx ../database/seed.ts"
   },
   "engines": {
     "node": ">=20.0.0"

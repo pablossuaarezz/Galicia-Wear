@@ -1,9 +1,11 @@
 // Perfil de marca del diseñador: si aún no existe, lo solicita (POST /disenadores/solicitar);
 // si existe, lo edita (PATCH /disenadores/yo). El IBAN se cifra en el backend y nunca se devuelve.
 import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { BadgeCheck, Clock, Store } from 'lucide-react';
+import { BadgeCheck, Clock, MessagesSquare, Store } from 'lucide-react';
 import { Boton, Campo, CampoArea, Esqueleto, Insignia, Selector, Tarjeta } from '@/componentes/ui';
+import { ListaConversaciones } from '@/componentes/chat/ListaConversaciones';
 import { usarBrindis } from '@/componentes/ui/Brindis';
 import { usarPerfilMarca } from '@/hooks/usarPanelDisenador';
 import { apiDisenadores } from '@/api/endpoints/disenadores';
@@ -173,6 +175,21 @@ export default function PerfilMarca() {
             </Boton>
           </div>
         </form>
+      </Tarjeta>
+
+      <Tarjeta className="overflow-hidden p-0">
+        <div className="flex items-center justify-between gap-2 px-6 pt-6">
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold text-tinta-900">
+            <MessagesSquare className="h-5 w-5 text-atlantic-500" aria-hidden />
+            Mis chats
+          </h2>
+          <Link to="/mensajes" className="text-sm font-medium text-atlantic-600 hover:text-atlantic-800">
+            Ver todo
+          </Link>
+        </div>
+        <div className="mt-4 max-h-80 overflow-y-auto border-t border-piedra-100">
+          <ListaConversaciones />
+        </div>
       </Tarjeta>
     </div>
   );
