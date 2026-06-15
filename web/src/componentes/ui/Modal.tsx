@@ -17,11 +17,17 @@ interface PropsModal {
   className?: string;
 }
 
+/**
+ * Diálogo modal accesible renderizado en un portal sobre el cuerpo del documento.
+ * Gestiona el cierre con Escape/fondo, el bloqueo del scroll y el enfoque del panel.
+ */
 export function Modal({ abierto, alCerrar, titulo, descripcion, children, pie, className }: PropsModal) {
   const panel = useRef<HTMLDivElement>(null);
   const reducido = usarMovimientoReducido();
   const idTitulo = useId();
 
+  // Mientras el modal está abierto: escucha Escape, bloquea el scroll del fondo y enfoca el panel.
+  // La función de limpieza restaura el listener y el overflow previo al cerrar/desmontar.
   useEffect(() => {
     if (!abierto) return;
     const alTecla = (evento: KeyboardEvent) => {

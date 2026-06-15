@@ -29,12 +29,27 @@ import gal.galiciawear.app.utilidades.Constantes;
 import gal.galiciawear.app.utilidades.EstadoPedidoUi;
 import gal.galiciawear.app.utilidades.FormatoFechas;
 
+/**
+ * Pantalla de detalle de un pedido concreto.
+ * Muestra el número de pedido, su estado actual, el total, el método de pago,
+ * la fecha de creación, los datos de envío y el listado de líneas (productos).
+ * También permite contactar con la tienda (o tiendas, si el pedido incluye
+ * artículos de varios diseñadores) mediante el chat de soporte.
+ * El identificador del pedido a mostrar llega por {@link Constantes#EXTRA_PEDIDO_ID}
+ * en el {@link Intent} que lanza esta actividad.
+ */
 @AndroidEntryPoint
 public class ActividadDetallePedido extends AppCompatActivity {
 
     private ActividadDetallePedidoBinding enlace;
     private ModeloVistaPedidos modeloVista;
 
+    /**
+     * Infla el layout, configura la barra de herramientas con botón de "volver",
+     * obtiene el id del pedido recibido por Intent y lanza la carga del detalle.
+     * Se suscribe al LiveData del ViewModel para reaccionar a los distintos
+     * estados del recurso (cargando, éxito, error) y actualizar la UI en consecuencia.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,11 +63,14 @@ public class ActividadDetallePedido extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        // Recuperamos el id del pedido pasado por el Intent (desde FragmentoPedidos).
         String pedidoId = getIntent().getStringExtra(Constantes.EXTRA_PEDIDO_ID);
         if (pedidoId != null) {
             modeloVista.cargarDetalle(pedidoId);
         }
 
+        // Observamos el LiveData con el resultado de la llamada al backend.
+        // El "Recurso" envuelve los tres posibles estados: cargando, éxito o error.
         modeloVista.observarDetalle().observe(this, recurso -> {
             if (recurso.estaCargando()) {
                 enlace.indicadorCarga.setVisibility(View.VISIBLE);
@@ -60,11 +78,19 @@ public class ActividadDetallePedido extends AppCompatActivity {
                 enlace.indicadorCarga.setVisibility(View.GONE);
                 mostrarDetalle(recurso.datos);
             } else if (recurso.esError()) {
+                // En caso de error simplemente ocultamos el indicador de carga;
+                // la pantalla queda vacía (no se muestra un mensaje específico aquí).
                 enlace.indicadorCarga.setVisibility(View.GONE);
             }
         });
     }
 
+    /**
+     * Vuelca los datos del pedido recibido del backend en las vistas:
+     * título de la barra de herramientas, badge de estado, total, método de pago,
+     * fecha, datos de seguimiento del envío y lista de líneas del pedido.
+     * Por último configura el botón de contacto con la(s) tienda(s).
+     */
     private void mostrarDetalle(DtoRespuestaPedido pedido) {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(getString(R.string.pedido_numero, pedido.numeroPedido));
@@ -127,6 +153,10 @@ public class ActividadDetallePedido extends AppCompatActivity {
         });
     }
 
+    /**
+     * Muestra un diálogo con la lista de tiendas (diseñadores) presentes en el pedido
+     * para que el usuario elija con cuál quiere abrir el chat de soporte.
+     */
     private void mostrarSelectorTienda(Map<String, String> tiendas) {
         List<String> ids = new ArrayList<>(tiendas.keySet());
         String[] nombres = tiendas.values().toArray(new String[0]);
@@ -137,6 +167,7 @@ public class ActividadDetallePedido extends AppCompatActivity {
             .show();
     }
 
+    /** Abre la pantalla de chat con la tienda/diseñador indicado, pasando su id y nombre. */
     private void abrirChatTienda(String disenadorId, String nombreMarca) {
         Intent intent = new Intent(this, ActividadChat.class);
         intent.putExtra(Constantes.EXTRA_DISENADOR_ID, disenadorId);
@@ -155,6 +186,7 @@ public class ActividadDetallePedido extends AppCompatActivity {
         }
     }
 
+    /** Al pulsar la flecha de "volver" de la barra de herramientas, cierra la actividad. */
     @Override
     public boolean onSupportNavigateUp() {
         finish();

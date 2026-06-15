@@ -16,12 +16,17 @@ public class FragmentoIncorporacion extends Fragment {
 
     private FragmentoIncorporacionBinding enlace;
 
+    /** Infla el layout de la slide mediante ViewBinding. */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
         enlace = FragmentoIncorporacionBinding.inflate(inflater, container, false);
         return enlace.getRoot();
     }
 
+    /**
+     * Lee los argumentos del fragmento (título, descripción e icono, pasados
+     * por {@link AdaptadorIncorporacion}) y los aplica a las vistas correspondientes.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -33,6 +38,7 @@ public class FragmentoIncorporacion extends Fragment {
         }
     }
 
+    /** Libera la referencia al ViewBinding para evitar fugas de memoria. */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

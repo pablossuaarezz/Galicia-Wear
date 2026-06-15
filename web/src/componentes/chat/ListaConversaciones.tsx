@@ -6,6 +6,18 @@ import { usarConversaciones } from '@/hooks/usarConversaciones';
 import { formatoTiempoRelativo } from '@/util/formatos';
 import { cx } from '@/util/cx';
 
+/**
+ * Bandeja lateral con la lista de conversaciones del usuario, ordenadas por el hook
+ * `usarConversaciones` (típicamente por fecha del último mensaje).
+ *
+ * Cada elemento muestra el avatar del interlocutor, su nombre, el texto del último mensaje,
+ * el tiempo relativo desde ese mensaje y un contador de mensajes no leídos (si los hay).
+ * El elemento correspondiente a la conversación abierta actualmente se resalta.
+ *
+ * @param peerActivo - Identificador del interlocutor de la conversación abierta actualmente
+ *                      (para resaltar el elemento correspondiente en la lista).
+ * @returns Lista de conversaciones, esqueletos de carga o estado vacío según corresponda.
+ */
 export function ListaConversaciones({ peerActivo }: { peerActivo?: string }) {
   const { data: conversaciones = [], isLoading } = usarConversaciones();
 
@@ -63,6 +75,7 @@ export function ListaConversaciones({ peerActivo }: { peerActivo?: string }) {
                   {conversacion.ultimoMensaje}
                 </p>
                 {conversacion.noLeidos > 0 && (
+                  // El contador de no leídos se trunca a "99+" para no desbordar el badge.
                   <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-atlantic-500 px-1.5 text-[11px] font-bold text-white">
                     {conversacion.noLeidos > 99 ? '99+' : conversacion.noLeidos}
                   </span>

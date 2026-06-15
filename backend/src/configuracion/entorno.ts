@@ -6,8 +6,19 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
 
+// Carga las variables definidas en el archivo `.env` (si existe) en `process.env`,
+// para que estén disponibles antes de validar el esquema.
 dotenv.config();
 
+/**
+ * Esquema de validación (zod) de todas las variables de entorno que necesita el backend.
+ *
+ * Cada campo define su tipo, restricciones (mínimos, formatos, enumeraciones) y, en la
+ * mayoría de los casos, un valor por defecto pensado para desarrollo local. Validar el
+ * entorno al arrancar permite detectar configuraciones incorrectas o incompletas de
+ * forma inmediata (fail-fast) en lugar de obtener errores difíciles de depurar en
+ * tiempo de ejecución.
+ */
 const esquemaEntorno = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -52,11 +63,23 @@ const esquemaEntorno = z.object({
   FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
 });
 
+/** Tipo TypeScript inferido automáticamente a partir del esquema zod anterior. */
 export type Entorno = z.infer<typeof esquemaEntorno>;
 
+/**
+ * Configuración de entorno validada y con tipos, lista para usar en toda la aplicación.
+ *
+ * `esquemaEntorno.parse(process.env)` lanza una excepción si alguna variable obligatoria
+ * falta o no cumple el formato esperado, deteniendo el arranque del proceso de forma
+ * inmediata (fail-fast) en lugar de propagar un error más adelante en tiempo de ejecución.
+ */
 export const entorno: Entorno = esquemaEntorno.parse(process.env);
 
-// Atajos semánticos en castellano para uso interno
+// Atajos semánticos en castellano para uso interno: evitan comparaciones repetidas
+// de cadenas (`entorno.NODE_ENV === '...'`) repartidas por todo el código.
+/** `true` si el backend se ejecuta en el entorno de producción. */
 export const esProduccion = entorno.NODE_ENV === 'production';
+/** `true` si el backend se ejecuta en el entorno de desarrollo local. */
 export const esDesarrollo = entorno.NODE_ENV === 'development';
+/** `true` si el backend se ejecuta durante la ejecución de tests automatizados. */
 export const esPruebas = entorno.NODE_ENV === 'test';

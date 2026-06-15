@@ -10,18 +10,27 @@ import com.google.gson.annotations.SerializedName;
  *    solo se envía el que corresponda.
  */
 public class DtoPeticionImagen {
+    /** URL de una imagen ya existente (alternativa excluyente con {@link #base64}). */
     @SerializedName("url")
     public final String url;
 
+    /** Foto elegida en el dispositivo, codificada como data URI base64 (alternativa excluyente con {@link #url}). */
     @SerializedName("base64")
     public final String base64;
 
+    /** Texto alternativo (accesibilidad/SEO) de la imagen. */
     @SerializedName("textoAlternativo")
     public final String textoAlternativo;
 
+    /** Indica si esta imagen debe marcarse como la imagen principal del producto. */
     @SerializedName("esPrincipal")
     public final boolean esPrincipal;
 
+    /**
+     * Constructor privado de uso interno; las instancias se crean mediante
+     * los métodos de fábrica {@link #desdeUrl} o {@link #desdeBase64}, que
+     * garantizan que solo uno de {@code url}/{@code base64} tenga valor.
+     */
     private DtoPeticionImagen(String url, String base64, String textoAlternativo, boolean esPrincipal) {
         this.url              = url;
         this.base64           = base64;

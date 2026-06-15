@@ -25,11 +25,13 @@ public class ControladorImportExport implements ControladorVista {
         this.contexto = contexto;
     }
 
+    // Los cuatro manejadores FXML delegan en exportar/importar indicando el formato.
     @FXML private void exportarJson() { exportar("json"); }
     @FXML private void exportarXml() { exportar("xml"); }
     @FXML private void importarJson() { importar("json"); }
     @FXML private void importarXml() { importar("xml"); }
 
+    /** Pide al backend el catálogo en el formato indicado y, al recibirlo, lo guarda en un fichero local. */
     private void exportar(String formato) {
         registrar("Descargando catálogo en " + formato.toUpperCase() + "...");
         EjecutorTareas.ejecutar(
@@ -38,6 +40,7 @@ public class ControladorImportExport implements ControladorVista {
                 error -> Alertas.error("Error al exportar", mensajeDe(error)));
     }
 
+    /** Abre un diálogo de guardado y escribe el contenido exportado en el fichero elegido (UTF-8). */
     private void guardarEnFichero(String formato, String contenido) {
         FileChooser selector = new FileChooser();
         selector.setInitialFileName("galiciawear_productos." + formato);
@@ -56,6 +59,7 @@ public class ControladorImportExport implements ControladorVista {
         }
     }
 
+    /** Abre un fichero local del formato indicado, lo lee y lo envía al backend para importación masiva. */
     private void importar(String formato) {
         FileChooser selector = new FileChooser();
         selector.getExtensionFilters().add(
@@ -78,6 +82,7 @@ public class ControladorImportExport implements ControladorVista {
                 error -> Alertas.error("Error al importar", mensajeDe(error)));
     }
 
+    /** Compone un resumen textual de la importación (creados, actualizados y errores por fila). */
     private void mostrarResultado(ResultadoImportacion resultado) {
         StringBuilder texto = new StringBuilder();
         texto.append("Importación completada.\n")
@@ -94,14 +99,17 @@ public class ControladorImportExport implements ControladorVista {
         registrar(texto.toString());
     }
 
+    /** Escribe un mensaje en el área de resultado de la vista. */
     private void registrar(String mensaje) {
         areaResultado.setText(mensaje);
     }
 
+    /** Ventana actual (necesaria como propietaria de los diálogos de fichero); null si la escena no está montada. */
     private Window ventana() {
         return areaResultado.getScene() == null ? null : areaResultado.getScene().getWindow();
     }
 
+    /** Mensaje legible del error: el del backend si es ErrorApi, o uno genérico de red. */
     private String mensajeDe(Throwable error) {
         return error instanceof ErrorApi ? error.getMessage() : "No se pudo conectar con el servidor";
     }

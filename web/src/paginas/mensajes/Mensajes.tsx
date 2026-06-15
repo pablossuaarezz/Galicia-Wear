@@ -11,6 +11,10 @@ import { usarConversaciones } from '@/hooks/usarConversaciones';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { cx } from '@/util/cx';
 
+/**
+ * Página de mensajería: lista de conversaciones + hilo activo. En escritorio se ven dos columnas;
+ * en móvil se muestra la lista o, si hay :peerId en la ruta, el hilo a pantalla completa.
+ */
 export default function Mensajes() {
   usarTitulo('Mensajes');
   const { peerId } = useParams<{ peerId: string }>();
@@ -18,6 +22,7 @@ export default function Mensajes() {
   const navegar = useNavigate();
   const { data: conversaciones = [] } = usarConversaciones();
 
+  // Nombre del interlocutor: el de la conversación si está cargada; si no, el pasado por router state.
   const nombreEstado = (ubicacion.state as { nombre?: string } | null)?.nombre;
   const nombrePeer = conversaciones.find((c) => c.peerId === peerId)?.nombre ?? nombreEstado;
 

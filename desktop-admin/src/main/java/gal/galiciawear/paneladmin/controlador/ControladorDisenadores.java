@@ -35,8 +35,13 @@ public class ControladorDisenadores implements ControladorVista {
         this.contexto = contexto;
     }
 
+    /**
+     * Inicialización FXML: configura cómo extrae cada columna su valor del modelo Disenador,
+     * rellena el combo de filtro (por defecto Pendientes) y carga la tabla por primera vez.
+     */
     @FXML
     private void initialize() {
+        // setCellValueFactory define qué propiedad del modelo muestra cada columna.
         colMarca.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().nombreMarca()));
         colCiudad.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().ciudad()));
         colValidado.setCellValueFactory(d ->
@@ -50,6 +55,7 @@ public class ControladorDisenadores implements ControladorVista {
         refrescar();
     }
 
+    /** Recarga la tabla aplicando el filtro de estado (null = todos) mediante una llamada en segundo plano. */
     @FXML
     private void refrescar() {
         Boolean validado = switch (filtroEstado.getValue()) {
@@ -63,16 +69,19 @@ public class ControladorDisenadores implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Acción del botón Aprobar: valida (true) al diseñador seleccionado. */
     @FXML
     private void aprobar() {
         validar(true);
     }
 
+    /** Acción del botón Rechazar: marca como no validado (false) al diseñador seleccionado. */
     @FXML
     private void rechazar() {
         validar(false);
     }
 
+    /** Envía la decisión de validación del diseñador seleccionado y recarga la tabla al terminar. */
     private void validar(boolean aprobar) {
         Disenador seleccionado = tabla.getSelectionModel().getSelectedItem();
         if (seleccionado == null) {
@@ -85,6 +94,7 @@ public class ControladorDisenadores implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Mensaje legible del error: el del backend si es ErrorApi, o uno genérico de red. */
     private String mensajeDe(Throwable error) {
         return error instanceof ErrorApi ? error.getMessage() : "No se pudo conectar con el servidor";
     }

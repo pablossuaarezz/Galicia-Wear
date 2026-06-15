@@ -1,4 +1,7 @@
-// Mis pedidos (cliente): lista cronológica con estado, número y total. Enlaza al detalle.
+// Mis pedidos (área cliente): página que lista de forma cronológica todos los pedidos realizados
+// por el usuario, mostrando para cada uno su número, estado (insignia), fecha, número de artículos
+// y total. Cada fila enlaza con la página de detalle del pedido correspondiente. Si el cliente no
+// tiene pedidos se muestra un estado vacío que invita a explorar el catálogo.
 import { Link } from 'react-router-dom';
 import { ChevronRight, Package } from 'lucide-react';
 import { EnlaceBoton, EstadoVacio, Esqueleto, Tarjeta } from '@/componentes/ui';
@@ -7,6 +10,13 @@ import { usarPedidos } from '@/hooks/usarPedidos';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { formatoFecha, formatoPrecio } from '@/util/formatos';
 
+/**
+ * Página de listado de pedidos del cliente.
+ *
+ * Obtiene los pedidos con el hook `usarPedidos`. Mientras cargan muestra esqueletos; si no hay
+ * ninguno muestra un estado vacío con enlace al catálogo; en caso contrario renderiza una tarjeta
+ * por pedido enlazada a su detalle.
+ */
 export default function MisPedidos() {
   usarTitulo('Mis pedidos');
   const { data: pedidos = [], isLoading } = usarPedidos();
@@ -35,6 +45,7 @@ export default function MisPedidos() {
   return (
     <div className="space-y-3">
       {pedidos.map((pedido) => {
+        // Suma el total de unidades del pedido recorriendo sus líneas (para mostrar "N artículos").
         const unidades = pedido.lineas.reduce((suma, l) => suma + l.cantidad, 0);
         return (
           <Link key={pedido.id} to={`/cuenta/pedidos/${pedido.id}`}>

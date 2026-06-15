@@ -30,6 +30,7 @@ public class ControladorLogs implements ControladorVista {
         this.contexto = contexto;
     }
 
+    /** Inicialización FXML: enlaza columnas con el modelo LogActividad y carga el primer listado. */
     @FXML
     private void initialize() {
         colFecha.setCellValueFactory(l -> new SimpleStringProperty(l.getValue().fechaCreacion()));
@@ -44,6 +45,7 @@ public class ControladorLogs implements ControladorVista {
         refrescar();
     }
 
+    /** Recarga los logs filtrando por acción y recurso (campos opcionales), en segundo plano. */
     @FXML
     private void refrescar() {
         String accion = campoAccion.getText();
@@ -54,6 +56,7 @@ public class ControladorLogs implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Mensaje legible del error: el del backend si es ErrorApi, o uno genérico de red. */
     private String mensajeDe(Throwable error) {
         return error instanceof ErrorApi ? error.getMessage() : "No se pudo conectar con el servidor";
     }

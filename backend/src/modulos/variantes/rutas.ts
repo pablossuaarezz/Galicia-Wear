@@ -1,4 +1,7 @@
-// Router montado bajo /productos/:productoId/variantes (mergeParams para heredar el param)
+// Router montado bajo /productos/:productoId/variantes (mergeParams para heredar el param).
+// Define las rutas Express para gestionar las variantes (talla/color/SKU/stock)
+// de un producto concreto, encadenando autenticación, autorización por rol
+// (solo diseñador) y validación de cuerpo donde corresponda.
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { soloDisenador } from '../../middlewares/rbac';

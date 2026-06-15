@@ -1,3 +1,12 @@
+/**
+ * Rutas del módulo Direcciones.
+ *
+ * Define el router de Express para la gestión de direcciones de envío del
+ * usuario autenticado, incluyendo la documentación OpenAPI/Swagger de cada
+ * endpoint. Todas las rutas requieren autenticación (`verificarJwt`) y las
+ * operaciones de creación/actualización validan el cuerpo de la petición
+ * mediante los DTOs `dtoCrearDireccion` y `dtoActualizarDireccion`.
+ */
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { validar } from '../../middlewares/validacion';

@@ -27,6 +27,7 @@ public class GestorSesion {
         this.preferencias = preferencias;
     }
 
+    /** Persiste la sesión completa (tokens y datos del usuario) tras un login correcto. */
     public void guardarSesion(String tokenAcceso, String tokenRefresco,
                               String usuarioId, String correo, String rol) {
         preferencias.put(CLAVE_ACCESO, tokenAcceso);
@@ -41,6 +42,8 @@ public class GestorSesion {
         preferencias.put(CLAVE_ACCESO, tokenAcceso);
         preferencias.put(CLAVE_REFRESCO, tokenRefresco);
     }
+
+    // Los getters devuelven null (en vez de cadena vacía) cuando el dato no está almacenado.
 
     public String getTokenAcceso() {
         return vacioANull(preferencias.get(CLAVE_ACCESO, ""));
@@ -58,18 +61,22 @@ public class GestorSesion {
         return vacioANull(preferencias.get(CLAVE_CORREO, ""));
     }
 
+    /** Indica si hay token de refresco almacenado (sesión recuperable). */
     public boolean hayRefresco() {
         return getTokenRefresco() != null;
     }
 
+    /** Indica si hay sesión activa (existe token de acceso). */
     public boolean estaAutenticado() {
         return getTokenAcceso() != null;
     }
 
+    /** Indica si el usuario de la sesión tiene rol ADMIN. */
     public boolean esAdmin() {
         return "ADMIN".equals(getRol());
     }
 
+    /** Borra todos los datos de la sesión del almacén de preferencias (logout). */
     public void limpiar() {
         preferencias.remove(CLAVE_ACCESO);
         preferencias.remove(CLAVE_REFRESCO);

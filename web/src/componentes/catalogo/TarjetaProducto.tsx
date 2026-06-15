@@ -10,11 +10,26 @@ import { resolverImagen } from '@/util/imagenes';
 import { CERTIFICADOS, CIUDADES, MATERIALES } from '@/util/constantes';
 import type { ProductoResumen } from '@/api/tipos';
 
+/**
+ * Tarjeta de producto del catálogo.
+ *
+ * Muestra la primera imagen de la prenda (con zoom sutil al pasar el ratón), un distintivo de
+ * "km0" o distancia si el origen está a 100 km o menos, la marca, el nombre, el material y
+ * ciudad del diseñador, hasta 3 certificados de sostenibilidad y el precio formateado.
+ * Si la imagen falla al cargar (o no existe), se muestra un placeholder con el material
+ * principal de la prenda. La tarjeta completa enlaza al detalle del producto.
+ *
+ * @param producto - Resumen del producto a mostrar en la tarjeta.
+ * @returns Tarjeta enlazada a `/producto/:slug`.
+ */
 export function TarjetaProducto({ producto }: { producto: ProductoResumen }) {
+  // Controla si la carga de la imagen ha fallado, para mostrar el placeholder en su lugar.
   const [falloImagen, setFalloImagen] = useState(false);
   const imagen = producto.imagenes[0];
+  // Solo se muestra la foto si existe una URL válida y no ha fallado previamente al cargar.
   const hayFoto = Boolean(imagen?.url) && !falloImagen;
   const alt = imagen?.textoAlternativo ?? producto.nombre;
+  // Se limita a 3 certificados para no sobrecargar visualmente la tarjeta.
   const certificados = producto.certificados.slice(0, 3);
 
   return (
@@ -38,6 +53,7 @@ export function TarjetaProducto({ producto }: { producto: ProductoResumen }) {
           </div>
         )}
 
+        {/* Distintivo de proximidad: solo se muestra si el origen está a 100 km o menos. */}
         {producto.kmOrigen <= 100 && (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-galego-700 shadow-suave backdrop-blur">
             <MapPin className="h-3 w-3" aria-hidden />

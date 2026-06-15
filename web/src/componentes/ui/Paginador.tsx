@@ -9,7 +9,9 @@ interface PropsPaginador {
   alCambiar: (pagina: number) => void;
 }
 
+/** Controles de paginación (anterior/indicador/siguiente); no renderiza nada si solo hay una página. */
 export function Paginador({ pagina, total, limite, alCambiar }: PropsPaginador) {
+  // Número de páginas a partir del total de elementos y el tamaño de página.
   const totalPaginas = Math.max(1, Math.ceil(total / limite));
   if (totalPaginas <= 1) return null;
 

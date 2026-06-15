@@ -13,10 +13,12 @@ public final class Json {
     private Json() {
     }
 
+    /** Devuelve el ObjectMapper compartido (configurado para tolerar campos desconocidos). */
     public static ObjectMapper mapper() {
         return MAPPER;
     }
 
+    /** Parsea una cadena JSON a su árbol de nodos; lanza RuntimeException si el JSON no es válido. */
     public static JsonNode leerArbol(String json) {
         try {
             return MAPPER.readTree(json);
@@ -25,6 +27,7 @@ public final class Json {
         }
     }
 
+    /** Convierte un nodo JSON al tipo indicado (deserialización a un record/POJO del modelo). */
     public static <T> T convertir(JsonNode nodo, Class<T> tipo) {
         try {
             return MAPPER.treeToValue(nodo, tipo);
@@ -33,6 +36,7 @@ public final class Json {
         }
     }
 
+    /** Serializa un objeto a su representación JSON en texto. */
     public static String escribir(Object objeto) {
         try {
             return MAPPER.writeValueAsString(objeto);

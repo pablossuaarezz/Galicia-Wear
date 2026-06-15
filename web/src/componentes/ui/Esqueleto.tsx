@@ -1,6 +1,7 @@
 // Esqueleto de carga con efecto "shimmer" (se neutraliza con prefers-reduced-motion vía CSS).
 import { cx } from '@/util/cx';
 
+/** Marcador de posición animado (skeleton) para mostrar mientras se cargan los datos. */
 export function Esqueleto({ className }: { className?: string }) {
   return (
     <span

@@ -15,6 +15,7 @@ import javafx.stage.Stage;
  */
 public class AplicacionPanel extends Application {
 
+    /** Construye el contexto de dependencias y la navegación, y abre la pantalla de login. */
     @Override
     public void start(Stage escenario) {
         Contexto contexto = new Contexto(Configuracion.urlBaseApi());
@@ -26,6 +27,7 @@ public class AplicacionPanel extends Application {
         navegacion.mostrarLogin();
     }
 
+    /** Al cerrar la aplicación, apaga el pool de hilos de tareas en segundo plano. */
     @Override
     public void stop() {
         EjecutorTareas.apagar();

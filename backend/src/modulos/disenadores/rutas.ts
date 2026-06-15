@@ -1,3 +1,8 @@
+// Definición de rutas Express del módulo de diseñadores.
+// Conecta cada endpoint con su middleware de autenticación/autorización,
+// su validación de cuerpo (zod) mediante `validar(dto)` y su controlador.
+// La documentación OpenAPI de cada ruta se genera a partir de los bloques
+// de comentarios `@openapi` situados justo encima de cada definición.
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { soloAdmin, soloDisenador } from '../../middlewares/rbac';
@@ -26,6 +31,8 @@ export const rutasDisenadores = Router();
  *     responses:
  *       200: { description: Lista paginada de diseñadores }
  */
+// Ruta pública (sin autenticación): cualquiera puede consultar el listado de
+// diseñadores validados.
 rutasDisenadores.get('/', controladorDisenadores.listar);
 
 /**
@@ -39,6 +46,10 @@ rutasDisenadores.get('/', controladorDisenadores.listar);
  *       201: { description: Perfil de diseñador creado }
  *       409: { description: Ya existe un perfil de diseñador }
  */
+// Requiere: usuario autenticado (verificarJwt), con rol diseñador (soloDisenador)
+// y cuerpo válido según dtoSolicitarDisenador (validar). El orden de los
+// middlewares es importante: primero se autentica, luego se autoriza el rol
+// y por último se valida el payload antes de llegar al controlador.
 rutasDisenadores.post(
   '/solicitar',
   verificarJwt,
@@ -95,6 +106,7 @@ rutasDisenadores.patch(
  *       200: { description: Estado de validación actualizado }
  *       404: { description: Diseñador no encontrado }
  */
+// Acción administrativa: requiere rol admin (soloAdmin) además de autenticación.
 rutasDisenadores.patch(
   '/:id/validar',
   verificarJwt,
@@ -119,4 +131,7 @@ rutasDisenadores.patch(
  *       404: { description: Diseñador no encontrado o no validado }
  */
 // IMPORTANTE: esta ruta va al final para no capturar /solicitar o /yo
+// Express resuelve las rutas en orden de declaración; si '/:id' estuviera
+// antes, capturaría las peticiones a '/solicitar' y '/yo' como si "id" fuera
+// el literal "solicitar" o "yo".
 rutasDisenadores.get('/:id', controladorDisenadores.obtener);

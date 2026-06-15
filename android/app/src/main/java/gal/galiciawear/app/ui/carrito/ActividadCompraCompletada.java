@@ -33,6 +33,12 @@ public class ActividadCompraCompletada extends AppCompatActivity {
     private ActividadCompraCompletadaBinding enlace;
     private String pedidoId;
 
+    /**
+     * Recupera del {@link Intent} los datos del pedido recién creado (id,
+     * número, total, método de pago y si el envío es ecológico), pinta el
+     * resumen en pantalla, lanza la animación de entrada y configura los
+     * botones para ver el detalle del pedido o volver a la pantalla principal.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +59,11 @@ public class ActividadCompraCompletada extends AppCompatActivity {
         enlace.botonSeguirComprando.setOnClickListener(v -> volverAlInicio());
     }
 
+    /**
+     * Rellena los textos de la pantalla con el resumen del pedido: número de
+     * pedido (con prefijo "#" o un guion si no se recibió), total formateado
+     * en euros, método de pago y tipo de entrega (ecológica o estándar).
+     */
     private void pintarResumen(String numero, double total, String metodo, boolean eco) {
         enlace.textoNumeroPedido.setText(
             numero != null && !numero.isEmpty() ? "#" + numero : "—");
@@ -81,6 +92,13 @@ public class ActividadCompraCompletada extends AppCompatActivity {
         animarTexto(enlace.textoSubtitulo, 360);
     }
 
+    /**
+     * Anima la aparición de una vista de texto: aparece con un leve
+     * desplazamiento vertical y desvanecido, tras el retardo indicado.
+     *
+     * @param vista vista de texto a animar
+     * @param retardo milisegundos de espera antes de iniciar la animación
+     */
     private void animarTexto(android.view.View vista, long retardo) {
         vista.setAlpha(0f);
         vista.setTranslationY(40f);
@@ -92,6 +110,7 @@ public class ActividadCompraCompletada extends AppCompatActivity {
             .start();
     }
 
+    /** Abre la pantalla de detalle del pedido recién creado (si se dispone de su id) y cierra esta pantalla. */
     private void abrirDetallePedido() {
         if (pedidoId != null) {
             Intent intent = new Intent(this, ActividadDetallePedido.class);
@@ -101,6 +120,12 @@ public class ActividadCompraCompletada extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Vuelve a la pantalla principal limpiando el stack de actividades
+     * (FLAG_ACTIVITY_CLEAR_TOP + FLAG_ACTIVITY_SINGLE_TOP), de forma que el
+     * usuario no pueda regresar al checkout ni a esta pantalla con el botón
+     * atrás.
+     */
     private void volverAlInicio() {
         Intent intent = new Intent(this, ActividadPrincipal.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);

@@ -37,6 +37,7 @@ public class ControladorDashboard implements ControladorVista {
         this.contexto = contexto;
     }
 
+    /** Crea y arranca el servicio periódico que recarga las estadísticas cada 15 segundos. */
     @FXML
     private void initialize() {
         servicio = new ScheduledService<>() {
@@ -56,11 +57,13 @@ public class ControladorDashboard implements ControladorVista {
         servicio.start();
     }
 
+    /** Fuerza una recarga inmediata reiniciando el servicio periódico. */
     @FXML
     private void refrescar() {
         servicio.restart();
     }
 
+    /** Al abandonar la vista, cancela el servicio periódico para no seguir consultando en segundo plano. */
     @Override
     public void alSalir() {
         if (servicio != null) {
@@ -68,6 +71,7 @@ public class ControladorDashboard implements ControladorVista {
         }
     }
 
+    /** Vuelca las estadísticas recibidas en las tarjetas de KPIs y en el gráfico de pedidos por estado. */
     private void pintar(Estadisticas e) {
         panelTarjetas.getChildren().setAll(
                 tarjeta("Usuarios", String.valueOf(e.totalUsuarios()), false),
@@ -87,6 +91,7 @@ public class ControladorDashboard implements ControladorVista {
         etiquetaActualizado.setText("Actualizado a las " + LocalTime.now().format(HORA));
     }
 
+    /** Construye una tarjeta de KPI (valor grande + etiqueta); resalta en rojo si {@code alerta} es true. */
     private Node tarjeta(String etiqueta, String valor, boolean alerta) {
         Label valorLabel = new Label(valor);
         valorLabel.getStyleClass().add("tarjeta-valor");

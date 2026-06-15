@@ -19,11 +19,16 @@ import type {
   EntradaSolicitarDisenador,
 } from '@/api/tipos';
 
+/**
+ * Página del perfil de marca: si el diseñador aún no tiene marca, la solicita (alta); si ya existe,
+ * permite editarla. Incluye además un resumen de los chats. El IBAN se cifra en el backend.
+ */
 export default function PerfilMarca() {
   usarTitulo('Perfil de marca');
   const clienteConsultas = useQueryClient();
   const brindis = usarBrindis();
   const consulta = usarPerfilMarca();
+  // Si la consulta da error (404) el diseñador aún no tiene marca: estamos en modo alta.
   const marca: DisenadorPublico | undefined = consulta.isError ? undefined : consulta.data;
   const esEdicion = Boolean(marca);
 
@@ -45,6 +50,7 @@ export default function PerfilMarca() {
     }
   }, [marca]);
 
+  // Mutación que decide entre alta (solicitar) y edición (actualizar) según `esEdicion`.
   const guardar = useMutation({
     mutationFn: () => {
       const comun = {

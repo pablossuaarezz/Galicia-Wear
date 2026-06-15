@@ -1,4 +1,8 @@
-// Mis direcciones: alta, edición, borrado y marcado de dirección principal.
+// Mis direcciones (área cliente): página del libro de direcciones del usuario. Permite el alta
+// de nuevas direcciones, la edición de las existentes, su borrado y marcar una como principal.
+// Cada dirección se muestra como una tarjeta con sus acciones; las altas/ediciones se realizan en
+// un modal con `FormularioDireccion`, y el borrado se confirma en un segundo modal. La dirección
+// principal es la que se preselecciona en el proceso de compra (checkout).
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Home, MapPin, Pencil, Plus, Star, Trash2 } from 'lucide-react';
@@ -11,20 +15,35 @@ import { usarTitulo } from '@/hooks/usarTitulo';
 import { mensajeDeError } from '@/util/validacion';
 import type { Direccion, EntradaDireccion } from '@/api/tipos';
 
+/**
+ * Página de gestión del libro de direcciones del cliente.
+ *
+ * Lista las direcciones guardadas (mediante el hook `usarDirecciones`) y ofrece operaciones de
+ * alta, edición, borrado y marcado de principal a través de mutaciones de React Query. Mantiene
+ * tres piezas de estado local: la visibilidad del modal de formulario, la dirección que se está
+ * editando (o `null` si es un alta) y la dirección pendiente de eliminar (para el modal de
+ * confirmación).
+ */
 export default function MisDirecciones() {
   usarTitulo('Mis direcciones');
   const clienteConsultas = useQueryClient();
   const brindis = usarBrindis();
   const { data: direcciones = [], isLoading } = usarDirecciones();
 
+  // Estado de la interfaz: control del modal de alta/edición, dirección en edición y dirección
+  // marcada para borrado.
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState<Direccion | null>(null);
   const [aEliminar, setAEliminar] = useState<Direccion | null>(null);
 
+  // Invalida la caché del listado de direcciones para forzar su recarga tras cualquier mutación.
   function invalidar() {
     clienteConsultas.invalidateQueries({ queryKey: ['direcciones'] });
   }
 
+  // Mutación de guardado que sirve tanto para crear como para actualizar: si hay una dirección
+  // en edición se llama a `actualizar`, en caso contrario a `crear`. Al terminar cierra el modal
+  // y limpia el estado de edición.
   const guardar = useMutation({
     mutationFn: (datos: EntradaDireccion) =>
       editando ? apiDirecciones.actualizar(editando.id, datos) : apiDirecciones.crear(datos),
@@ -37,6 +56,7 @@ export default function MisDirecciones() {
     onError: (e) => brindis.error(mensajeDeError(e)),
   });
 
+  // Mutación de borrado de una dirección. Al completarse cierra el modal de confirmación.
   const eliminar = useMutation({
     mutationFn: (id: string) => apiDirecciones.eliminar(id),
     onSuccess: () => {
@@ -47,6 +67,7 @@ export default function MisDirecciones() {
     onError: (e) => brindis.error(mensajeDeError(e)),
   });
 
+  // Mutación que marca una dirección como principal (la usada por defecto en el checkout).
   const marcarPrincipal = useMutation({
     mutationFn: (id: string) => apiDirecciones.marcarPrincipal(id),
     onSuccess: () => {
@@ -56,11 +77,13 @@ export default function MisDirecciones() {
     onError: (e) => brindis.error(mensajeDeError(e)),
   });
 
+  // Abre el modal en modo alta: sin dirección en edición.
   function abrirNueva() {
     setEditando(null);
     setModalAbierto(true);
   }
 
+  // Abre el modal en modo edición precargando la dirección seleccionada.
   function abrirEdicion(direccion: Direccion) {
     setEditando(direccion);
     setModalAbierto(true);

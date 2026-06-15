@@ -1,3 +1,5 @@
+// Definición de rutas del módulo de certificados de sostenibilidad, montadas bajo
+// el prefijo `/certificados`. Son endpoints públicos de solo lectura (sin autenticación).
 import { Router } from 'express';
 import { z } from 'zod';
 import { CodigoCertificado } from '@prisma/client';
@@ -6,6 +8,9 @@ import { controladorCertificados } from './controlador';
 
 export const rutasCertificados = Router();
 
+// Esquema de validación del parámetro de ruta `:codigo`: debe ser uno de los
+// valores del enum CodigoCertificado de Prisma; en caso contrario, `validar`
+// responderá con un error 400 antes de llegar al controlador.
 const dtoCodigoCertificado = z.object({
   codigo: z.nativeEnum(CodigoCertificado, { message: 'Código de certificado no válido' }),
 });

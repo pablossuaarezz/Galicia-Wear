@@ -9,6 +9,7 @@ public class ServicioEstadisticas extends ServicioBase {
         super(http);
     }
 
+    /** Recupera los KPIs del dashboard, desenvolviendo la clave "estadisticas" de la respuesta. */
     public Estadisticas obtener() {
         RespuestaHttp respuesta = http.get("/admin/estadisticas");
         exigirExito(respuesta);

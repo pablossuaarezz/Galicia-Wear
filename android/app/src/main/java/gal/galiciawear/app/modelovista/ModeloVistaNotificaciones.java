@@ -26,6 +26,13 @@ public class ModeloVistaNotificaciones extends ViewModel {
     private final RepositorioNotificaciones repositorio;
     private final RepositorioChat repositorioChat;
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param repositorio repositorio REST de notificaciones (historial, contador, marcado).
+     * @param repositorioChat repositorio del socket de chat, que también emite
+     *                         notificaciones en tiempo real.
+     */
     @Inject
     public ModeloVistaNotificaciones(RepositorioNotificaciones repositorio,
                                      RepositorioChat repositorioChat) {
@@ -33,18 +40,38 @@ public class ModeloVistaNotificaciones extends ViewModel {
         this.repositorioChat = repositorioChat;
     }
 
+    /**
+     * Obtiene el historial de notificaciones del usuario (primera página).
+     *
+     * @return LiveData con el estado (cargando/éxito/error) de la lista de notificaciones.
+     */
     public LiveData<RecursoUi<List<DtoNotificacion>>> listar() {
         return repositorio.listar();
     }
 
+    /**
+     * Obtiene el número de notificaciones no leídas para el badge.
+     *
+     * @return LiveData con el contador (0 si hay error, para ocultar el badge).
+     */
     public LiveData<Integer> contador() {
         return repositorio.contador();
     }
 
+    /**
+     * Marca una notificación concreta como leída (fire-and-forget).
+     *
+     * @param id identificador de la notificación.
+     */
     public void marcarLeida(String id) {
         repositorio.marcarLeida(id);
     }
 
+    /**
+     * Marca todas las notificaciones del usuario como leídas.
+     *
+     * @return LiveData con {@code true} si la operación tuvo éxito, {@code false} en caso contrario.
+     */
     public LiveData<Boolean> marcarTodasLeidas() {
         return repositorio.marcarTodasLeidas();
     }
@@ -62,7 +89,11 @@ public class ModeloVistaNotificaciones extends ViewModel {
         repositorioChat.conectar();
     }
 
-    /** Registra el token FCM del dispositivo (best-effort). */
+    /**
+     * Registra el token FCM del dispositivo (best-effort).
+     *
+     * @param token token de Firebase Cloud Messaging del dispositivo actual.
+     */
     public void registrarTokenFcm(String token) {
         repositorio.registrarTokenFcm(token);
     }

@@ -1,4 +1,6 @@
-// Barrel: re-exporta todos los modelos Mongoose para importarlos desde un único punto.
+// Barrel: re-exporta todos los modelos Mongoose (y sus tipos de documento asociados)
+// para que el resto del backend pueda importarlos desde un único punto
+// (`from '../mongo'`) sin conocer la ruta concreta de cada archivo de esquema.
 export { ActividadLog } from './esquemas/actividadLog';
 export { Recomendacion } from './esquemas/recomendacion';
 export { MediaResena } from './esquemas/mediaResena';

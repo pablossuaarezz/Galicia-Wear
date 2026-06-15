@@ -20,6 +20,14 @@ import type {
   PreferenciasSostenibilidad,
 } from '@/api/tipos';
 
+/**
+ * Formulario de datos personales del cliente: nombre, apellidos, teléfono y avatar.
+ *
+ * El avatar se selecciona desde el dispositivo y se convierte a una URI de datos (base64)
+ * redimensionada antes de enviarlo, evitando subir imágenes demasiado grandes.
+ * Al guardar con éxito se invalida la caché del perfil y se refresca la sesión para que el
+ * resto de la aplicación (por ejemplo, la cabecera) muestre los datos actualizados.
+ */
 function DatosPersonales() {
   const { data: usuario } = usarPerfil();
   const { refrescarPerfil } = usarSesion();
@@ -32,6 +40,8 @@ function DatosPersonales() {
   const [telefono, setTelefono] = useState('');
   const [avatar, setAvatar] = useState<string | null>(null);
 
+  // Cuando llegan los datos del perfil (o cambian), se inicializan los campos del
+  // formulario con los valores actuales del cliente.
   useEffect(() => {
     if (usuario?.cliente) {
       setNombre(usuario.cliente.nombre ?? '');
@@ -41,6 +51,8 @@ function DatosPersonales() {
     }
   }, [usuario]);
 
+  // Mutación que envía los datos personales actualizados al backend. Tras el éxito se
+  // invalida la query del perfil y se refresca la sesión global (contexto de sesión).
   const mutacion = useMutation({
     mutationFn: (datos: EntradaPerfilCliente) => apiUsuarios.actualizarCliente(datos),
     onSuccess: async () => {
@@ -51,6 +63,8 @@ function DatosPersonales() {
     onError: (error) => brindis.error(mensajeDeError(error)),
   });
 
+  // Maneja la selección de un archivo de imagen para el avatar: lo convierte a una URI de
+  // datos redimensionada (máx. 512px, calidad 0.8) y la guarda en el estado local.
   async function elegirAvatar(archivo: File | undefined) {
     if (!archivo) return;
     try {
@@ -61,6 +75,8 @@ function DatosPersonales() {
     }
   }
 
+  // Envía el formulario: los campos de texto se recortan (trim) y se convierten a
+  // `undefined`/`null` cuando están vacíos según lo que espera la API.
   function enviar(evento: FormEvent) {
     evento.preventDefault();
     mutacion.mutate({
@@ -120,12 +136,20 @@ function DatosPersonales() {
   );
 }
 
+/**
+ * Formulario para cambiar la contraseña del usuario.
+ *
+ * Valida la nueva contraseña en cliente (mediante `validarContrasena`) antes de enviar la
+ * mutación; si la validación falla se muestra un mensaje de error junto al campo sin llegar
+ * a llamar a la API. Si la mutación tiene éxito se limpian ambos campos.
+ */
 function CambioContrasena() {
   const brindis = usarBrindis();
   const [actual, setActual] = useState('');
   const [nueva, setNueva] = useState('');
   const [error, setError] = useState<string>();
 
+  // Mutación que envía la contraseña actual y la nueva al backend para su cambio.
   const mutacion = useMutation({
     mutationFn: () => apiUsuarios.cambiarContrasena({ contrasenaActual: actual, contrasenaNueva: nueva }),
     onSuccess: () => {
@@ -136,6 +160,8 @@ function CambioContrasena() {
     onError: (e) => brindis.error(mensajeDeError(e, 'No se pudo cambiar la contraseña')),
   });
 
+  // Valida la nueva contraseña localmente antes de disparar la mutación; si no cumple los
+  // requisitos (longitud, mayúscula, minúscula, número) se muestra el error sin llamar a la API.
   function enviar(evento: FormEvent) {
     evento.preventDefault();
     const errorNueva = validarContrasena(nueva);
@@ -182,6 +208,13 @@ function CambioContrasena() {
   );
 }
 
+/**
+ * Formulario de preferencias de sostenibilidad del cliente.
+ *
+ * Permite seleccionar certificados favoritos (mediante chips de selección múltiple), una
+ * distancia máxima de origen del producto en kilómetros y una ciudad gallega preferida.
+ * Estas preferencias se usan para personalizar recomendaciones/filtrado en el catálogo.
+ */
 function PreferenciasEco() {
   const { data: usuario } = usarPerfil();
   const clienteConsultas = useQueryClient();
@@ -191,6 +224,7 @@ function PreferenciasEco() {
   const [maxKm, setMaxKm] = useState<string>('');
   const [ciudad, setCiudad] = useState<string>('');
 
+  // Inicializa el formulario con las preferencias guardadas del cliente cuando llegan los datos.
   useEffect(() => {
     const prefs = usuario?.cliente?.preferenciasSostenibilidad;
     if (prefs) {
@@ -200,6 +234,7 @@ function PreferenciasEco() {
     }
   }, [usuario]);
 
+  // Mutación que guarda las preferencias de sostenibilidad actualizadas.
   const mutacion = useMutation({
     mutationFn: (datos: PreferenciasSostenibilidad) => apiUsuarios.actualizarPreferencias(datos),
     onSuccess: () => {
@@ -209,12 +244,15 @@ function PreferenciasEco() {
     onError: (e) => brindis.error(mensajeDeError(e)),
   });
 
+  // Añade o quita un certificado de la lista de favoritos al pulsar su chip.
   function alternarCertificado(codigo: CodigoCertificado) {
     setCertificados((actual) =>
       actual.includes(codigo) ? actual.filter((c) => c !== codigo) : [...actual, codigo],
     );
   }
 
+  // Envía las preferencias: el campo de km se convierte a número (o `undefined` si está
+  // vacío, lo que significa "sin límite"), y la ciudad vacía se trata como "sin preferencia".
   function enviar(evento: FormEvent) {
     evento.preventDefault();
     mutacion.mutate({
@@ -275,6 +313,10 @@ function PreferenciasEco() {
   );
 }
 
+/**
+ * Bloque que muestra un resumen de las conversaciones de chat del cliente, con un enlace
+ * para ver el listado completo en la sección de mensajes.
+ */
 function MisChats() {
   return (
     <Tarjeta className="overflow-hidden p-0">

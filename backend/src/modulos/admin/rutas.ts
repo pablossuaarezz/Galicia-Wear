@@ -1,3 +1,6 @@
+// Definición de rutas del módulo de administración, montadas bajo el prefijo `/admin`.
+// Cada ruta incluye su documentación OpenAPI (leída por swagger-jsdoc) y delega el
+// procesamiento en controladorAdmin. Todas las rutas exigen autenticación JWT y rol ADMIN.
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { soloAdmin } from '../../middlewares/rbac';
@@ -6,6 +9,9 @@ import { controladorAdmin } from './controlador';
 export const rutasAdmin = Router();
 
 // Todos los endpoints de /admin requieren rol ADMIN
+// `verificarJwt` comprueba la validez del token y rellena `peticion.usuario`;
+// `soloAdmin` rechaza con 403 si el rol del usuario autenticado no es ADMIN.
+// Al usarse con `.use()`, se aplican como middlewares a todas las rutas definidas debajo.
 rutasAdmin.use(verificarJwt, soloAdmin);
 
 /**

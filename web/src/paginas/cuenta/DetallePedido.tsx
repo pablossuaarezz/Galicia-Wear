@@ -14,6 +14,21 @@ import { formatoFecha, formatoFechaHora, formatoPrecio } from '@/util/formatos';
 import { TALLAS, TRANSPORTISTAS } from '@/util/constantes';
 import { mensajeDeError } from '@/util/validacion';
 
+/**
+ * Página de detalle de un pedido para el cliente.
+ *
+ * Muestra las líneas del pedido (productos, talla, color, cantidad y precio), el estado del
+ * envío (transportista, número de seguimiento, fechas de envío/entrega), un resumen económico
+ * (subtotal, coste de envío, total) y la dirección de envío utilizada.
+ *
+ * Además permite dos acciones sobre el pedido cuando procede:
+ * - Pagar el pedido si está en estado PENDIENTE_PAGO.
+ * - Cancelar el pedido (con confirmación mediante modal) si todavía es cancelable
+ *   (PENDIENTE_PAGO o PAGADO).
+ *
+ * El identificador del pedido se obtiene de la ruta (`useParams`) y los datos se cargan con
+ * el hook `usarPedido`.
+ */
 export default function DetallePedido() {
   const { id } = useParams<{ id: string }>();
   const consulta = usarPedido(id);
@@ -22,13 +37,17 @@ export default function DetallePedido() {
 
   const clienteConsultas = useQueryClient();
   const brindis = usarBrindis();
+  // Controla la visibilidad del modal de confirmación de cancelación.
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
 
+  // Invalida la caché de React Query para que tanto el detalle de este pedido como el
+  // listado general de pedidos se vuelvan a consultar tras pagar o cancelar.
   function invalidar() {
     clienteConsultas.invalidateQueries({ queryKey: ['pedido', id] });
     clienteConsultas.invalidateQueries({ queryKey: ['pedidos'] });
   }
 
+  // Mutación para confirmar el pago de un pedido pendiente.
   const pagar = useMutation({
     mutationFn: () => apiPedidos.pagar(id!),
     onSuccess: () => {
@@ -38,6 +57,8 @@ export default function DetallePedido() {
     onError: (e) => brindis.error(mensajeDeError(e)),
   });
 
+  // Mutación para cancelar el pedido. Al completarse con éxito se cierra el modal de
+  // confirmación y se notifica al usuario.
   const cancelar = useMutation({
     mutationFn: () => apiPedidos.cancelar(id!),
     onSuccess: () => {
@@ -48,10 +69,13 @@ export default function DetallePedido() {
     onError: (e) => brindis.error(mensajeDeError(e)),
   });
 
+  // Mientras se carga el pedido se muestra un esqueleto de carga.
   if (consulta.isLoading) {
     return <Esqueleto className="h-96 rounded-xl2" />;
   }
 
+  // Si la consulta falla o no existe el pedido, se muestra un estado vacío con enlace de
+  // vuelta al listado de pedidos del cliente.
   if (consulta.isError || !pedido) {
     return (
       <EstadoVacio
@@ -62,6 +86,8 @@ export default function DetallePedido() {
     );
   }
 
+  // El pedido solo puede cancelarse mientras está pendiente de pago o ya pagado pero aún
+  // no aceptado/enviado por el diseñador.
   const cancelable = pedido.estado === 'PENDIENTE_PAGO' || pedido.estado === 'PAGADO';
   const envio = pedido.envio;
 
@@ -117,6 +143,8 @@ export default function DetallePedido() {
               <Truck className="h-5 w-5 text-atlantic-500" aria-hidden />
               Envío
             </h3>
+            {/* Si el pedido ya tiene un envío asociado se muestran sus datos; si no, se
+                informa de que el envío se preparará cuando el diseñador acepte el pedido. */}
             {envio ? (
               <dl className="mt-4 space-y-2.5 text-sm">
                 <div className="flex justify-between">
@@ -182,6 +210,7 @@ export default function DetallePedido() {
             </dl>
 
             <div className="mt-5 space-y-2">
+              {/* Botón de pago: solo visible si el pedido aún está pendiente de pago. */}
               {pedido.estado === 'PENDIENTE_PAGO' && (
                 <Boton
                   ancho
@@ -192,6 +221,8 @@ export default function DetallePedido() {
                   Pagar pedido
                 </Boton>
               )}
+              {/* Botón de cancelación: solo visible si el pedido todavía es cancelable.
+                  Abre el modal de confirmación en lugar de cancelar directamente. */}
               {cancelable && (
                 <Boton
                   ancho
@@ -223,6 +254,8 @@ export default function DetallePedido() {
         </aside>
       </div>
 
+      {/* Modal de confirmación antes de ejecutar la mutación de cancelación, ya que es una
+          acción irreversible que restaura el stock. */}
       <Modal
         abierto={confirmarCancelar}
         alCerrar={() => setConfirmarCancelar(false)}

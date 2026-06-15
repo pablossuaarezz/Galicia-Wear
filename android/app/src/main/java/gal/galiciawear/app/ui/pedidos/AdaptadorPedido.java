@@ -20,8 +20,15 @@ import gal.galiciawear.app.databinding.ElementoPedidoBinding;
 import gal.galiciawear.app.utilidades.EstadoPedidoUi;
 import gal.galiciawear.app.utilidades.FormatoFechas;
 
+/**
+ * Adaptador del listado de pedidos del usuario (FragmentoPedidos).
+ * Cada elemento de la lista es un resumen del pedido (número, fecha, total,
+ * estado y un resumen de los productos) y al pulsarlo se notifica al
+ * listener para navegar al detalle del pedido.
+ */
 public class AdaptadorPedido extends RecyclerView.Adapter<AdaptadorPedido.VistaPreviaDato> {
 
+    /** Callback invocado cuando el usuario pulsa sobre un pedido de la lista. */
     public interface OnPedidoClickListener {
         void onClick(DtoRespuestaPedido pedido);
     }
@@ -29,16 +36,23 @@ public class AdaptadorPedido extends RecyclerView.Adapter<AdaptadorPedido.VistaP
     private final List<DtoRespuestaPedido> items = new ArrayList<>();
     private final OnPedidoClickListener listener;
 
+    /** Recibe el listener que se notificará al pulsar sobre un pedido. */
     public AdaptadorPedido(OnPedidoClickListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Sustituye la lista completa de pedidos mostrados y refresca el RecyclerView.
+     * Se usa cada vez que llega una nueva lista desde el ViewModel (carga inicial
+     * o tras un "pull to refresh").
+     */
     public void establecerPedidos(List<DtoRespuestaPedido> nuevos) {
         items.clear();
         if (nuevos != null) items.addAll(nuevos);
         notifyDataSetChanged();
     }
 
+    /** Crea el ViewHolder inflando el layout de un elemento de pedido mediante ViewBinding. */
     @NonNull
     @Override
     public VistaPreviaDato onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -48,11 +62,13 @@ public class AdaptadorPedido extends RecyclerView.Adapter<AdaptadorPedido.VistaP
         return new VistaPreviaDato(enlace);
     }
 
+    /** Delega en el ViewHolder el volcado de los datos del pedido en esa posición. */
     @Override
     public void onBindViewHolder(@NonNull VistaPreviaDato holder, int posicion) {
         holder.enlazar(items.get(posicion), listener);
     }
 
+    /** Número total de pedidos a mostrar. */
     @Override
     public int getItemCount() { return items.size(); }
 
@@ -64,6 +80,11 @@ public class AdaptadorPedido extends RecyclerView.Adapter<AdaptadorPedido.VistaP
             this.enlace = enlace;
         }
 
+        /**
+         * Rellena las vistas del elemento con los datos del pedido: número,
+         * total, fecha junto al número de artículos, resumen de productos
+         * y el badge de estado. También configura el click sobre toda la fila.
+         */
         void enlazar(DtoRespuestaPedido pedido, OnPedidoClickListener listener) {
             Context contexto = enlace.getRoot().getContext();
 
@@ -96,6 +117,7 @@ public class AdaptadorPedido extends RecyclerView.Adapter<AdaptadorPedido.VistaP
             }
         }
 
+        /** Suma las cantidades de todas las líneas del pedido para obtener el total de unidades. */
         private int contarArticulos(DtoRespuestaPedido pedido) {
             if (pedido.lineas == null) return 0;
             int total = 0;

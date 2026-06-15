@@ -1,6 +1,11 @@
 // Catálogo público. Los filtros viven en la URL (compartible y con atrás/adelante coherentes);
 // la consulta a la API se hace con debounce para no pedir en cada pulsación. Columna de filtros
 // en escritorio y cajón en móvil.
+//
+// Flujo de usuario: el usuario ajusta filtros (búsqueda, material, ciudad, distancia,
+// certificado) desde la barra lateral (escritorio) o el cajón (móvil); cada cambio actualiza
+// los parámetros de la URL, lo que dispara (tras un debounce) una nueva consulta a la API y
+// se renderiza la rejilla de productos junto con el paginador.
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal } from 'lucide-react';
@@ -19,6 +24,13 @@ import type {
   MaterialPrincipal,
 } from '@/api/tipos';
 
+/**
+ * Convierte los parámetros de búsqueda de la URL en un objeto de filtros del catálogo.
+ * Los valores ausentes quedan como `undefined` y la página por defecto es 1.
+ *
+ * @param parametros Parámetros actuales de la URL (`useSearchParams`).
+ * @returns Objeto de filtros tipado listo para pasar al hook `usarCatalogo`.
+ */
 function leerFiltros(parametros: URLSearchParams): FiltrosCatalogo {
   return {
     busqueda: parametros.get('busqueda') || undefined,
@@ -30,12 +42,28 @@ function leerFiltros(parametros: URLSearchParams): FiltrosCatalogo {
   };
 }
 
+/**
+ * Cuenta cuántos filtros del catálogo están actualmente activos (con valor definido y no vacío).
+ * Se usa para mostrar el contador en el botón "Filtros (n)" del cajón móvil.
+ *
+ * @param filtros Filtros actuales del catálogo.
+ * @returns Número de filtros con valor establecido (la página no se cuenta).
+ */
 function contarActivos(filtros: FiltrosCatalogo): number {
   return [filtros.busqueda, filtros.material, filtros.ciudad, filtros.certificado, filtros.maxKm].filter(
     (v) => v !== undefined && v !== '',
   ).length;
 }
 
+/**
+ * Página de catálogo público de productos.
+ *
+ * Sincroniza los filtros con los parámetros de la URL para que la vista sea compartible y
+ * el historial de navegación (atrás/adelante) sea coherente. Aplica un debounce de 300 ms
+ * antes de lanzar la consulta a la API para evitar peticiones excesivas mientras el usuario
+ * escribe. Muestra la rejilla de productos, el paginador y los controles de filtro (barra
+ * lateral en escritorio, cajón deslizante en móvil).
+ */
 export default function Catalogo() {
   usarTitulo('Catálogo');
   const [parametros, setParametros] = useSearchParams();
@@ -49,6 +77,8 @@ export default function Catalogo() {
   const consulta = usarCatalogo({ ...filtrosConsulta, limite: 12 });
   const total = consulta.data?.total ?? 0;
 
+  // Aplica un cambio parcial de filtros sobre los parámetros de la URL: añade/actualiza las
+  // claves con valor y elimina las que quedan vacías o indefinidas.
   function actualizar(parcial: Partial<FiltrosCatalogo>) {
     const siguiente = new URLSearchParams(parametros);
     for (const [campo, valor] of Object.entries(parcial)) {
@@ -60,10 +90,12 @@ export default function Catalogo() {
     setParametros(siguiente, { replace: true });
   }
 
+  // Elimina todos los filtros activos, dejando la URL sin parámetros de consulta.
   function limpiar() {
     setParametros({}, { replace: true });
   }
 
+  // Cambia la página actual del paginador y desplaza la vista al inicio.
   function cambiarPagina(pagina: number) {
     actualizar({ pagina });
     window.scrollTo({ top: 0, behavior: 'smooth' });

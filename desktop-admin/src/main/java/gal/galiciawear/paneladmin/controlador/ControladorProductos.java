@@ -38,6 +38,10 @@ public class ControladorProductos implements ControladorVista {
         this.contexto = contexto;
     }
 
+    /**
+     * Inicialización FXML: enlaza cada columna con su propiedad del modelo Producto,
+     * configura el combo de filtro y el campo de búsqueda, y carga la tabla.
+     */
     @FXML
     private void initialize() {
         colNombre.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().nombre()));
@@ -54,6 +58,7 @@ public class ControladorProductos implements ControladorVista {
         refrescar();
     }
 
+    /** Recarga la tabla aplicando el filtro de estado y el texto de búsqueda, en segundo plano. */
     @FXML
     private void refrescar() {
         Boolean activo = switch (filtroEstado.getValue()) {
@@ -68,6 +73,7 @@ public class ControladorProductos implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Invierte el estado activo/inactivo del producto seleccionado y recarga al terminar. */
     @FXML
     private void alternarActivo() {
         Producto seleccionado = tabla.getSelectionModel().getSelectedItem();
@@ -82,6 +88,7 @@ public class ControladorProductos implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Retira del catálogo el producto seleccionado, previa confirmación del administrador. */
     @FXML
     private void retirar() {
         Producto seleccionado = tabla.getSelectionModel().getSelectedItem();
@@ -99,6 +106,7 @@ public class ControladorProductos implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Mensaje legible del error: el del backend si es ErrorApi, o uno genérico de red. */
     private String mensajeDe(Throwable error) {
         return error instanceof ErrorApi ? error.getMessage() : "No se pudo conectar con el servidor";
     }

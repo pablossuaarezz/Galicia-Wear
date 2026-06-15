@@ -64,6 +64,14 @@ public class RepositorioChat {
     // personal usuario:<sub>. Llega aquí porque el socket ya está autenticado con el JWT.
     public final MutableLiveData<DtoNotificacion> nuevaNotificacion = new MutableLiveData<>();
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param gestorSesion proporciona el token JWT actual y el id de usuario
+     *                       para autenticar el handshake del socket.
+     * @param servicioApi cliente Retrofit usado para las operaciones REST
+     *                      de la bandeja de conversaciones.
+     */
     @Inject
     public RepositorioChat(GestorSesion gestorSesion, ServicioApi servicioApi) {
         this.gestorSesion = gestorSesion;
@@ -72,6 +80,12 @@ public class RepositorioChat {
 
     // ── Bandeja de conversaciones (REST) ─────────────────────────────────────
 
+    /**
+     * Obtiene el listado de conversaciones de soporte del usuario (REST, no socket).
+     *
+     * @return LiveData que emite {@code cargando()} y después {@code exito(lista)}
+     *         con las conversaciones, o {@code error(mensaje)} si falla la petición.
+     */
     public MutableLiveData<RecursoUi<List<DtoConversacion>>> listarConversaciones() {
         MutableLiveData<RecursoUi<List<DtoConversacion>>> res = new MutableLiveData<>();
         res.setValue(RecursoUi.cargando());
@@ -93,7 +107,13 @@ public class RepositorioChat {
         return res;
     }
 
-    /** Marca como leídos los mensajes recibidos de un peer (fire-and-forget). */
+    /**
+     * Marca como leídos los mensajes recibidos de un peer (fire-and-forget).
+     * No se gestiona la respuesta porque la UI no depende de su resultado:
+     * es una actualización de estado en el backend que no bloquea ninguna pantalla.
+     *
+     * @param peerId identificador del interlocutor (diseñador o cliente) de la conversación.
+     */
     public void marcarLeida(String peerId) {
         servicioApi.marcarConversacionLeida(peerId).enqueue(new Callback<Void>() {
             @Override public void onResponse(Call<Void> c, Response<Void> r) { /* sin acción */ }
@@ -101,6 +121,23 @@ public class RepositorioChat {
         });
     }
 
+    /**
+     * Establece (o reutiliza) la conexión del socket de chat/notificaciones.
+     *
+     * Lógica de reutilización/recreación:
+     * <ul>
+     *   <li>Si ya hay un socket conectado para el MISMO usuario, no se hace nada
+     *       (evita recrear la conexión en cada rotación de pantalla).</li>
+     *   <li>Si hay un socket de OTRO usuario o desconectado, se cierra y se
+     *       elimina antes de crear uno nuevo, para que el handshake se
+     *       autentique con el token JWT de la sesión actual.</li>
+     * </ul>
+     * El handshake usa Socket.IO v4: el token JWT se envía en el mapa {@code auth}
+     * de las opciones de conexión. Los eventos del socket (conexión, desconexión,
+     * mensajes, notificaciones, historial) se registran con listeners lambda que
+     * se ejecutan en el hilo del cliente de Socket.IO; por eso se usa
+     * {@code postValue} para publicar en los LiveData.
+     */
     public void conectar() {
         String usuarioActual = gestorSesion.obtenerUsuarioId();
 
@@ -183,6 +220,15 @@ public class RepositorioChat {
         }
     }
 
+    /**
+     * Une al usuario a la sala de chat correspondiente a una conversación
+     * (identificada por el id del diseñador/peer). Si el socket ya está
+     * conectado, se emite el evento de inmediato; en caso contrario se
+     * recuerda la sala en {@code salaPendiente} para unirse en cuanto se
+     * produzca el evento {@code EVENT_CONNECT}.
+     *
+     * @param disenadorId identificador del diseñador/peer cuya conversación se abre.
+     */
     public void unirseASala(String disenadorId) {
         // Recordamos la sala para (re)unirnos en el evento CONNECT. Si ya estamos
         // conectados (p. ej. al cambiar de conversación), nos unimos de inmediato.
@@ -192,6 +238,13 @@ public class RepositorioChat {
         }
     }
 
+    /**
+     * Envía un mensaje de chat a través del socket (evento "enviar_mensaje").
+     * No hace nada si el socket no está conectado (no se encola para envío posterior).
+     *
+     * @param disenadorId identificador del diseñador/peer destinatario.
+     * @param contenido texto del mensaje a enviar.
+     */
     public void enviarMensaje(String disenadorId, String contenido) {
         if (socket != null && socket.connected()) {
             JSONObject datos = new JSONObject();
@@ -205,6 +258,12 @@ public class RepositorioChat {
         }
     }
 
+    /**
+     * Cierra la conexión del socket y limpia todo el estado asociado
+     * (listeners, usuario conectado, sala pendiente). Se llama, por ejemplo,
+     * al cerrar sesión, para que el socket no quede autenticado con la
+     * cuenta anterior.
+     */
     public void desconectar() {
         if (socket != null) {
             socket.disconnect();

@@ -2,6 +2,10 @@
 // los monta bajo `/auth`.
 //
 // Comentarios JSDoc preparados para Swagger (los lee `swagger-jsdoc` en Fase 2e).
+//
+// Cada ruta encadena, cuando procede, el middleware `validar(dto)` que valida el body
+// con el esquema zod correspondiente antes de llegar al controlador, y `verificarJwt`
+// para las rutas que requieren autenticación.
 import { Router } from 'express';
 import { validar } from '../../middlewares/validacion';
 import { verificarJwt } from '../../middlewares/autenticacion';

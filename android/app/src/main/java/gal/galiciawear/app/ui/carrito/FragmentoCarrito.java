@@ -37,12 +37,22 @@ public class FragmentoCarrito extends Fragment {
     private ModeloVistaCarrito modeloVista;
     private AdaptadorItemCarrito adaptador;
 
+    /**
+     * Infla el layout del fragmento mediante ViewBinding y devuelve su vista raíz.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
         enlace = FragmentoCarritoBinding.inflate(inflater, container, false);
         return enlace.getRoot();
     }
 
+    /**
+     * Obtiene el ViewModel del carrito, crea el adaptador del RecyclerView con
+     * las acciones de cambiar cantidad y eliminar (delegando en
+     * {@link #observarOperacion} para mostrar feedback de cada operación),
+     * configura el botón de ir al checkout, y observa el estado del carrito
+     * para renderizar la lista y el total.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -51,11 +61,14 @@ public class FragmentoCarrito extends Fragment {
         adaptador = new AdaptadorItemCarrito(new AdaptadorItemCarrito.Acciones() {
             @Override
             public void onCambiarCantidad(String varianteId, int nuevaCantidad) {
+                // No se muestra mensaje de éxito al cambiar cantidad: el cambio
+                // visual en la propia línea ya es suficiente feedback.
                 observarOperacion(modeloVista.actualizarCantidad(varianteId, nuevaCantidad), null);
             }
 
             @Override
             public void onEliminar(String varianteId) {
+                // Al eliminar sí se muestra un Snackbar de confirmación.
                 observarOperacion(modeloVista.eliminarDelCarrito(varianteId),
                     getString(gal.galiciawear.app.R.string.articulo_eliminado));
             }
@@ -63,6 +76,7 @@ public class FragmentoCarrito extends Fragment {
         enlace.listaCarrito.setLayoutManager(new LinearLayoutManager(requireContext()));
         enlace.listaCarrito.setAdapter(adaptador);
 
+        // Navega a la pantalla de checkout para confirmar el pedido.
         enlace.botonCheckout.setOnClickListener(v ->
             startActivity(new Intent(requireContext(), ActividadCheckout.class))
         );
@@ -71,6 +85,12 @@ public class FragmentoCarrito extends Fragment {
         modeloVista.cargarCarrito();
     }
 
+    /**
+     * Actualiza la UI según el estado del carrito recibido: muestra el
+     * indicador de carga a pantalla completa solo si aún no hay items
+     * pintados, gestiona el caso de error sin datos previos, y en caso de
+     * éxito muestra la lista de items (o el estado vacío) junto con el total.
+     */
     private void renderizar(RecursoUi<DtoRespuestaCarrito> recurso) {
         if (recurso == null) return;
 
@@ -116,6 +136,10 @@ public class FragmentoCarrito extends Fragment {
         });
     }
 
+    /**
+     * Libera la referencia al binding al destruirse la vista del fragmento,
+     * evitando fugas de memoria.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

@@ -22,6 +22,10 @@ const TAMANOS: Record<TamanoBoton, string> = {
   lg: 'h-[3.25rem] px-7 text-base gap-2.5',
 };
 
+/**
+ * Devuelve las clases de Tailwind para un botón según variante, tamaño y si ocupa el ancho completo.
+ * Compartida por <Boton> y <EnlaceBoton> para mantener un estilo idéntico entre ambos.
+ */
 export function clasesBoton(
   variante: VarianteBoton = 'primario',
   tamano: TamanoBoton = 'md',

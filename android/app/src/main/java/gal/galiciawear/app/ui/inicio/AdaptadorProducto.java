@@ -27,17 +27,32 @@ import gal.galiciawear.app.databinding.ElementoProductoBinding;
  */
 public class AdaptadorProducto extends RecyclerView.Adapter<AdaptadorProducto.VistaPreviaDato> {
 
+    /** Callback invocado cuando el usuario pulsa una tarjeta de producto. */
     public interface OnProductoClickListener {
+        /** Se invoca con el producto pulsado para abrir su pantalla de detalle. */
         void onClick(DtoRespuestaProducto producto);
     }
 
     private final List<DtoRespuestaProducto> items = new ArrayList<>();
     private final OnProductoClickListener listener;
 
+    /**
+     * Crea el adaptador asociando el listener que se invocará al pulsar una
+     * tarjeta de producto.
+     *
+     * @param listener callback a ejecutar al seleccionar un producto
+     */
     public AdaptadorProducto(OnProductoClickListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Sustituye la lista completa de productos a partir de DTOs obtenidos
+     * directamente del backend, y notifica al RecyclerView para que se
+     * vuelva a pintar.
+     *
+     * @param nuevos lista de productos desde la red, o {@code null} para dejarla vacía
+     */
     // Desde la red (DTOs completos)
     public void establecerDtos(List<DtoRespuestaProducto> nuevos) {
         items.clear();
@@ -45,6 +60,14 @@ public class AdaptadorProducto extends RecyclerView.Adapter<AdaptadorProducto.Vi
         notifyDataSetChanged();
     }
 
+    /**
+     * Sustituye la lista completa de productos a partir de entidades cacheadas
+     * en Room (modo offline), convirtiéndolas a DTOs básicos con los campos
+     * mínimos necesarios para pintar la tarjeta (nombre, precio, imagen
+     * principal, material, km de origen y marca del diseñador).
+     *
+     * @param entidades lista de productos cacheados en la base de datos local, o {@code null} para dejarla vacía
+     */
     // Desde Room (entidades cacheadas → se convierten a DTOs básicos)
     public void establecerEntidades(List<EntidadProducto> entidades) {
         items.clear();
@@ -73,6 +96,7 @@ public class AdaptadorProducto extends RecyclerView.Adapter<AdaptadorProducto.Vi
         notifyDataSetChanged();
     }
 
+    /** Infla el layout de una tarjeta de producto mediante ViewBinding y crea su ViewHolder. */
     @NonNull
     @Override
     public VistaPreviaDato onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -82,14 +106,21 @@ public class AdaptadorProducto extends RecyclerView.Adapter<AdaptadorProducto.Vi
         return new VistaPreviaDato(enlace);
     }
 
+    /** Enlaza los datos del producto de la posición indicada con las vistas del ViewHolder. */
     @Override
     public void onBindViewHolder(@NonNull VistaPreviaDato holder, int posicion) {
         holder.enlazar(items.get(posicion), listener);
     }
 
+    /** Número total de productos en la lista. */
     @Override
     public int getItemCount() { return items.size(); }
 
+    /**
+     * ViewHolder de una tarjeta de producto: muestra la imagen principal,
+     * nombre, precio, marca del diseñador, material principal y la distancia
+     * de origen ("X km").
+     */
     static class VistaPreviaDato extends RecyclerView.ViewHolder {
         private final ElementoProductoBinding enlace;
 
@@ -98,6 +129,13 @@ public class AdaptadorProducto extends RecyclerView.Adapter<AdaptadorProducto.Vi
             this.enlace = enlace;
         }
 
+        /**
+         * Rellena las vistas de la tarjeta con los datos del producto
+         * recibido y configura el listener de clic para abrir su detalle.
+         *
+         * @param producto producto a representar (DTO de red o convertido desde caché local)
+         * @param listener callback a invocar al pulsar la tarjeta
+         */
         void enlazar(DtoRespuestaProducto producto, OnProductoClickListener listener) {
             enlace.textoNombre.setText(producto.nombre);
             // El backend envía el precio en "precioBase"; "precio" puede llegar a 0.

@@ -16,6 +16,7 @@ import { CODIGOS_TRANSPORTISTA, TALLAS, TRANSPORTISTAS } from '@/util/constantes
 import { mensajeDeError } from '@/util/validacion';
 import type { EntradaActualizarEnvio, Pedido, Transportista } from '@/api/tipos';
 
+/** Formulario de gestión del envío de un pedido: transportista, seguimiento y marcas de enviado/entregado. */
 function GestionEnvio({ pedido }: { pedido: Pedido }) {
   const clienteConsultas = useQueryClient();
   const brindis = usarBrindis();
@@ -100,9 +101,14 @@ function GestionEnvio({ pedido }: { pedido: Pedido }) {
   );
 }
 
+/**
+ * Tarjeta de un pedido recibido: muestra solo las líneas del diseñador actual, permite aceptar
+ * el pedido cuando procede y, si ya existe envío, embebe su gestión.
+ */
 function TarjetaPedidoRecibido({ pedido, disenadorId }: { pedido: Pedido; disenadorId: string }) {
   const clienteConsultas = useQueryClient();
   const brindis = usarBrindis();
+  // De un pedido multi-diseñador, este panel solo gestiona las líneas propias.
   const misLineas = pedido.lineas.filter((l) => l.disenadorId === disenadorId);
 
   const aceptar = useMutation({
@@ -163,6 +169,7 @@ function TarjetaPedidoRecibido({ pedido, disenadorId }: { pedido: Pedido; disena
   );
 }
 
+/** Página con los pedidos que han comprado prendas del diseñador, para aceptarlos y gestionar envíos. */
 export default function PedidosRecibidos() {
   usarTitulo('Pedidos recibidos');
   const { usuario } = usarSesion();

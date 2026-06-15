@@ -1,4 +1,8 @@
 // Router montado bajo /pedidos/:pedidoId/envio (mergeParams para heredar el param)
+// Define los endpoints de consulta y actualización del envío de un pedido.
+// `Router({ mergeParams: true })` es necesario porque este router se monta
+// como subruta de /pedidos/:pedidoId, y sin esa opción `params.pedidoId`
+// no estaría disponible dentro de este router.
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { soloDisenador } from '../../middlewares/rbac';
@@ -19,6 +23,9 @@ export const rutasEnvios = Router({ mergeParams: true });
  *       200: { description: Datos del envío }
  *       404: { description: Envío no encontrado (pedido aún no aceptado) }
  */
+// Cualquier usuario autenticado puede llamar a esta ruta; la comprobación de
+// si tiene relación con el pedido (cliente o diseñador del mismo) se hace
+// dentro del servicio.
 rutasEnvios.get('/', verificarJwt, controladorEnvios.obtener);
 
 /**
@@ -32,6 +39,8 @@ rutasEnvios.get('/', verificarJwt, controladorEnvios.obtener);
  *       200: { description: Envío actualizado }
  *       403: { description: Solo el diseñador del pedido puede actualizar }
  */
+// Requiere rol diseñador y cuerpo válido según dtoActualizarEnvio antes de
+// llegar al controlador.
 rutasEnvios.patch(
   '/',
   verificarJwt,

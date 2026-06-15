@@ -1,3 +1,8 @@
+// Definición de rutas Express para el recurso /productos.
+// Incluye el catálogo público, la gestión del catálogo propio del diseñador
+// y el montaje de los sub-routers de variantes e imágenes anidados bajo
+// /productos/:productoId/.
+
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { soloDisenador } from '../../middlewares/rbac';

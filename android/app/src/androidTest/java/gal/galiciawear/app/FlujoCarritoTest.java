@@ -29,8 +29,16 @@ import static org.junit.Assert.assertNotNull;
 @MediumTest
 public class FlujoCarritoTest {
 
+    /**
+     * Verifica que al insertar un artículo en el carrito a través del DAO de
+     * Room, este queda persistido correctamente y se puede recuperar con los
+     * mismos valores (varianteId, cantidad, nombre del producto, etc.).
+     *
+     * @throws InterruptedException si se interrumpe la espera del {@link java.util.concurrent.CountDownLatch}.
+     */
     @Test
     public void insertarItemCarrito_persisteEnBaseDatosLocal() throws InterruptedException {
+        // Se obtiene el contexto real de la app bajo test y la instancia de la BBDD Room.
         Context contexto = InstrumentationRegistry.getInstrumentation().getTargetContext();
         BaseDatosLocal bd = BaseDatosLocal.obtenerInstancia(contexto);
 
@@ -55,7 +63,7 @@ public class FlujoCarritoTest {
             // Insertar
             bd.daoCarrito().insertar(item);
 
-            // Verificar
+            // Verificar: el ítem insertado debe ser el único y conservar sus valores.
             java.util.List<gal.galiciawear.app.datos.local.entidad.EntidadItemCarrito> items =
                 bd.daoCarrito().obtenerItems();
             assertEquals(1, items.size());
@@ -63,14 +71,22 @@ public class FlujoCarritoTest {
             assertEquals(2, items.get(0).cantidad);
             assertEquals("Camiseta Lino Gallego", items.get(0).nombreProducto);
 
-            // Limpiar
+            // Limpiar para no dejar datos residuales que afecten a otros tests.
             bd.daoCarrito().vaciar();
             latch.countDown();
         });
 
+        // Se espera (máx. 5 segundos) a que la tarea en el hilo de E/S finalice.
         latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
     }
 
+    /**
+     * Verifica que al eliminar un artículo del carrito por su {@code varianteId},
+     * este desaparece de la base de datos local Room y la lista de ítems
+     * queda vacía.
+     *
+     * @throws InterruptedException si se interrumpe la espera del {@link java.util.concurrent.CountDownLatch}.
+     */
     @Test
     public void eliminarItemCarrito_loEliminaDeRoom() throws InterruptedException {
         Context contexto = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -92,12 +108,14 @@ public class FlujoCarritoTest {
             // Eliminar por varianteId
             bd.daoCarrito().eliminar("variante-eliminar-test");
 
+            // Tras eliminar, la lista de ítems del carrito debe quedar vacía.
             java.util.List<gal.galiciawear.app.datos.local.entidad.EntidadItemCarrito> items =
                 bd.daoCarrito().obtenerItems();
             assertEquals(0, items.size());
             latch.countDown();
         });
 
+        // Se espera (máx. 5 segundos) a que la tarea en el hilo de E/S finalice.
         latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
     }
 }

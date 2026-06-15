@@ -39,6 +39,14 @@ public class ActividadDetalleProducto extends AppCompatActivity {
     private String varianteSeleccionadaId;
     private double precioBaseProducto;
 
+    /**
+     * Inicializa la pantalla de detalle: infla el binding, obtiene los
+     * ViewModels de productos y carrito, configura la barra de herramientas
+     * con botón de retroceso, lee el slug del producto recibido por
+     * {@link android.content.Intent} y carga sus datos, registra el listener
+     * del botón de añadir al carrito y refresca el carrito (para mantener el
+     * badge actualizado).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +72,14 @@ public class ActividadDetalleProducto extends AppCompatActivity {
         modeloVistaCarrito.cargarCarrito();
     }
 
+    /**
+     * Solicita al ViewModel el detalle del producto identificado por su slug
+     * y observa el resultado: muestra el indicador de carga mientras se
+     * obtiene, pinta el contenido en caso de éxito, o muestra un Snackbar de
+     * error si la petición falla.
+     *
+     * @param slug identificador legible del producto en la URL/recursos
+     */
     private void cargarProducto(String slug) {
         modeloVistaProductos.cargarDetalle(slug);
         modeloVistaProductos.observarDetalle().observe(this, recurso -> {
@@ -81,6 +97,16 @@ public class ActividadDetalleProducto extends AppCompatActivity {
         });
     }
 
+    /**
+     * Rellena toda la pantalla con los datos del producto recibido: nombre,
+     * precio (con la corrección de "precioBase" frente a "precio"),
+     * descripción, material, distancia de origen, imagen principal, chips de
+     * variantes (talla/color) disponibles y chips informativos de
+     * certificados de sostenibilidad, además de los datos del diseñador y el
+     * botón de contacto con la tienda.
+     *
+     * @param producto datos completos del producto devueltos por el backend
+     */
     private void mostrarProducto(DtoRespuestaProducto producto) {
         this.productoActual = producto;
 
@@ -110,6 +136,7 @@ public class ActividadDetalleProducto extends AppCompatActivity {
         }
 
         // Chips de variantes (Ley de Hick: chips agrupados, no lista interminable)
+        // Solo se muestran las variantes con stock disponible (>0).
         enlace.grupoChipsTallas.removeAllViews();
         if (producto.variantes != null) {
             for (DtoRespuestaProducto.DtoVariante v : producto.variantes) {
@@ -117,6 +144,9 @@ public class ActividadDetalleProducto extends AppCompatActivity {
                 Chip chip = new Chip(this);
                 chip.setText(v.talla + " - " + v.color);
                 chip.setCheckable(true);
+                // Al marcar una variante, se guarda su id (necesario para
+                // añadir al carrito) y se actualiza el precio mostrado
+                // sumando el ajuste propio de esa variante al precio base.
                 chip.setOnCheckedChangeListener((btn, marcado) -> {
                     if (marcado) {
                         varianteSeleccionadaId = v.id;
@@ -167,6 +197,11 @@ public class ActividadDetalleProducto extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * Añade al carrito una unidad de la variante seleccionada. Si el usuario
+     * no ha elegido aún ninguna talla/color, se muestra un aviso y no se
+     * realiza la petición.
+     */
     private void añadirAlCarrito() {
         if (varianteSeleccionadaId == null) {
             mostrarAviso(getString(R.string.selecciona_variante), Snackbar.LENGTH_SHORT, false);
@@ -204,6 +239,12 @@ public class ActividadDetalleProducto extends AppCompatActivity {
         snackbar.show();
     }
 
+    /**
+     * Navega a la pantalla principal indicando que debe abrirse directamente
+     * la pestaña del carrito, reutilizando la instancia existente de
+     * {@code ActividadPrincipal} (FLAG_ACTIVITY_CLEAR_TOP + SINGLE_TOP) y
+     * cerrando esta pantalla de detalle.
+     */
     private void abrirCarrito() {
         Intent intent = new Intent(this, gal.galiciawear.app.ui.principal.ActividadPrincipal.class);
         intent.putExtra(Constantes.EXTRA_ABRIR_CARRITO, true);
@@ -212,6 +253,7 @@ public class ActividadDetalleProducto extends AppCompatActivity {
         finish();
     }
 
+    /** Hace que la flecha de retroceso de la barra de herramientas cierre la actividad. */
     @Override
     public boolean onSupportNavigateUp() {
         finish();

@@ -18,6 +18,7 @@ const ENLACES_CUENTA = [
   { a: '/registro', texto: 'Crear cuenta' },
 ];
 
+/** Pie de página global: marca, enlaces de catálogo y cuenta, y nota de sostenibilidad. */
 export function PieDePagina() {
   return (
     <footer className="mt-20 border-t border-piedra-100 bg-white">

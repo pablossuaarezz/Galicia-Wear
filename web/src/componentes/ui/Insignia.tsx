@@ -17,6 +17,7 @@ interface PropsInsignia extends HTMLAttributes<HTMLSpanElement> {
   tono?: TonoInsignia;
 }
 
+/** Etiqueta compacta (badge) con tono semántico; útil para estados de pedido, validación, etc. */
 export function Insignia({ tono = 'neutro', className, children, ...resto }: PropsInsignia) {
   return (
     <span

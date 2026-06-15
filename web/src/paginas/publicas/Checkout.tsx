@@ -1,6 +1,13 @@
 // Checkout: elegir dirección (o crear una), método de pago y confirmar. Crea el pedido
 // (POST /pedidos) y simula el pago (PATCH /pedidos/:id/pagar, stub), mostrando la confirmación
 // con el número GW-AAAA-NNNNN.
+//
+// Flujo de usuario:
+// 1. Selección de dirección de envío (con opción de añadir una nueva mediante un modal).
+// 2. Selección de método de pago (simulado, sin cargo real).
+// 3. Notas opcionales para el pedido.
+// 4. Confirmación: se crea el pedido y se simula el pago; si todo va bien se muestra una
+//    pantalla de éxito con el número de pedido y el total pagado.
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +28,15 @@ import { mensajeDeError } from '@/util/validacion';
 import { cx } from '@/util/cx';
 import type { EntradaDireccion, MetodoPago, Pedido } from '@/api/tipos';
 
+/**
+ * Página de finalización de compra (checkout).
+ *
+ * Gestiona en un único componente el estado de los tres pasos del proceso (dirección, método
+ * de pago y notas), la creación de nuevas direcciones mediante un modal, y la confirmación
+ * final del pedido, que incluye la creación del pedido y la simulación de su pago.
+ * Si el carrito está vacío redirige visualmente a un estado vacío; si el pedido se completa
+ * con éxito, sustituye la vista por una pantalla de confirmación.
+ */
 export default function Checkout() {
   usarTitulo('Finalizar compra');
   const brindis = usarBrindis();
@@ -44,6 +60,9 @@ export default function Checkout() {
     }
   }, [direcciones, direccionId]);
 
+  // Mutación para crear una nueva dirección de envío desde el modal "Nueva dirección".
+  // Al tener éxito, se invalida la caché de direcciones (para refrescar la lista), se
+  // selecciona automáticamente la dirección recién creada y se cierra el modal.
   const crearDireccion = useMutation({
     mutationFn: (datos: EntradaDireccion) => apiDirecciones.crear(datos),
     onSuccess: (direccion) => {
@@ -55,6 +74,13 @@ export default function Checkout() {
     onError: (error) => brindis.error(mensajeDeError(error)),
   });
 
+  /**
+   * Confirma el pedido: valida que haya una dirección seleccionada, crea el pedido en el
+   * backend (POST /pedidos) y a continuación simula su pago (PATCH /pedidos/:id/pagar).
+   * Si todo va bien, invalida las cachés de carrito y pedidos (el carrito quedará vacío y
+   * el nuevo pedido aparecerá en el historial) y guarda el pedido completado en el estado
+   * para mostrar la pantalla de confirmación.
+   */
   async function confirmar() {
     if (!direccionId) {
       brindis.error('Elige una dirección de envío');
@@ -62,12 +88,15 @@ export default function Checkout() {
     }
     setProcesando(true);
     try {
+      // Paso 1: crear el pedido con la dirección, método de pago y notas elegidas.
       const pedido = await apiPedidos.crear({
         direccionEnvioId: direccionId,
         metodoPago,
         notas: notas.trim() || undefined,
       });
+      // Paso 2: simular el pago del pedido recién creado (stub del backend).
       const pagado = await apiPedidos.pagar(pedido.id);
+      // El carrito se vacía en el backend al crear el pedido: se invalida su caché.
       clienteConsultas.invalidateQueries({ queryKey: ['carrito'] });
       clienteConsultas.invalidateQueries({ queryKey: ['pedidos'] });
       setPedidoCompletado(pagado);
@@ -78,7 +107,8 @@ export default function Checkout() {
     }
   }
 
-  // Pantalla de confirmación
+  // Pantalla de confirmación: se renderiza en lugar del formulario cuando el pedido ya se
+  // ha creado y pagado correctamente.
   if (pedidoCompletado) {
     return (
       <ContenedorPagina ancho="estrecho" className="py-16">

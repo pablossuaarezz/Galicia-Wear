@@ -8,11 +8,27 @@ import { formatoHora } from '@/util/formatos';
 import { cx } from '@/util/cx';
 
 interface PropsHiloChat {
+  /** Identificador del usuario con el que se mantiene la conversación. */
   peerId: string;
+  /** Nombre del interlocutor a mostrar en la cabecera, si ya se conoce. */
   nombrePeer?: string;
+  /** Callback opcional para volver a la lista de conversaciones (botón visible solo en móvil). */
   alVolver?: () => void;
 }
 
+/**
+ * Hilo de conversación de chat en tiempo real (vía Socket.IO, gestionado por `usarChat`).
+ *
+ * Renderiza la cabecera con el avatar y estado de conexión del interlocutor, el historial de
+ * mensajes en burbujas (las propias alineadas a la derecha en azul, las del interlocutor a la
+ * izquierda), con autoscroll automático al recibir o enviar mensajes, y una caja de texto que
+ * permite enviar con Enter (Shift+Enter para salto de línea).
+ *
+ * @param peerId - Identificador del interlocutor de la conversación.
+ * @param nombrePeer - Nombre a mostrar para el interlocutor (si se conoce de antemano).
+ * @param alVolver - Callback para volver atrás (uso en vista móvil).
+ * @returns Panel de chat completo (cabecera, mensajes y formulario de envío).
+ */
 export function HiloChat({ peerId, nombrePeer, alVolver }: PropsHiloChat) {
   const { mensajes, enviar, miId, conectado, cargando } = usarChat(peerId);
   const [texto, setTexto] = useState('');
@@ -27,6 +43,7 @@ export function HiloChat({ peerId, nombrePeer, alVolver }: PropsHiloChat) {
     finRef.current?.scrollIntoView({ block: 'end' });
   }, [mensajes.length]);
 
+  /** Envía el mensaje actual (si no está vacío) a través del socket y limpia el campo de texto. */
   function mandar(evento: FormEvent) {
     evento.preventDefault();
     if (!texto.trim()) return;
@@ -34,6 +51,7 @@ export function HiloChat({ peerId, nombrePeer, alVolver }: PropsHiloChat) {
     setTexto('');
   }
 
+  /** Permite enviar el mensaje con Enter; Shift+Enter inserta un salto de línea normal. */
   function alTeclear(evento: KeyboardEvent<HTMLTextAreaElement>) {
     if (evento.key === 'Enter' && !evento.shiftKey) {
       evento.preventDefault();
@@ -74,6 +92,8 @@ export function HiloChat({ peerId, nombrePeer, alVolver }: PropsHiloChat) {
           </p>
         ) : (
           mensajes.map((mensaje) => {
+            // Determina si el mensaje lo envió el usuario actual, para alinearlo a la derecha
+            // y aplicarle el estilo de burbuja "propia" (fondo azul).
             const mio = mensaje.remitenteId === miId;
             return (
               <div key={mensaje.id} className={cx('flex', mio ? 'justify-end' : 'justify-start')}>

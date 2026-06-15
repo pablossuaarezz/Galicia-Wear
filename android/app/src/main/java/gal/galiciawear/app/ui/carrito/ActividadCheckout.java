@@ -50,6 +50,14 @@ public class ActividadCheckout extends AppCompatActivity {
     private int metodoPagoSeleccionado = PAGO_TARJETA;
     private int metodoEnvioSeleccionado = ENVIO_ESTANDAR;
 
+    /**
+     * Inicializa la pantalla de checkout: infla el binding, obtiene los
+     * ViewModels necesarios (pedidos, carrito y direcciones), configura la
+     * barra de herramientas con botón de retroceso, deja el botón de
+     * confirmar pedido deshabilitado hasta que haya una dirección seleccionada,
+     * y registra los listeners y observadores de selectores, formulario de
+     * dirección, resumen del carrito, direcciones y creación del pedido.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +90,13 @@ public class ActividadCheckout extends AppCompatActivity {
 
     // ── Selectores de pago y envío ─────────────────────────────────────────────
 
+    /**
+     * Configura los desplegables (AutoCompleteTextView de Material) de método
+     * de pago (tarjeta/transferencia) y método de envío (estándar/ecológico),
+     * fijando una selección por defecto y actualizando las variables de
+     * estado {@link #metodoPagoSeleccionado} y {@link #metodoEnvioSeleccionado}
+     * cuando el usuario elige otra opción.
+     */
     private void configurarSelectores() {
         ArrayAdapter<String> adaptadorPago = new ArrayAdapter<>(
             this, android.R.layout.simple_list_item_1, new String[]{
@@ -106,17 +121,28 @@ public class ActividadCheckout extends AppCompatActivity {
 
     // ── Formulario de nueva dirección ──────────────────────────────────────────
 
+    /**
+     * Registra los listeners para mostrar/ocultar el formulario de nueva
+     * dirección de envío y para guardar la dirección introducida.
+     */
     private void configurarFormularioDireccion() {
         enlace.botonAnadirDireccion.setOnClickListener(v -> mostrarFormulario(true));
         enlace.botonCancelarDireccion.setOnClickListener(v -> mostrarFormulario(false));
         enlace.botonGuardarDireccion.setOnClickListener(v -> guardarDireccion());
     }
 
+    /** Muestra u oculta el formulario de nueva dirección y el botón "añadir dirección" de forma exclusiva. */
     private void mostrarFormulario(boolean visible) {
         enlace.formularioDireccion.setVisibility(visible ? View.VISIBLE : View.GONE);
         enlace.botonAnadirDireccion.setVisibility(visible ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Valida los campos del formulario de nueva dirección (alias, línea 1,
+     * ciudad y código postal obligatorios; provincia opcional con valor por
+     * defecto) y, si son correctos, deshabilita el botón de guardar y solicita
+     * al ViewModel de direcciones la creación de la nueva dirección.
+     */
     private void guardarDireccion() {
         String alias  = textoDe(enlace.entradaAlias);
         String linea1 = textoDe(enlace.entradaLinea1);
@@ -125,6 +151,7 @@ public class ActividadCheckout extends AppCompatActivity {
         String cp     = textoDe(enlace.entradaCp);
         String provincia = textoDe(enlace.entradaProvincia);
 
+        // Validación de campos obligatorios (alias, dirección, ciudad y CP).
         boolean valido = true;
         if (alias.isEmpty()) {
             enlace.entradaAlias.setError(getString(R.string.campo_obligatorio));
@@ -144,6 +171,7 @@ public class ActividadCheckout extends AppCompatActivity {
         }
         if (!valido) return;
 
+        // Si no se indica provincia, se usa el valor por defecto del proyecto.
         if (provincia.isEmpty()) provincia = getString(R.string.provincia_por_defecto);
 
         enlace.botonGuardarDireccion.setEnabled(false);
@@ -151,6 +179,13 @@ public class ActividadCheckout extends AppCompatActivity {
             alias, linea1, linea2.isEmpty() ? null : linea2, ciudad, cp, provincia, "ES"));
     }
 
+    /**
+     * Observa el resultado de la creación de una nueva dirección de envío:
+     * mientras carga deshabilita el botón de guardar; en caso de éxito limpia
+     * y oculta el formulario y muestra un mensaje de confirmación (la lista de
+     * direcciones se recarga automáticamente desde el ViewModel); en caso de
+     * error muestra el mensaje correspondiente.
+     */
     private void observarCreacionDireccion() {
         modeloVistaDirecciones.observarCreacion().observe(this, recurso -> {
             if (recurso == null) return;
@@ -172,6 +207,7 @@ public class ActividadCheckout extends AppCompatActivity {
         });
     }
 
+    /** Vacía todos los campos del formulario de nueva dirección tras guardarla con éxito. */
     private void limpiarFormulario() {
         enlace.entradaAlias.setText("");
         enlace.entradaLinea1.setText("");
@@ -181,6 +217,7 @@ public class ActividadCheckout extends AppCompatActivity {
         enlace.entradaProvincia.setText(R.string.provincia_por_defecto);
     }
 
+    /** Limpia el error previo del campo y devuelve su texto sin espacios al inicio/final (o vacío si es nulo). */
     private String textoDe(TextInputEditText campo) {
         campo.setError(null);
         return campo.getText() != null ? campo.getText().toString().trim() : "";
@@ -188,6 +225,11 @@ public class ActividadCheckout extends AppCompatActivity {
 
     // ── Resumen del carrito ──────────────────────────────────────────────────
 
+    /**
+     * Observa el contenido del carrito para calcular y mostrar el subtotal,
+     * el total y el texto del botón de confirmar pedido (que incluye el
+     * importe a pagar), y solicita la carga inicial del carrito.
+     */
     private void observarResumenCarrito() {
         modeloVistaCarrito.observarCarrito().observe(this, recurso -> {
             if (recurso == null || !recurso.esExito() || recurso.datos == null) return;
@@ -203,6 +245,12 @@ public class ActividadCheckout extends AppCompatActivity {
 
     // ── Direcciones ──────────────────────────────────────────────────────────
 
+    /**
+     * Observa la lista de direcciones de envío del usuario: muestra el
+     * indicador de carga mientras se obtienen, las pinta como radio buttons en
+     * caso de éxito, o muestra el mensaje "sin direcciones" junto con un
+     * posible mensaje de error si la petición falla.
+     */
     private void observarDirecciones() {
         modeloVistaDirecciones.obtenerDirecciones().observe(this, recurso -> {
             if (recurso == null) return;
@@ -221,6 +269,16 @@ public class ActividadCheckout extends AppCompatActivity {
         });
     }
 
+    /**
+     * Genera dinámicamente un {@link RadioButton} por cada dirección de envío
+     * del usuario dentro de un {@code RadioGroup}, guardando el id de la
+     * dirección en el {@code tag} de la vista para recuperarlo al
+     * seleccionarla. Si no hay direcciones, muestra el mensaje
+     * correspondiente. Tras pintarlas, marca por defecto la última (que será
+     * la recién creada si se acaba de añadir una).
+     *
+     * @param direcciones lista de direcciones de envío del usuario, o {@code null}/vacía si no tiene ninguna
+     */
     private void pintarDirecciones(List<DtoRespuestaDireccion> direcciones) {
         enlace.contenedorDirecciones.removeAllViews();
         if (direcciones == null || direcciones.isEmpty()) {
@@ -238,6 +296,8 @@ public class ActividadCheckout extends AppCompatActivity {
             enlace.contenedorDirecciones.addView(opcion);
         }
 
+        // Al cambiar la selección, se guarda el id de la dirección elegida y
+        // se habilita el botón de confirmar pedido (si hay una marcada).
         enlace.contenedorDirecciones.setOnCheckedChangeListener((grupo, idMarcado) -> {
             RadioButton marcado = grupo.findViewById(idMarcado);
             if (marcado != null) {
@@ -252,6 +312,7 @@ public class ActividadCheckout extends AppCompatActivity {
         aMarcar.setChecked(true);
     }
 
+    /** Limpia el contenedor de direcciones, muestra el mensaje "sin direcciones" y deshabilita el pago. */
     private void mostrarSinDirecciones() {
         enlace.contenedorDirecciones.removeAllViews();
         enlace.textoSinDirecciones.setVisibility(View.VISIBLE);
@@ -259,6 +320,7 @@ public class ActividadCheckout extends AppCompatActivity {
         enlace.botonConfirmarPedido.setEnabled(false);
     }
 
+    /** Construye el texto a mostrar en el radio button: alias en una línea y resumen de la dirección debajo. */
     private String textoDireccion(DtoRespuestaDireccion direccion) {
         String alias = direccion.alias != null ? direccion.alias : "";
         return alias + "\n" + direccion.resumen();
@@ -266,6 +328,12 @@ public class ActividadCheckout extends AppCompatActivity {
 
     // ── Creación del pedido ──────────────────────────────────────────────────
 
+    /**
+     * Confirma el pedido: comprueba que haya una dirección seleccionada,
+     * traduce los índices de los selectores de pago/envío a los valores que
+     * espera el backend ("TARJETA"/"TRANSFERENCIA" y envío ecológico
+     * booleano) y solicita al ViewModel la creación del pedido.
+     */
     private void confirmarPedido() {
         if (direccionSeleccionadaId == null) {
             Snackbar.make(enlace.getRoot(), R.string.sin_direcciones, Snackbar.LENGTH_LONG).show();
@@ -276,6 +344,14 @@ public class ActividadCheckout extends AppCompatActivity {
         modeloVistaPedidos.realizarPedido(direccionSeleccionadaId, metodoPago, envioEcologico);
     }
 
+    /**
+     * Observa el resultado de la creación del pedido: mientras carga,
+     * deshabilita el botón de confirmar y muestra el indicador de carga; en
+     * caso de éxito, refleja en local que el carrito ya fue vaciado por el
+     * backend y navega a la pantalla de compra completada pasándole los datos
+     * del pedido recién creado; en caso de error, reactiva el botón y muestra
+     * un mensaje.
+     */
     private void observarCreacionPedido() {
         modeloVistaPedidos.observarCreacion().observe(this, recurso -> {
             if (recurso == null) return;
@@ -306,6 +382,7 @@ public class ActividadCheckout extends AppCompatActivity {
         });
     }
 
+    /** Hace que la flecha de retroceso de la barra de herramientas cierre la actividad. */
     @Override
     public boolean onSupportNavigateUp() {
         finish();

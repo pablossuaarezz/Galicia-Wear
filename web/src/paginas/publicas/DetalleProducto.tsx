@@ -1,6 +1,15 @@
 // Detalle de prenda: galería, selección de variante (talla·color·stock), precio dinámico,
 // certificados e información de sostenibilidad, y bloque del diseñador. El botón de añadir
 // respeta la sesión (pide login si hace falta) e incrementa sobre lo ya presente en el carrito.
+//
+// Flujo de usuario:
+// 1. Se carga la prenda a partir de su slug en la URL (/producto/:slug); mientras tanto se
+//    muestra un esqueleto y, si falla, un estado vacío con enlace al catálogo.
+// 2. El usuario elige una variante (talla y color) y la cantidad; el precio se recalcula según
+//    el ajuste de precio de la variante seleccionada.
+// 3. Al pulsar "Añadir al carrito": si no hay sesión se redirige a login; si es diseñador se
+//    avisa de que no dispone de carrito; en otro caso se agrega la variante respetando el stock.
+// 4. Se ofrecen además los certificados de sostenibilidad y un acceso al perfil del diseñador.
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -18,6 +27,10 @@ import { CERTIFICADOS, CIUDADES, MATERIALES, TALLAS } from '@/util/constantes';
 import { cx } from '@/util/cx';
 import type { ProductoDetalle, Variante } from '@/api/tipos';
 
+/**
+ * Esqueleto de carga del detalle de producto. Reproduce el armazón visual de la página (galería
+ * a la izquierda y bloque de información a la derecha) mientras se resuelve la consulta a la API.
+ */
 function CargandoDetalle() {
   return (
     <ContenedorPagina ancho="ancho" className="py-10">
@@ -35,11 +48,23 @@ function CargandoDetalle() {
   );
 }
 
+/**
+ * Galería de imágenes de la prenda con imagen principal y miniaturas navegables.
+ *
+ * Mantiene el índice de la imagen activa y un registro de las imágenes que han fallado al
+ * cargar, de modo que cada miniatura o la imagen principal degraden a un marcador (hoja) si su
+ * URL no es válida en lugar de mostrar un hueco roto.
+ *
+ * @param producto Producto del que se muestran las imágenes.
+ */
 function Galeria({ producto }: { producto: ProductoDetalle }) {
+  // Índice de la imagen actualmente mostrada en grande.
   const [activa, setActiva] = useState(0);
+  // Registro de índices cuya imagen ha fallado al cargar, para mostrar el marcador de respaldo.
   const [fallos, setFallos] = useState<Record<number, boolean>>({});
   const imagenes = producto.imagenes;
   const actual = imagenes[activa];
+  // Solo se considera que hay foto válida si existe la imagen y no ha fallado previamente.
   const hayFoto = actual && !fallos[activa];
 
   return (
@@ -92,7 +117,16 @@ function Galeria({ producto }: { producto: ProductoDetalle }) {
   );
 }
 
+/**
+ * Página de detalle de una prenda.
+ *
+ * Carga el producto por su slug, gestiona la selección de variante (talla/color/stock) y la
+ * cantidad, calcula el precio dinámico según la variante elegida, y controla el flujo de
+ * "Añadir al carrito" teniendo en cuenta la sesión (login requerido), el rol (los diseñadores
+ * no compran) y los límites de stock. Muestra además galería, certificados y datos del diseñador.
+ */
 export default function DetalleProducto() {
+  // Slug de la prenda tomado del parámetro de ruta /producto/:slug.
   const { slug } = useParams<{ slug: string }>();
   const consulta = usarProducto(slug);
   const producto = consulta.data;

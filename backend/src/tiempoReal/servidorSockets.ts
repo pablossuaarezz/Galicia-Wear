@@ -10,14 +10,42 @@ import type { PayloadJwt } from '../middlewares/autenticacion';
 import { servicioChat } from '../modulos/chat/servicio';
 import { dtoEnviarMensaje } from '../modulos/chat/dto';
 
+// Referencia global al servidor de Socket.IO, accesible desde otros módulos (p. ej.
+// el servicio de notificaciones) a través de `obtenerIo()` una vez inicializado.
 let io: Server | null = null;
 
 // Sala determinista 1:1: el par ordenado de ids garantiza el mismo nombre en ambos
 // sentidos (el cliente entra con el id de la tienda; la tienda con el id del cliente).
+/**
+ * Calcula el nombre de la sala de Socket.IO correspondiente a una conversación 1:1
+ * entre dos usuarios. Ordenando alfabéticamente los ids antes de unirlos se garantiza
+ * que ambos participantes (sea cual sea el orden en que cada uno llama a esta función)
+ * obtengan exactamente el mismo nombre de sala.
+ * @param idA id de uno de los participantes de la conversación.
+ * @param idB id del otro participante.
+ * @returns nombre de sala con el formato `sala:<idMenor>__<idMayor>`.
+ */
 function salaPar(idA: string, idB: string): string {
   return `sala:${[idA, idB].sort().join('__')}`;
 }
 
+/**
+ * Inicializa el servidor de Socket.IO sobre el servidor HTTP existente y registra
+ * todos los manejadores de eventos en tiempo real (chat de soporte tienda-cliente y
+ * sala personal de notificaciones).
+ *
+ * Flujo general:
+ * 1. Crea la instancia de `Server` con CORS abierto (`origin: '*'`).
+ * 2. Middleware de autenticación en el handshake: valida el JWT enviado por el cliente.
+ * 3. En cada conexión:
+ *    - Une al socket a su sala personal `usuario:<sub>` (para notificaciones push-like).
+ *    - Gestiona el evento `unirse_sala` (entrar a una conversación 1:1 y recibir historial).
+ *    - Gestiona el evento `enviar_mensaje` (validar, persistir y reemitir el mensaje).
+ *    - Gestiona la desconexión (solo logging).
+ *
+ * @param servidor servidor HTTP de Node sobre el que se monta Socket.IO (compartido con Express).
+ * @returns la instancia de `Server` de Socket.IO ya inicializada.
+ */
 export function inicializarSockets(servidor: ServidorHttp): Server {
   io = new Server(servidor, { cors: { origin: '*' } });
 
@@ -77,6 +105,7 @@ export function inicializarSockets(servidor: ServidorHttp): Server {
       }
     });
 
+    // Solo logging: Socket.IO limpia automáticamente al socket de todas sus salas.
     socket.on('disconnect', () => {
       registrador.info({ usuario: usuario.sub }, '[socket] desconectado');
     });
@@ -86,6 +115,13 @@ export function inicializarSockets(servidor: ServidorHttp): Server {
   return io;
 }
 
+/**
+ * Devuelve la instancia global del servidor de Socket.IO, o `null` si todavía no se
+ * ha llamado a {@link inicializarSockets} (p. ej. durante el arranque o en tests).
+ * Otros módulos (como el servicio de notificaciones) deben comprobar el valor `null`
+ * antes de usarla, ya que emitir eventos por socket es siempre best-effort.
+ * @returns la instancia de `Server` de Socket.IO, o `null` si no está inicializada.
+ */
 export function obtenerIo(): Server | null {
   return io;
 }

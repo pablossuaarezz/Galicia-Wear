@@ -14,6 +14,10 @@ import java.util.prefs.Preferences;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Pruebas del ClienteHttp con MockWebServer: verifican la inyección de la cabecera Authorization
+ * y el mecanismo de refresco automático del token de acceso ante un 401 con reintento.
+ */
 class ClienteHttpTest {
 
     private MockWebServer servidor;
@@ -21,6 +25,7 @@ class ClienteHttpTest {
     private GestorSesion sesion;
     private ClienteHttp cliente;
 
+    /** Arranca el servidor simulado y crea el cliente HTTP con una sesión aislada. */
     @BeforeEach
     void preparar() throws Exception {
         servidor = new MockWebServer();
@@ -30,12 +35,14 @@ class ClienteHttpTest {
         cliente = new ClienteHttp(servidor.url("/").toString(), sesion);
     }
 
+    /** Detiene el servidor simulado y borra el nodo de preferencias tras cada test. */
     @AfterEach
     void cerrar() throws Exception {
         servidor.shutdown();
         nodo.removeNode();
     }
 
+    /** Con sesión activa, toda petición debe llevar la cabecera "Authorization: Bearer <token>". */
     @Test
     void anadeCabeceraAutorizacionConElTokenVigente() throws Exception {
         sesion.guardarSesion("token-123", "ref", "u1", "a@gw.gal", "ADMIN");
@@ -47,6 +54,7 @@ class ClienteHttpTest {
         assertEquals("Bearer token-123", peticion.getHeader("Authorization"));
     }
 
+    /** Ante un 401, el cliente debe renovar el token vía /auth/refresh y reintentar la petición original. */
     @Test
     void ante401RefrescaElTokenYReintenta() throws Exception {
         sesion.guardarSesion("viejo", "refViejo", "u1", "a@gw.gal", "ADMIN");

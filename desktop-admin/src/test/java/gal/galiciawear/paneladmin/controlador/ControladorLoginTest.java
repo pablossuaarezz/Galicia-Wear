@@ -74,6 +74,7 @@ class ControladorLoginTest extends ApplicationTest {
         }
     }
 
+    /** Pulsar "Entrar" con los campos vacíos debe mostrar un aviso sobre el correo. */
     @Test
     void camposVaciosMuestranAviso() {
         Button boton = lookup("#botonEntrar").queryButton();
@@ -84,6 +85,7 @@ class ControladorLoginTest extends ApplicationTest {
                 "Debe avisar de que faltan las credenciales");
     }
 
+    /** Con un 401 simulado del backend, la etiqueta de error debe indicar credenciales incorrectas. */
     @Test
     void credencialesInvalidasMuestranError() throws TimeoutException {
         servidor.enqueue(new MockResponse().setResponseCode(401)

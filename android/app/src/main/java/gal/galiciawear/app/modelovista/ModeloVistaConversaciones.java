@@ -22,11 +22,23 @@ public class ModeloVistaConversaciones extends ViewModel {
 
     private final RepositorioChat repositorioChat;
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param repositorioChat repositorio de chat usado para listar conversaciones.
+     */
     @Inject
     public ModeloVistaConversaciones(RepositorioChat repositorioChat) {
         this.repositorioChat = repositorioChat;
     }
 
+    /**
+     * Obtiene el listado de conversaciones de soporte del usuario.
+     * Delega directamente en el repositorio, que es quien realiza la llamada
+     * REST y publica el resultado en el LiveData devuelto.
+     *
+     * @return LiveData con el estado (cargando/éxito/error) de la lista de conversaciones.
+     */
     public LiveData<RecursoUi<List<DtoConversacion>>> listarConversaciones() {
         return repositorioChat.listarConversaciones();
     }

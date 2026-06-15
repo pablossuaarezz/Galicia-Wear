@@ -1,6 +1,15 @@
+// JUSTIFICACIÓN: genera la especificación OpenAPI (Swagger) a partir de comentarios
+// `@openapi` distribuidos por los módulos de la API. Se usa en `aplicacion.ts` para
+// servir la documentación interactiva en `/api/docs` y el JSON en `/api/docs.json`.
 import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'node:path';
 
+/**
+ * Configuración de swagger-jsdoc: metadatos generales de la API (título, versión,
+ * descripción, licencia), servidores disponibles, esquema de seguridad (JWT Bearer),
+ * etiquetas (`tags`) usadas para agrupar los endpoints por dominio en la UI, y la
+ * ruta de los archivos donde swagger-jsdoc debe buscar anotaciones `@openapi`.
+ */
 const opciones: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.3',
@@ -41,4 +50,10 @@ const opciones: swaggerJsdoc.Options = {
   apis: [path.join(__dirname, '..', 'modulos', '**', '*.ts')],
 };
 
+/**
+ * Especificación OpenAPI generada en tiempo de carga del módulo, combinando las
+ * `opciones` definidas arriba con todos los comentarios `@openapi` encontrados en
+ * los archivos de rutas de cada módulo. Se sirve tal cual mediante Swagger UI y
+ * como JSON en `/api/docs.json`.
+ */
 export const especificacionSwagger = swaggerJsdoc(opciones);

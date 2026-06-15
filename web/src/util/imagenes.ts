@@ -3,8 +3,19 @@
 // /uploads/...`), que el navegador no puede alcanzar. Si la URL apunta a `/uploads/…`, la
 // convertimos a ruta RELATIVA para que pase por el proxy (Vite en dev, nginx en prod) hacia el
 // backend. Las URLs externas (Unsplash https, data URI base64…) se devuelven intactas.
+/**
+ * Normaliza la URL de una imagen para que sea alcanzable desde el navegador.
+ *
+ * Si la URL contiene el segmento `/uploads/` (foto subida al backend, posiblemente con un host
+ * absoluto inservible para el navegador), la recorta a su parte relativa para que el proxy la
+ * redirija al backend. Cualquier otra URL (externa o data URI) se devuelve sin cambios.
+ *
+ * @param url - URL original de la imagen (puede ser nula o indefinida).
+ * @returns URL utilizable por el navegador, o `undefined` si no se proporcionó URL.
+ */
 export function resolverImagen(url?: string | null): string | undefined {
   if (!url) return undefined;
+  // Si la URL apunta a un archivo subido, nos quedamos solo desde "/uploads/" (ruta relativa).
   const indice = url.indexOf('/uploads/');
   return indice >= 0 ? url.slice(indice) : url;
 }

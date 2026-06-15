@@ -1,4 +1,11 @@
 // Carrito de la compra: líneas editables, resumen con envío (gratis ≥ 50 €) y paso a checkout.
+//
+// Flujo de usuario:
+// 1. Si el usuario no está autenticado, se muestra un estado vacío invitando a iniciar sesión.
+// 2. Si la cuenta es de diseñador, se informa de que no existe carrito (gestionan ventas en el panel).
+// 3. En caso contrario, se listan las líneas del carrito (LineaCarrito) con controles de
+//    cantidad y eliminación, junto a un resumen lateral con subtotal, envío y total, y un
+//    botón para pasar a la pantalla de Checkout.
 import { Link } from 'react-router-dom';
 import { Leaf, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { EnlaceBoton, EstadoVacio, Tarjeta } from '@/componentes/ui';
@@ -14,14 +21,28 @@ import { TALLAS } from '@/util/constantes';
 import { cx } from '@/util/cx';
 import type { ItemCarrito } from '@/api/tipos';
 
+/**
+ * Calcula el precio unitario de una línea del carrito sumando el precio base del producto
+ * con el ajuste de precio propio de la variante (talla/color pueden encarecer o abaratar).
+ *
+ * @param item Línea del carrito de la que se quiere calcular el precio unitario.
+ * @returns Precio unitario (sin multiplicar por la cantidad) como número.
+ */
 function precioLinea(item: ItemCarrito): number {
   return aNumero(item.variante.producto.precioBase) + aNumero(item.variante.ajustePrecio);
 }
 
+/**
+ * Renderiza una línea individual del carrito: imagen, datos del producto/variante,
+ * control de cantidad (+/-) con límite de stock y botón de eliminar.
+ *
+ * @param item Ítem del carrito a representar.
+ */
 function LineaCarrito({ item }: { item: ItemCarrito }) {
   const { establecerCantidad, eliminar, ocupado } = usarCarrito();
   const producto = item.variante.producto;
   const imagen = producto.imagenes[0];
+  // El stock máximo seleccionable se limita a 99 unidades por línea, aunque haya más disponibles.
   const stockMax = Math.min(item.variante.stock, 99);
 
   return (
@@ -94,6 +115,15 @@ function LineaCarrito({ item }: { item: ItemCarrito }) {
   );
 }
 
+/**
+ * Página del carrito de la compra.
+ *
+ * Muestra estados distintos según el tipo de usuario:
+ * - Usuario no autenticado: invita a iniciar sesión.
+ * - Usuario diseñador: indica que no dispone de carrito de compra.
+ * - Usuario cliente: muestra las líneas del carrito y el resumen de totales,
+ *   con acceso al checkout.
+ */
 export default function Carrito() {
   usarTitulo('Carrito');
   const { estaAutenticado, esDisenador } = usarSesion();
@@ -131,6 +161,7 @@ export default function Carrito() {
     );
   }
 
+  // Importe que falta para alcanzar el umbral de envío gratuito; si es <= 0, el envío ya es gratis.
   const faltaParaGratis = ENVIO_GRATUITO_DESDE - resumen.subtotal;
 
   return (
@@ -161,6 +192,8 @@ export default function Carrito() {
               <h2 className="font-display text-lg font-semibold text-tinta-900">Resumen</h2>
 
               {faltaParaGratis > 0 ? (
+                // Aún no se alcanza el envío gratuito: se muestra cuánto falta y una barra de
+                // progreso proporcional al subtotal respecto al umbral ENVIO_GRATUITO_DESDE.
                 <div className="mt-4 rounded-xl bg-galego-50 p-3 text-sm text-galego-700">
                   Te faltan <strong>{formatoPrecio(faltaParaGratis)}</strong> para el envío gratis.
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-galego-100">

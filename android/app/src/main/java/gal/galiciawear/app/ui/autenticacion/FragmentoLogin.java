@@ -33,12 +33,24 @@ public class FragmentoLogin extends Fragment {
     private FragmentoLoginBinding enlace;
     private ModeloVistaAutenticacion modeloVista;
 
+    /**
+     * Infla el layout del fragmento mediante ViewBinding y devuelve su vista raíz.
+     * No se realiza aquí ninguna configuración adicional: se deja para
+     * {@link #onViewCreated(View, Bundle)}, donde la vista ya está completamente
+     * disponible.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
         enlace = FragmentoLoginBinding.inflate(inflater, container, false);
         return enlace.getRoot();
     }
 
+    /**
+     * Obtiene el ViewModel compartido con la actividad contenedora (de modo que
+     * Login y Registro puedan usar el mismo {@link ModeloVistaAutenticacion} si
+     * fuera necesario) y configura la validación reactiva de los campos y el
+     * comportamiento del botón de login.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -49,6 +61,12 @@ public class FragmentoLogin extends Fragment {
     }
 
     // Validación en tiempo real: actualiza el error del TextInputLayout al escribir
+    /**
+     * Añade un {@link TextWatcher} común a los campos de correo y contraseña.
+     * En cada pulsación: recalcula si el botón de login debe estar habilitado
+     * y limpia los errores mostrados previamente (para no mostrar un error
+     * obsoleto mientras el usuario sigue corrigiendo el texto).
+     */
     private void configurarValidacionReactiva() {
         TextWatcher validador = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) { }
@@ -65,6 +83,13 @@ public class FragmentoLogin extends Fragment {
         actualizarEstadoBoton();
     }
 
+    /**
+     * Comprueba de forma sencilla (sin llamar al servidor) si el correo tiene
+     * formato mínimamente válido (contiene "@" y ".") y la contraseña alcanza
+     * la longitud mínima (6 caracteres), y habilita/deshabilita el botón de
+     * login en consecuencia. Esta validación es solo de "prevención de
+     * errores" en cliente; la validación completa la hace el backend.
+     */
     private void actualizarEstadoBoton() {
         String correo     = enlace.entradaCorreo.getText() != null
             ? enlace.entradaCorreo.getText().toString() : "";
@@ -75,6 +100,11 @@ public class FragmentoLogin extends Fragment {
         );
     }
 
+    /**
+     * Configura el listener del botón de login (envía las credenciales al
+     * ViewModel) y observa el {@code LiveData} del resultado del login para
+     * reflejar en la UI los tres estados posibles: cargando, éxito y error.
+     */
     private void configurarBotonLogin() {
         enlace.botonLogin.setOnClickListener(v -> {
             String correo     = enlace.entradaCorreo.getText().toString().trim();
@@ -85,10 +115,13 @@ public class FragmentoLogin extends Fragment {
         modeloVista.observarLogin().observe(getViewLifecycleOwner(), recurso -> {
             if (recurso == null) return;
             if (recurso.estaCargando()) {
+                // Mientras se espera la respuesta del backend, se deshabilita el
+                // botón (evita doble envío) y se muestra el indicador de carga.
                 enlace.botonLogin.setEnabled(false);
                 enlace.indicadorCarga.setVisibility(View.VISIBLE);
             } else if (recurso.esExito()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
+                // Login correcto: decidir a qué pantalla navegar según el rol.
                 decidirDestino();
             } else if (recurso.esError()) {
                 enlace.indicadorCarga.setVisibility(View.GONE);
@@ -102,12 +135,17 @@ public class FragmentoLogin extends Fragment {
     /**
      * Tras el login: un diseñador validado entra a la app; uno sin validar va a la
      * pantalla de espera. El cliente entra directamente.
+     *
+     * Si la actividad contenedora no es {@link ActividadAutenticacion} (situación
+     * anómala), se aborta sin navegar para evitar un cast inválido.
      */
     private void decidirDestino() {
         if (!(getActivity() instanceof ActividadAutenticacion)) return;
         ActividadAutenticacion act = (ActividadAutenticacion) getActivity();
 
         if (gal.galiciawear.app.utilidades.Constantes.ROL_DISENADOR.equals(modeloVista.obtenerRol())) {
+            // Si el usuario es diseñador, hay que comprobar primero si su cuenta
+            // ya ha sido validada por un administrador antes de dejarle pasar.
             enlace.indicadorCarga.setVisibility(View.VISIBLE);
             modeloVista.estaValidadoComoDisenador().observe(getViewLifecycleOwner(), recurso -> {
                 if (recurso == null || recurso.estaCargando()) return;
@@ -120,10 +158,15 @@ public class FragmentoLogin extends Fragment {
                 }
             });
         } else {
+            // Clientes: acceso directo a la app principal.
             act.navegarAPrincipal();
         }
     }
 
+    /**
+     * Libera la referencia al binding al destruirse la vista del fragmento,
+     * evitando fugas de memoria (el binding no debe usarse tras este punto).
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

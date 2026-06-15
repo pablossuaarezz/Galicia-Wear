@@ -19,6 +19,7 @@ const VALORES = [
   { Icono: Sparkles, titulo: 'Artesanía', texto: 'Pequeñas marcas, hecho con tiempo y cariño.' },
 ];
 
+/** Cabecera principal (hero) con el lema editorial y los botones de acceso al catálogo. */
 function Hero() {
   const reducido = usarMovimientoReducido();
   return (
@@ -61,6 +62,7 @@ function Hero() {
   );
 }
 
+/** Franja con los cuatro valores de sostenibilidad de la marca. */
 function FranjaValores() {
   return (
     <section className="border-b border-piedra-100 bg-white">
@@ -81,6 +83,7 @@ function FranjaValores() {
   );
 }
 
+/** Sección de novedades: muestra las últimas 8 prendas del catálogo. */
 function Novedades() {
   const consulta = usarCatalogo({ limite: 8, pagina: 1 });
   return (
@@ -112,6 +115,7 @@ function Novedades() {
   );
 }
 
+/** Muestra hasta 3 diseñadores destacados; no renderiza nada si no hay ninguno. */
 function DisenadoresDestacados() {
   const consulta = usarDisenadores({ limite: 3 });
   const disenadores = consulta.data?.datos ?? [];
@@ -148,6 +152,7 @@ function DisenadoresDestacados() {
   );
 }
 
+/** Llamada a la acción final dirigida a diseñadores para que abran su tienda. */
 function LlamadaVender() {
   return (
     <ContenedorPagina ancho="ancho" className="py-16">
@@ -172,6 +177,7 @@ function LlamadaVender() {
   );
 }
 
+/** Página de inicio que compone, en orden, las secciones del escaparate. */
 export default function Inicio() {
   usarTitulo();
   return (

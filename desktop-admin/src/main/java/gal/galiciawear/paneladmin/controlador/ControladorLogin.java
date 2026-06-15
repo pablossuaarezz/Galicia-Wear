@@ -25,6 +25,11 @@ public class ControladorLogin {
         this.contexto = contexto;
     }
 
+    /**
+     * Manejador del botón "Entrar": valida el formulario y lanza el inicio de sesión
+     * en segundo plano (la llamada HTTP no debe bloquear el hilo de la interfaz de JavaFX).
+     * En caso de éxito navega a la pantalla principal; si falla, muestra el error.
+     */
     @FXML
     private void alEntrar() {
         String correo = campoCorreo.getText() == null ? "" : campoCorreo.getText().trim();
@@ -34,6 +39,8 @@ public class ControladorLogin {
             return;
         }
         cargando(true);
+        // EjecutorTareas ejecuta la autenticación en un hilo aparte y devuelve el resultado
+        // al hilo de JavaFX en las callbacks de éxito/error.
         EjecutorTareas.ejecutar(
                 () -> contexto.autenticacion.iniciarSesion(correo, contrasena),
                 usuario -> {
@@ -46,6 +53,7 @@ public class ControladorLogin {
                 });
     }
 
+    /** Activa/desactiva el estado de carga: muestra el indicador y bloquea el botón. */
     private void cargando(boolean activo) {
         indicadorCarga.setVisible(activo);
         indicadorCarga.setManaged(activo);
@@ -55,10 +63,12 @@ public class ControladorLogin {
         }
     }
 
+    /** Pinta un mensaje de error bajo el formulario. */
     private void mostrarError(String mensaje) {
         etiquetaError.setText(mensaje);
     }
 
+    /** Traduce la excepción a un mensaje legible: el del backend si es ErrorApi, o uno genérico de red. */
     private String mensajeDe(Throwable error) {
         if (error instanceof ErrorApi) {
             return error.getMessage();

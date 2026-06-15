@@ -10,6 +10,7 @@ interface PropsEstadoVacio {
   className?: string;
 }
 
+/** Bloque centrado para listas/zonas sin contenido: icono, título, descripción y acción opcional. */
 export function EstadoVacio({ icono, titulo, descripcion, accion, className }: PropsEstadoVacio) {
   return (
     <div

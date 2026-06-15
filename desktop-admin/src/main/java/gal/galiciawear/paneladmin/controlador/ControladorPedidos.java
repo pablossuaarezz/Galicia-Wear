@@ -33,6 +33,7 @@ public class ControladorPedidos implements ControladorVista {
         this.contexto = contexto;
     }
 
+    /** Inicialización FXML: enlaza columnas con el modelo Pedido, llena el filtro de estados y carga la tabla. */
     @FXML
     private void initialize() {
         colNumero.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().numeroPedido()));
@@ -49,6 +50,7 @@ public class ControladorPedidos implements ControladorVista {
         refrescar();
     }
 
+    /** Recarga la tabla con el filtro de estado seleccionado (TODOS = sin filtro), en segundo plano. */
     @FXML
     private void refrescar() {
         String estado = TODOS.equals(filtroEstado.getValue()) ? null : filtroEstado.getValue();
@@ -58,6 +60,7 @@ public class ControladorPedidos implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Cancela el pedido seleccionado (previa confirmación); el backend restaura el stock. */
     @FXML
     private void cancelar() {
         Pedido seleccionado = tabla.getSelectionModel().getSelectedItem();
@@ -75,6 +78,7 @@ public class ControladorPedidos implements ControladorVista {
                 error -> Alertas.error("Error", mensajeDe(error)));
     }
 
+    /** Mensaje legible del error: el del backend si es ErrorApi, o uno genérico de red. */
     private String mensajeDe(Throwable error) {
         return error instanceof ErrorApi ? error.getMessage() : "No se pudo conectar con el servidor";
     }

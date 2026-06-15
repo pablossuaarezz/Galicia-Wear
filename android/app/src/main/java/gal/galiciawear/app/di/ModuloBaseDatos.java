@@ -24,17 +24,43 @@ import gal.galiciawear.app.datos.local.dao.DaoProducto;
 @InstallIn(SingletonComponent.class)
 public class ModuloBaseDatos {
 
+    /**
+     * Provee la instancia única de {@link BaseDatosLocal} (Room).
+     *
+     * @Singleton: Hilt crea esta instancia una sola vez y la reutiliza en
+     * todas las inyecciones, delegando en el patrón Singleton ya
+     * implementado dentro de {@code BaseDatosLocal.obtenerInstancia}.
+     *
+     * @param contexto contexto de aplicación inyectado por Hilt mediante
+     *                  {@code @ApplicationContext} (evita fugas de memoria
+     *                  al no depender de una Activity concreta).
+     * @return la instancia compartida de la base de datos Room.
+     */
     @Provides
     @Singleton
     public BaseDatosLocal proveerBaseDatos(@ApplicationContext Context contexto) {
         return BaseDatosLocal.obtenerInstancia(contexto);
     }
 
+    /**
+     * Provee el DAO de productos a partir de la base de datos ya creada.
+     * No se marca como @Singleton porque el propio DAO es ligero (una
+     * interfaz generada por Room) y depende de un Singleton (la BD).
+     *
+     * @param bd instancia de la base de datos Room, inyectada por Hilt.
+     * @return el DAO de productos.
+     */
     @Provides
     public DaoProducto proveerDaoProducto(BaseDatosLocal bd) {
         return bd.daoProducto();
     }
 
+    /**
+     * Provee el DAO del carrito local a partir de la base de datos ya creada.
+     *
+     * @param bd instancia de la base de datos Room, inyectada por Hilt.
+     * @return el DAO del carrito local.
+     */
     @Provides
     public DaoCarrito proveerDaoCarrito(BaseDatosLocal bd) {
         return bd.daoCarrito();

@@ -9,6 +9,7 @@ import { usarSesion } from '@/contexto/ContextoSesion';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { formatoPrecio } from '@/util/formatos';
 
+/** Tarjeta de KPI del panel: icono, valor destacado y etiqueta descriptiva. */
 function TarjetaKpi({ Icono, etiqueta, valor }: { Icono: LucideIcon; etiqueta: string; valor: string }) {
   return (
     <Tarjeta className="p-5">
@@ -21,6 +22,10 @@ function TarjetaKpi({ Icono, etiqueta, valor }: { Icono: LucideIcon; etiqueta: s
   );
 }
 
+/**
+ * Página de inicio del panel del diseñador: avisa si falta el perfil de marca o está pendiente
+ * de validación, calcula unos KPIs básicos a partir de prendas y pedidos, y ofrece accesos rápidos.
+ */
 export default function PanelDisenador() {
   usarTitulo('Panel del diseñador');
   const { usuario } = usarSesion();
@@ -33,6 +38,8 @@ export default function PanelDisenador() {
   const prendas = consultaPrendas.data?.datos ?? [];
   const pedidos = consultaPedidos.data ?? [];
 
+  // KPIs derivados: prendas publicadas, suma de ventas (excluye canceladas/sin pagar) y
+  // pedidos pagados con líneas propias aún por aceptar.
   const publicadas = prendas.filter((p) => p.activo).length;
   const ventas = formatoPrecio(
     pedidos

@@ -1,3 +1,11 @@
+/**
+ * Rutas del módulo Chat.
+ *
+ * Define el router de Express con los endpoints REST de apoyo al chat de
+ * soporte (bandeja de conversaciones, historial de mensajes y marcado de
+ * lectura), todos ellos protegidos por el middleware `verificarJwt`. El envío
+ * de mensajes en tiempo real se gestiona aparte mediante Socket.IO.
+ */
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { controladorChat } from './controlador';

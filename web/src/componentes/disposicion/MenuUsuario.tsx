@@ -14,6 +14,10 @@ const ENLACES_CLIENTE = [
   { a: '/cuenta/direcciones', texto: 'Mis direcciones', Icono: MapPin },
 ];
 
+/**
+ * Avatar del usuario autenticado con un menú desplegable: muestra accesos distintos según el
+ * rol (panel de diseñador o zona de cliente), mensajes y la opción de cerrar sesión.
+ */
 export function MenuUsuario() {
   const [abierto, setAbierto] = useState(false);
   const contenedor = useRef<HTMLDivElement>(null);
@@ -21,8 +25,10 @@ export function MenuUsuario() {
   const brindis = usarBrindis();
   const navegar = useNavigate();
 
+  // Cierra el desplegable al hacer clic fuera de su contenedor (solo mientras está abierto).
   usarClicFuera(contenedor, () => setAbierto(false), abierto);
 
+  /** Cierra el menú, finaliza la sesión, avisa con un brindis y vuelve al inicio. */
   async function salir() {
     setAbierto(false);
     await cerrarSesion();

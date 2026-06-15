@@ -5,6 +5,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { usarSesion } from '@/contexto/ContextoSesion';
 import { PantallaCargando } from './PantallaCargando';
 
+/** Guarda del dashboard: requiere sesión y rol DISENADOR; redirige al inicio a otros roles. */
 export function RutaDisenador({ children }: { children: ReactNode }) {
   const { estaAutenticado, esDisenador, cargando } = usarSesion();
   const ubicacion = useLocation();

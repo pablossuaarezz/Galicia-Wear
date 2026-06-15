@@ -39,6 +39,12 @@ public class ModeloVistaChat extends ViewModel {
     private Observer<DtoRespuestaMensaje> observadorNuevo;
     private Observer<List<DtoRespuestaMensaje>> observadorHistorial;
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param repositorioChat repositorio singleton que gestiona el socket de chat.
+     * @param gestorSesion usado para obtener el id del usuario autenticado.
+     */
     @Inject
     public ModeloVistaChat(RepositorioChat repositorioChat, GestorSesion gestorSesion) {
         this.repositorioChat = repositorioChat;
@@ -46,14 +52,25 @@ public class ModeloVistaChat extends ViewModel {
         this.miId            = gestorSesion.obtenerUsuarioId();
     }
 
+    /** @return LiveData con la lista de mensajes de la conversación actual (historial + tiempo real). */
     public LiveData<List<DtoRespuestaMensaje>> observarMensajes() {
         return mensajes;
     }
 
+    /** @return LiveData con el estado de conexión del socket de chat. */
     public LiveData<Boolean> observarConexion() {
         return repositorioChat.estadoConexion;
     }
 
+    /**
+     * Inicia (o reinicia) la conversación de chat con un diseñador concreto.
+     * Limpia el estado local y los valores residuales del repositorio Singleton
+     * (de una conversación anterior), conecta el socket si es necesario, se une
+     * a la sala correspondiente y registra observadores permanentes sobre el
+     * historial y los mensajes nuevos del repositorio.
+     *
+     * @param disenadorId identificador del diseñador/peer con el que se conversa.
+     */
     public void iniciarChat(String disenadorId) {
         this.disenadorIdActual = disenadorId;
 
@@ -67,12 +84,15 @@ public class ModeloVistaChat extends ViewModel {
         repositorioChat.conectar();
         repositorioChat.unirseASala(disenadorId);
 
+        // El servidor envía el historial completo al unirse a la sala (evento "mensaje_historial").
         observadorHistorial = historico -> {
             if (historico == null) return;
             lista.clear();
             lista.addAll(historico);
             mensajes.postValue(new ArrayList<>(lista));
         };
+        // Mensajes en tiempo real (evento "nuevo_mensaje"): se filtran por conversación
+        // actual y se deduplican por id antes de añadirlos a la lista.
         observadorNuevo = msg -> {
             if (msg == null || !esDeConversacionActual(msg)) return;
             if (yaPresente(msg)) return;
@@ -84,12 +104,20 @@ public class ModeloVistaChat extends ViewModel {
         repositorioChat.nuevoMensaje.observeForever(observadorNuevo);
     }
 
+    /**
+     * Envía un mensaje de texto al diseñador de la conversación actual a través
+     * del socket. No hace nada si el contenido está vacío/en blanco o si no hay
+     * una conversación activa.
+     *
+     * @param contenido texto del mensaje a enviar.
+     */
     public void enviarMensaje(String contenido) {
         if (disenadorIdActual != null && contenido != null && !contenido.trim().isEmpty()) {
             repositorioChat.enviarMensaje(disenadorIdActual, contenido.trim());
         }
     }
 
+    /** @return el id del usuario autenticado, para distinguir mensajes propios de los del peer. */
     public String obtenerUsuarioId() {
         return gestorSesion.obtenerUsuarioId();
     }
@@ -101,6 +129,7 @@ public class ModeloVistaChat extends ViewModel {
             || (miId != null && miId.equals(msg.remitenteId));
     }
 
+    /** Comprueba por id si un mensaje ya está en la lista local (evita duplicados). */
     private boolean yaPresente(DtoRespuestaMensaje msg) {
         if (msg.id == null) return false;
         for (DtoRespuestaMensaje m : lista) {
@@ -109,6 +138,12 @@ public class ModeloVistaChat extends ViewModel {
         return false;
     }
 
+    /**
+     * Se ejecuta cuando el ViewModel se destruye definitivamente (no en rotaciones).
+     * Retira los observadores permanentes registrados sobre el repositorio Singleton
+     * para evitar fugas de memoria; el socket en sí no se desconecta aquí porque
+     * es compartido (Singleton) y se cierra al cerrar sesión.
+     */
     @Override
     protected void onCleared() {
         super.onCleared();

@@ -6,13 +6,33 @@ import { validarCodigoPostal, validarObligatorio } from '@/util/validacion';
 import type { Direccion, EntradaDireccion } from '@/api/tipos';
 
 interface PropsFormulario {
+  /** Dirección existente a editar; si no se proporciona, el formulario arranca vacío (alta). */
   inicial?: Direccion;
+  /** Texto del botón de envío (permite personalizarlo según el contexto, p. ej. "Crear"/"Guardar"). */
   textoBoton?: string;
+  /** Indica si el envío está en curso, para mostrar el spinner en el botón. */
   enviando?: boolean;
+  /** Callback al guardar; recibe los datos ya validados y listos para enviar a la API. */
   alGuardar: (datos: EntradaDireccion) => void | Promise<void>;
+  /** Callback opcional para cancelar la edición/alta (muestra un botón "Cancelar"). */
   alCancelar?: () => void;
 }
 
+/**
+ * Formulario de alta o edición de una dirección de envío.
+ *
+ * Mantiene su propio estado de campos y errores de validación. Las reglas de validación
+ * replican (en cliente) las del backend, para dar feedback inmediato antes de hacer la
+ * petición. Si `inicial` está definido, los campos se rellenan con sus valores (modo edición);
+ * en caso contrario arranca vacío con la provincia por defecto "A Coruña" (modo alta).
+ *
+ * @param inicial - Dirección a editar (opcional).
+ * @param textoBoton - Texto del botón de envío.
+ * @param enviando - Si `true`, deshabilita visualmente el botón mostrando un spinner.
+ * @param alGuardar - Callback invocado con los datos validados al enviar el formulario.
+ * @param alCancelar - Callback invocado al pulsar "Cancelar".
+ * @returns Formulario controlado con campos de alias, dirección, código postal, ciudad y provincia.
+ */
 export function FormularioDireccion({
   inicial,
   textoBoton = 'Guardar dirección',
@@ -20,6 +40,8 @@ export function FormularioDireccion({
   alGuardar,
   alCancelar,
 }: PropsFormulario) {
+  // Estado inicial de los campos: si hay una dirección existente (`inicial`), se precarga;
+  // si no, se arranca con valores vacíos y provincia por defecto "A Coruña".
   const [valores, setValores] = useState<EntradaDireccion>({
     alias: inicial?.alias ?? '',
     linea1: inicial?.linea1 ?? '',

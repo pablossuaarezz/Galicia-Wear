@@ -47,20 +47,39 @@ public class RepositorioProductos {
 
     private static final long TTL_CACHE_MS = 60 * 60 * 1000; // 1 hora
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param servicioApi cliente Retrofit para el catálogo público de productos.
+     * @param daoProducto DAO de Room usado como caché local del catálogo.
+     */
     @Inject
     public RepositorioProductos(ServicioApi servicioApi, DaoProducto daoProducto) {
         this.servicioApi = servicioApi;
         this.daoProducto = daoProducto;
     }
 
-    /** LiveData observable de la caché local — se actualiza automáticamente cuando Room cambia */
+    /**
+     * LiveData observable de la caché local — se actualiza automáticamente cuando Room cambia.
+     *
+     * @return LiveData con la lista de productos cacheados en Room.
+     */
     public LiveData<List<EntidadProducto>> observarProductosCache() {
         return daoProducto.observarTodos();
     }
 
     /**
      * Carga productos de la red con filtros y actualiza la caché Room.
-     * Retorna LiveData<RecursoUi> para que el Fragment gestione estados.
+     * Retorna LiveData&lt;RecursoUi&gt; para que el Fragment gestione estados.
+     *
+     * @param busqueda texto de búsqueda libre, o {@code null} si no se filtra.
+     * @param material filtro por material principal, o {@code null}.
+     * @param ciudad filtro por ciudad de origen, o {@code null}.
+     * @param maxKm distancia máxima en km de origen, o {@code null}.
+     * @param certificado filtro por certificado de sostenibilidad, o {@code null}.
+     * @param pagina número de página (paginación del backend, 1-indexada).
+     * @return LiveData que emite {@code cargando()} y después {@code exito(lista)}
+     *         o {@code error(mensaje)} según el resultado de la petición.
      */
     public MutableLiveData<RecursoUi<List<DtoRespuestaProducto>>> cargarProductos(
         String busqueda, String material, String ciudad,
@@ -77,6 +96,7 @@ public class RepositorioProductos {
                                        Response<DtoRespuestaListaProductos> r) {
                     if (r.isSuccessful() && r.body() != null) {
                         List<DtoRespuestaProducto> lista = r.body().datos;
+                        // postValue: el callback se ejecuta en un hilo de background de OkHttp.
                         resultado.postValue(RecursoUi.exito(lista));
                         // Actualizar caché solo si es la primera página sin filtros
                         if (pagina == 1 && busqueda == null && material == null) {
@@ -89,6 +109,7 @@ public class RepositorioProductos {
 
                 @Override
                 public void onFailure(Call<DtoRespuestaListaProductos> call, Throwable t) {
+                    // Fallo de red (sin conexión, timeout, etc.).
                     resultado.postValue(RecursoUi.error("Sin conexión"));
                 }
             });
@@ -96,6 +117,13 @@ public class RepositorioProductos {
         return resultado;
     }
 
+    /**
+     * Obtiene el detalle completo de un producto a partir de su slug (URL amigable).
+     *
+     * @param slug identificador textual del producto (URL amigable).
+     * @return LiveData que emite {@code cargando()} y después {@code exito(producto)}
+     *         con el detalle, o {@code error(mensaje)} si no se encuentra o falla la petición.
+     */
     public MutableLiveData<RecursoUi<DtoRespuestaProducto>> obtenerDetalle(String slug) {
         MutableLiveData<RecursoUi<DtoRespuestaProducto>> resultado = new MutableLiveData<>();
         resultado.setValue(RecursoUi.cargando());
@@ -120,6 +148,14 @@ public class RepositorioProductos {
         return resultado;
     }
 
+    /**
+     * Convierte la lista de DTOs recibidos del backend en entidades Room y las
+     * inserta en la caché local, tras invalidar las entradas cuya antigüedad
+     * supere {@link #TTL_CACHE_MS}. Se ejecuta en {@link #ejecutorIo} porque
+     * Room no permite operaciones de escritura en el hilo principal.
+     *
+     * @param dtos lista de productos recibidos del backend.
+     */
     private void actualizarCache(List<DtoRespuestaProducto> dtos) {
         ejecutorIo.execute(() -> {
             long ahora = System.currentTimeMillis();

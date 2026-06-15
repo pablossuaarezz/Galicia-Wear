@@ -15,6 +15,10 @@ import { MATERIALES } from '@/util/constantes';
 import { mensajeDeError } from '@/util/validacion';
 import type { ProductoResumen } from '@/api/tipos';
 
+/**
+ * Página de gestión del catálogo propio del diseñador: lista sus prendas (incluidas las retiradas)
+ * y permite publicar/retirar, editar y eliminar (baja lógica) cada una.
+ */
 export default function MisPrendas() {
   usarTitulo('Mis prendas');
   const clienteConsultas = useQueryClient();
@@ -23,10 +27,12 @@ export default function MisPrendas() {
   const prendas = data?.datos ?? [];
   const [aEliminar, setAEliminar] = useState<ProductoResumen | null>(null);
 
+  /** Refresca la lista tras una mutación invalidando su consulta en React Query. */
   function invalidar() {
     clienteConsultas.invalidateQueries({ queryKey: ['misPrendas'] });
   }
 
+  // Mutación para publicar/retirar (cambia el flag `activo` de la prenda).
   const cambiarEstado = useMutation({
     mutationFn: ({ id, activo }: { id: string; activo: boolean }) =>
       apiProductos.actualizar(id, { activo }),
@@ -37,6 +43,7 @@ export default function MisPrendas() {
     onError: (e) => brindis.error(mensajeDeError(e)),
   });
 
+  // Mutación de baja lógica: retira la prenda del catálogo sin borrarla físicamente.
   const eliminar = useMutation({
     mutationFn: (id: string) => apiProductos.eliminar(id),
     onSuccess: () => {

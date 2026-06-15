@@ -37,6 +37,7 @@ interface ValorSesion {
 
 const ContextoSesion = createContext<ValorSesion | null>(null);
 
+/** Proveedor que expone el estado de sesión y las acciones de autenticación a toda la app. */
 export function ProveedorSesion({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<PerfilUsuario | null>(null);
   const [cargando, setCargando] = useState<boolean>(() => hayTokenRefresco());
@@ -73,6 +74,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
   }, [clienteConsultas]);
 
   const valor = useMemo<ValorSesion>(() => {
+    /** Login: guarda los tokens, carga el perfil y actualiza el estado de sesión. */
     async function iniciarSesion(datos: EntradaLogin): Promise<PerfilUsuario> {
       const tokens = await apiAuth.login(datos);
       establecerSesion(tokens);
@@ -81,6 +83,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
       return perfil;
     }
 
+    /** Registro: crea la cuenta, deja la sesión iniciada y carga el perfil. */
     async function registrarse(datos: EntradaRegistro): Promise<PerfilUsuario> {
       const tokens = await apiAuth.registro(datos);
       establecerSesion(tokens);
@@ -89,6 +92,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
       return perfil;
     }
 
+    /** Logout: revoca la sesión en el servidor y limpia tokens, socket y caché de consultas. */
     async function cerrarSesion(): Promise<void> {
       await apiAuth.logout();
       limpiarSesion();
@@ -97,6 +101,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
       clienteConsultas.clear();
     }
 
+    /** Recarga el perfil del usuario (tras editar datos personales, por ejemplo). */
     async function refrescarPerfil(): Promise<void> {
       const perfil = await apiAuth.yo();
       setUsuario(perfil);
@@ -118,6 +123,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
   return <ContextoSesion.Provider value={valor}>{children}</ContextoSesion.Provider>;
 }
 
+/** Hook de acceso a la sesión; lanza si se usa fuera del proveedor. */
 export function usarSesion(): ValorSesion {
   const contexto = useContext(ContextoSesion);
   if (!contexto) throw new Error('usarSesion debe usarse dentro de <ProveedorSesion>');

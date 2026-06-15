@@ -30,6 +30,12 @@ public class ActividadIncorporacion extends AppCompatActivity {
     private ActividadIncorporacionBinding enlace;
     private ModeloVistaAutenticacion modeloVista;
 
+    /**
+     * Infla el layout, configura el ViewPager2 con su adaptador de 3 páginas,
+     * enlaza el indicador de puntos (TabLayoutMediator) y conecta los botones
+     * "Saltar" y "Siguiente"/"Empezar" además del callback de cambio de página
+     * que actualiza el texto del botón en la última página.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +46,8 @@ public class ActividadIncorporacion extends AppCompatActivity {
 
         AdaptadorIncorporacion adaptador = new AdaptadorIncorporacion(this);
         enlace.vistaPageOnboarding.setAdapter(adaptador);
+        // TabLayoutMediator sincroniza el indicador de puntos con la página actual
+        // del ViewPager2; el lambda vacío indica que no personalizamos cada tab.
         new TabLayoutMediator(
             enlace.indicadorPuntos, enlace.vistaPageOnboarding, (tab, pos) -> {}
         ).attach();
@@ -49,8 +57,10 @@ public class ActividadIncorporacion extends AppCompatActivity {
         enlace.botonSiguiente.setOnClickListener(v -> {
             int paginaActual = enlace.vistaPageOnboarding.getCurrentItem();
             if (paginaActual < adaptador.getItemCount() - 1) {
+                // Avanza a la siguiente página con animación de deslizamiento.
                 enlace.vistaPageOnboarding.setCurrentItem(paginaActual + 1, true);
             } else {
+                // Última página: el botón actúa como "Empezar".
                 terminarOnboarding();
             }
         });
@@ -62,6 +72,7 @@ public class ActividadIncorporacion extends AppCompatActivity {
                 public void onPageSelected(int posicion) {
                     boolean esUltima = posicion == adaptador.getItemCount() - 1;
                     enlace.botonSiguiente.setText(esUltima ? "Empezar" : "Siguiente");
+                    // En la última página se oculta "Saltar" (ya no tiene sentido saltar nada).
                     enlace.botonSaltar.setVisibility(
                         esUltima ? android.view.View.INVISIBLE : android.view.View.VISIBLE
                     );
@@ -70,6 +81,11 @@ public class ActividadIncorporacion extends AppCompatActivity {
         );
     }
 
+    /**
+     * Marca el onboarding como visto (para no volver a mostrarlo en futuros
+     * arranques de la app) y navega a la pantalla de autenticación, cerrando
+     * esta actividad con una transición de deslizamiento.
+     */
     private void terminarOnboarding() {
         modeloVista.marcarOnboardingVisto();
         startActivity(new Intent(this, ActividadAutenticacion.class));

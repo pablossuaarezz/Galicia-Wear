@@ -22,6 +22,7 @@ public class ControladorPrincipal {
         this.contexto = contexto;
     }
 
+    /** JavaFX invoca este método tras inyectar los nodos FXML: muestra el usuario y abre el dashboard. */
     @FXML
     private void initialize() {
         String correo = contexto.sesion.getCorreo();
@@ -36,6 +37,9 @@ public class ControladorPrincipal {
     @FXML private void irImportExport() { mostrar("importexport.fxml"); }
     @FXML private void irLogs() { mostrar("logs.fxml"); }
 
+    // Cada método irXxx carga el FXML de la sección correspondiente en el área central.
+
+    /** Pide confirmación y, si se acepta, cierra sesión en el servidor y vuelve al login. */
     @FXML
     private void cerrarSesion() {
         if (!Alertas.confirmar("Cerrar sesión", "¿Seguro que quieres cerrar la sesión?")) {
@@ -50,6 +54,10 @@ public class ControladorPrincipal {
                 error -> contexto.navegacion.mostrarLogin());
     }
 
+    /**
+     * Sustituye la vista central por el FXML indicado. Antes notifica a la vista saliente
+     * (alSalir) para que libere recursos, y registra la nueva si implementa ControladorVista.
+     */
     private void mostrar(String fxml) {
         if (vistaActual != null) {
             vistaActual.alSalir();

@@ -13,6 +13,7 @@ import type { CiudadGallega } from '@/api/tipos';
 
 const LIMITE = 12;
 
+/** Página con el listado público de diseñadores validados, filtrable por ciudad y paginado. */
 export default function Disenadores() {
   usarTitulo('Diseñadores');
   const [parametros, setParametros] = useSearchParams();
@@ -23,6 +24,7 @@ export default function Disenadores() {
   const consulta = usarDisenadores(filtros);
   const total = consulta.data?.total ?? 0;
 
+  // Actualiza el filtro de ciudad en la URL (query param) y vuelve a la primera página.
   function elegirCiudad(nueva: CiudadGallega | undefined) {
     const siguiente = new URLSearchParams(parametros);
     if (nueva) siguiente.set('ciudad', nueva);

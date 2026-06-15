@@ -1,5 +1,10 @@
 // Campana de notificaciones: badge con el contador (sondeo cada 30 s) y panel desplegable con
 // la bandeja. Al abrir un aviso se marca como leído y se navega al pedido relacionado.
+//
+// Se monta dentro de `BarraNavegacion`, únicamente cuando el usuario tiene sesión iniciada
+// (clientes y diseñadores). El contador y la lista de notificaciones se obtienen mediante los
+// hooks `usarContadorNotificaciones` y `usarNotificaciones` (basados en React Query u similar),
+// que gestionan el sondeo periódico y la invalidación de caché.
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -11,19 +16,41 @@ import { usarSesion } from '@/contexto/ContextoSesion';
 import { formatoTiempoRelativo } from '@/util/formatos';
 import type { Notificacion } from '@/api/tipos';
 
+/**
+ * Botón de campana con insignia de notificaciones no leídas y panel desplegable con la bandeja.
+ *
+ * No recibe props. Internamente:
+ * - `usarContadorNotificaciones` proporciona el número de notificaciones sin leer (sondeado
+ *   periódicamente para mantenerlo actualizado sin recargar la página).
+ * - `usarNotificaciones` proporciona la lista completa, el estado de carga y las acciones para
+ *   marcar una o todas las notificaciones como leídas.
+ * - El panel se cierra al hacer clic fuera de él (`usarClicFuera`) o tras seleccionar un aviso.
+ */
 export function CampanaNotificaciones() {
+  // Controla la visibilidad del panel desplegable de notificaciones.
   const [abierto, setAbierto] = useState(false);
+  // Referencia al contenedor para detectar clics fuera y cerrar el panel.
   const contenedor = useRef<HTMLDivElement>(null);
   const navegar = useNavigate();
   const { esDisenador } = usarSesion();
+  // Contador de notificaciones no leídas (con valor por defecto 0 mientras carga).
   const { data: noLeidas = 0 } = usarContadorNotificaciones();
   const { notificaciones, cargando, marcarLeida, marcarTodas } = usarNotificaciones();
 
+  // Cierra el panel automáticamente si el usuario hace clic fuera de él, solo cuando está abierto.
   usarClicFuera(contenedor, () => setAbierto(false), abierto);
 
+  /**
+   * Gestiona el clic sobre una notificación concreta: la marca como leída, cierra el panel y
+   * navega a la pantalla relacionada según el tipo de notificación (mensaje nuevo o pedido).
+   *
+   * @param notif - La notificación seleccionada por el usuario.
+   */
   function abrirAviso(notif: Notificacion) {
     marcarLeida(notif.id);
     setAbierto(false);
+    // El campo `datos` es un objeto genérico (payload de la notificación); se valida el tipo de
+    // cada propiedad antes de usarla, ya que su forma depende del tipo de notificación.
     const peerId = typeof notif.datos?.peerId === 'string' ? notif.datos.peerId : undefined;
     const pedidoId = typeof notif.datos?.pedidoId === 'string' ? notif.datos.pedidoId : undefined;
     const nombre = typeof notif.datos?.nombre === 'string' ? notif.datos.nombre : undefined;
@@ -31,6 +58,7 @@ export function CampanaNotificaciones() {
       // MENSAJE_NUEVO → abre la conversación con el remitente.
       navegar(`/mensajes/${peerId}`, { state: { nombre } });
     } else if (pedidoId) {
+      // Notificación relacionada con un pedido: la ruta de destino depende del rol del usuario.
       navegar(esDisenador ? '/panel/pedidos' : `/cuenta/pedidos/${pedidoId}`);
     }
   }
@@ -46,6 +74,7 @@ export function CampanaNotificaciones() {
         aria-expanded={abierto}
       >
         <Bell className="h-5 w-5" aria-hidden />
+        {/* Insignia con el número de notificaciones no leídas; se anima al aparecer/cambiar. */}
         <AnimatePresence>
           {noLeidas > 0 && (
             <motion.span
@@ -60,6 +89,7 @@ export function CampanaNotificaciones() {
         </AnimatePresence>
       </button>
 
+      {/* Panel desplegable con la bandeja de notificaciones; se anima al abrir/cerrar. */}
       <AnimatePresence>
         {abierto && (
           <motion.div

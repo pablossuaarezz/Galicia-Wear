@@ -48,12 +48,21 @@ public class FragmentoBuscador extends Fragment {
     private AdaptadorProducto adaptador;
     private BusquedasRecientes historial;
 
+    /**
+     * Infla el layout del fragmento mediante ViewBinding y devuelve su vista raíz.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
         enlace = FragmentoBuscadorBinding.inflate(inflater, container, false);
         return enlace.getRoot();
     }
 
+    /**
+     * Inicializa el ViewModel y el historial de búsquedas recientes, configura
+     * el RecyclerView de resultados, la barra de búsqueda y el observador del
+     * {@code LiveData} de resultados, y muestra el estado inicial (búsquedas
+     * recientes, ya que el campo de texto está vacío).
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -68,6 +77,12 @@ public class FragmentoBuscador extends Fragment {
         mostrarRecientes();
     }
 
+    /**
+     * Configura el RecyclerView de resultados con un {@link GridLayoutManager}
+     * de 2 columnas y un {@link AdaptadorProducto} cuyo listener de clic abre
+     * la pantalla de detalle del producto seleccionado, pasando su slug como
+     * extra del {@link Intent}.
+     */
     private void configurarResultados() {
         adaptador = new AdaptadorProducto(producto -> {
             Intent intent = new Intent(requireContext(), ActividadDetalleProducto.class);
@@ -78,6 +93,12 @@ public class FragmentoBuscador extends Fragment {
         enlace.resultados.setAdapter(adaptador);
     }
 
+    /**
+     * Configura el campo de texto de búsqueda: lanza la búsqueda al pulsar la
+     * acción "buscar" del teclado, vuelve a mostrar las búsquedas recientes
+     * cuando el campo queda vacío, y permite borrar el historial de búsquedas
+     * recientes mediante el botón correspondiente.
+     */
     private void configurarBarraBusqueda() {
         // Acción "buscar" del teclado.
         enlace.entradaBusqueda.setOnEditorActionListener((v, accion, evento) -> {
@@ -97,6 +118,14 @@ public class FragmentoBuscador extends Fragment {
         });
     }
 
+    /**
+     * Ejecuta la búsqueda con el término indicado: oculta el teclado, lo
+     * guarda en el historial de búsquedas recientes, oculta la sección de
+     * recientes y delega en el ViewModel para obtener los resultados desde
+     * el backend. Si el término está vacío, no hace nada.
+     *
+     * @param consulta texto introducido por el usuario
+     */
     private void ejecutarBusqueda(String consulta) {
         String termino = consulta == null ? "" : consulta.trim();
         if (termino.isEmpty()) return;
@@ -108,6 +137,13 @@ public class FragmentoBuscador extends Fragment {
         modeloVista.buscar(termino);
     }
 
+    /**
+     * Observa el {@code LiveData} con el resultado de la búsqueda y actualiza
+     * la UI: muestra el indicador de carga mientras se espera respuesta,
+     * actualiza el adaptador con los productos obtenidos y, si los resultados
+     * son "similares" (porque no hubo coincidencia exacta), muestra una
+     * cabecera explicativa. En caso de error, muestra un mensaje genérico.
+     */
     private void observarBusqueda() {
         modeloVista.observarBusqueda().observe(getViewLifecycleOwner(), recurso -> {
             if (recurso == null) return;
@@ -133,7 +169,13 @@ public class FragmentoBuscador extends Fragment {
         });
     }
 
-    /** Muestra/oculta la sección de recientes y repinta los chips. */
+    /**
+     * Muestra/oculta la sección de búsquedas recientes y repinta los chips
+     * con los términos guardados en el historial. Cada chip, al pulsarse,
+     * rellena el campo de búsqueda con su texto y ejecuta la búsqueda. Como
+     * no hay una búsqueda activa en este momento, también se limpian los
+     * resultados y la cabecera del adaptador.
+     */
     private void mostrarRecientes() {
         List<String> recientes = historial.obtener();
         enlace.chipsRecientes.removeAllViews();
@@ -157,6 +199,7 @@ public class FragmentoBuscador extends Fragment {
         }
     }
 
+    /** Oculta el teclado virtual y quita el foco del campo de búsqueda. */
     private void ocultarTeclado() {
         InputMethodManager imm = (InputMethodManager)
             requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -166,6 +209,10 @@ public class FragmentoBuscador extends Fragment {
         enlace.entradaBusqueda.clearFocus();
     }
 
+    /**
+     * Libera la referencia al binding al destruirse la vista del fragmento,
+     * evitando fugas de memoria.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

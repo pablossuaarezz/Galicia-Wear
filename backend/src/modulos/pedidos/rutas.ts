@@ -1,3 +1,8 @@
+// Definición de rutas Express para el recurso /pedidos.
+// Encadena los middlewares de autenticación (JWT), autorización por rol (RBAC)
+// y validación de cuerpo (Zod) antes de invocar al controlador correspondiente.
+// También monta el sub-router de envíos bajo /pedidos/:pedidoId/envio.
+
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { soloCliente, soloDisenador } from '../../middlewares/rbac';

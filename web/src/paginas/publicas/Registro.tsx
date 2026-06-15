@@ -23,6 +23,7 @@ const OPCIONES_ROL: Array<{ rol: RolRegistro; titulo: string; texto: string; Ico
   { rol: 'DISENADOR', titulo: 'Vender', texto: 'Publica tu marca y vende tus prendas.', Icono: Sparkles },
 ];
 
+/** Página de registro: permite crear cuenta de CLIENTE o DISENADOR, con validación en cliente. */
 export default function Registro() {
   usarTitulo('Crear cuenta');
   const { registrarse, estaAutenticado } = usarSesion();
@@ -42,6 +43,10 @@ export default function Registro() {
     if (estaAutenticado) navegar(destino, { replace: true });
   }, [estaAutenticado, destino, navegar]);
 
+  /**
+   * Valida los campos según el rol (el cliente exige nombre y apellidos), registra la cuenta
+   * y redirige: el diseñador al panel para completar su marca, el cliente al destino.
+   */
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
     const nuevos: Record<string, string> = {};

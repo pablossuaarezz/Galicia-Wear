@@ -23,9 +23,15 @@ import gal.galiciawear.app.datos.remoto.dto.DtoRespuestaProducto;
 /**
  * Lista las prendas del diseñador con su foto, precio, estado de publicación
  * (Publicada / Borrador) y acciones rápidas: editar y publicar/despublicar.
+ *
+ * Se usa desde {@link ActividadMisPrendas}, el "estudio" del diseñador donde
+ * gestiona su catálogo. Cada elemento es clicable en su totalidad (abre la
+ * edición) y además ofrece botones específicos para editar o cambiar el
+ * estado de publicación sin entrar al detalle.
  */
 public class AdaptadorMiPrenda extends RecyclerView.Adapter<AdaptadorMiPrenda.Vista> {
 
+    /** Callbacks que delegan en la actividad las acciones sobre cada prenda. */
     public interface AlActuar {
         void alEditar(DtoRespuestaProducto prenda);
         void alPublicar(DtoRespuestaProducto prenda);
@@ -38,12 +44,17 @@ public class AdaptadorMiPrenda extends RecyclerView.Adapter<AdaptadorMiPrenda.Vi
         this.listener = listener;
     }
 
+    /**
+     * Sustituye la lista completa de prendas mostradas y refresca el RecyclerView.
+     * Se invoca tras cada carga (o recarga) del catálogo propio del diseñador.
+     */
     public void establecer(List<DtoRespuestaProducto> nuevos) {
         items.clear();
         if (nuevos != null) items.addAll(nuevos);
         notifyDataSetChanged();
     }
 
+    /** Crea un nuevo ViewHolder inflando el layout de un elemento de "mi prenda". */
     @NonNull
     @Override
     public Vista onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -52,6 +63,7 @@ public class AdaptadorMiPrenda extends RecyclerView.Adapter<AdaptadorMiPrenda.Vi
         return new Vista(enlace);
     }
 
+    /** Vincula los datos de la prenda en la posición indicada con su ViewHolder. */
     @Override
     public void onBindViewHolder(@NonNull Vista holder, int posicion) {
         holder.enlazar(items.get(posicion), listener);
@@ -68,6 +80,12 @@ public class AdaptadorMiPrenda extends RecyclerView.Adapter<AdaptadorMiPrenda.Vi
             this.enlace = enlace;
         }
 
+        /**
+         * Rellena la vista de un elemento "mi prenda": nombre, precio, estado de
+         * publicación (con color de fondo asociado), resumen de tallas/variantes,
+         * foto principal (o un placeholder si no tiene) y conecta los listeners
+         * de editar, publicar/despublicar y de pulsación sobre toda la fila.
+         */
         void enlazar(DtoRespuestaProducto prenda, AlActuar listener) {
             Context contexto = enlace.getRoot().getContext();
 
@@ -111,6 +129,11 @@ public class AdaptadorMiPrenda extends RecyclerView.Adapter<AdaptadorMiPrenda.Vi
             enlace.botonPublicar.setOnClickListener(v -> listener.alPublicar(prenda));
         }
 
+        /**
+         * Busca la URL de la imagen marcada como principal. Si ninguna lo está,
+         * devuelve la primera disponible. Devuelve {@code null} si la prenda no
+         * tiene imágenes.
+         */
         private String urlPrincipal(DtoRespuestaProducto prenda) {
             if (prenda.imagenes == null || prenda.imagenes.isEmpty()) return null;
             for (DtoRespuestaProducto.DtoImagenProducto img : prenda.imagenes) {

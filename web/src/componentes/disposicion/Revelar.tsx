@@ -10,6 +10,7 @@ interface PropsRevelar {
   className?: string;
 }
 
+/** Anima la aparición de su contenido al entrar en pantalla (una sola vez); respeta reduced-motion. */
 export function Revelar({ children, retraso = 0, className }: PropsRevelar) {
   const reducido = usarMovimientoReducido();
   return (

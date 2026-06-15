@@ -16,6 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Pruebas de integración de ServicioAutenticacion usando un MockWebServer que simula la API,
+ * verificando el control de acceso por rol (solo ADMIN) y el manejo de errores 401/403.
+ */
 class ServicioAutenticacionTest {
 
     private MockWebServer servidor;
@@ -23,6 +27,7 @@ class ServicioAutenticacionTest {
     private GestorSesion sesion;
     private ServicioAutenticacion servicio;
 
+    /** Arranca el servidor simulado y crea un servicio apuntando a su URL con una sesión aislada. */
     @BeforeEach
     void preparar() throws Exception {
         servidor = new MockWebServer();
@@ -32,12 +37,14 @@ class ServicioAutenticacionTest {
         servicio = new ServicioAutenticacion(new ClienteHttp(servidor.url("/").toString(), sesion), sesion);
     }
 
+    /** Detiene el servidor simulado y borra el nodo de preferencias tras cada test. */
     @AfterEach
     void cerrar() throws Exception {
         servidor.shutdown();
         nodo.removeNode();
     }
 
+    /** Un login válido con rol ADMIN debe persistir la sesión y sus tokens. */
     @Test
     void loginAdminGuardaLaSesion() {
         servidor.enqueue(new MockResponse().setResponseCode(200).setBody("""
@@ -51,6 +58,7 @@ class ServicioAutenticacionTest {
         assertEquals("acc", sesion.getTokenAcceso());
     }
 
+    /** Credenciales válidas pero de rol no-ADMIN deben rechazarse con 403 y sin guardar sesión. */
     @Test
     void loginDeNoAdminEsRechazadoYNoGuardaSesion() {
         servidor.enqueue(new MockResponse().setResponseCode(200).setBody("""
@@ -64,6 +72,7 @@ class ServicioAutenticacionTest {
         assertFalse(sesion.estaAutenticado());
     }
 
+    /** Un 401 del servidor debe traducirse en un ErrorApi marcado como "no autorizado". */
     @Test
     void credencialesInvalidasLanzan401() {
         servidor.enqueue(new MockResponse().setResponseCode(401).setBody("{\"error\":\"Credenciales inválidas\"}"));

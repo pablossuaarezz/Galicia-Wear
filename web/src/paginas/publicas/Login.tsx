@@ -9,6 +9,7 @@ import { usarSesion } from '@/contexto/ContextoSesion';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { mensajeDeError, validarCorreo } from '@/util/validacion';
 
+/** Página de inicio de sesión: formulario validado que, al autenticar, redirige a ?destino o al inicio. */
 export default function Login() {
   usarTitulo('Entrar');
   const { iniciarSesion, estaAutenticado } = usarSesion();
@@ -21,10 +22,12 @@ export default function Login() {
   const [errores, setErrores] = useState<{ correo?: string; general?: string }>({});
   const [enviando, setEnviando] = useState(false);
 
+  // Si ya hay sesión (p. ej. se llega a /login estando autenticado), salta directo al destino.
   useEffect(() => {
     if (estaAutenticado) navegar(destino, { replace: true });
   }, [estaAutenticado, destino, navegar]);
 
+  /** Valida el correo en cliente, intenta el login y muestra el error del servidor si falla. */
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
     const errorCorreo = validarCorreo(correo);

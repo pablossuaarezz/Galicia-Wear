@@ -12,6 +12,7 @@ export interface EnlaceLateral {
   exacto?: boolean;
 }
 
+/** Navegación de sección (columna en escritorio, pestañas con scroll en móvil) que resalta la ruta activa. */
 export function NavLateral({ enlaces }: { enlaces: EnlaceLateral[] }) {
   return (
     <nav

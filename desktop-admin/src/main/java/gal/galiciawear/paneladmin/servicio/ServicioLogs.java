@@ -13,6 +13,7 @@ public class ServicioLogs extends ServicioBase {
         super(http);
     }
 
+    /** Lista los logs de auditoría filtrando opcionalmente por acción y recurso (codificados en la URL). */
     public List<LogActividad> listar(String accion, String recurso) {
         StringBuilder ruta = new StringBuilder("/admin/logs?limite=100");
         if (accion != null && !accion.isBlank()) {

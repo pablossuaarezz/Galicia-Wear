@@ -1,3 +1,12 @@
+/**
+ * Rutas del módulo Carrito.
+ *
+ * Define el router de Express para los endpoints del carrito de la compra,
+ * incluyendo la documentación OpenAPI/Swagger de cada ruta. Todos los
+ * endpoints requieren que el usuario esté autenticado (middleware `verificarJwt`)
+ * y la creación/actualización de ítems valida el cuerpo de la petición con
+ * el DTO `dtoAgregarItem` mediante el middleware `validar`.
+ */
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { validar } from '../../middlewares/validacion';

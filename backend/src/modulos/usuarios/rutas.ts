@@ -1,3 +1,8 @@
+// Definición de rutas Express para el recurso /usuarios.
+// Todas las rutas operan sobre el usuario autenticado ("/yo") y por tanto
+// requieren un JWT válido. Cada ruta valida su cuerpo con el DTO Zod
+// correspondiente antes de invocar al controlador.
+
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { validar } from '../../middlewares/validacion';

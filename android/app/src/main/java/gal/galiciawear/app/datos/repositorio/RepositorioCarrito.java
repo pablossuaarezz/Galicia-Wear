@@ -44,6 +44,12 @@ public class RepositorioCarrito {
     // Estado compartido del carrito. Eager para que observe() nunca reciba null.
     private final MutableLiveData<RecursoUi<DtoRespuestaCarrito>> estadoCarrito = new MutableLiveData<>();
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param servicioApi cliente Retrofit para las operaciones de carrito en el backend.
+     * @param daoCarrito DAO de Room usado como caché local del carrito (badge persistente).
+     */
     @Inject
     public RepositorioCarrito(ServicioApi servicioApi, DaoCarrito daoCarrito) {
         this.servicioApi = servicioApi;
@@ -60,7 +66,12 @@ public class RepositorioCarrito {
         return estadoCarrito;
     }
 
-    /** Carga (o recarga) el carrito desde el backend. */
+    /**
+     * Carga (o recarga) el carrito desde el backend.
+     * Actualiza el estado compartido {@code estadoCarrito} (cargando -> éxito/error)
+     * y, si la respuesta es correcta, sincroniza la caché local con
+     * {@link #publicar(DtoRespuestaCarrito)}.
+     */
     public void cargarCarrito() {
         estadoCarrito.postValue(RecursoUi.cargando());
         servicioApi.obtenerCarrito().enqueue(new Callback<DtoEnvoltorioCarrito>() {

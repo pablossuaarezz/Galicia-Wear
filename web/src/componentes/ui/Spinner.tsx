@@ -1,6 +1,7 @@
 // Indicador de carga circular. Tamaño en píxeles; hereda el color del texto (currentColor).
 import { cx } from '@/util/cx';
 
+/** Spinner SVG animado; `tamano` en píxeles y color heredado del texto (currentColor). */
 export function Spinner({ tamano = 18, className }: { tamano?: number; className?: string }) {
   return (
     <svg

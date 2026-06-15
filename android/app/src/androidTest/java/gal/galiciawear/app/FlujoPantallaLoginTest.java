@@ -35,10 +35,20 @@ import gal.galiciawear.app.ui.autenticacion.ActividadAutenticacion;
 @LargeTest
 public class FlujoPantallaLoginTest {
 
+    /**
+     * Regla de JUnit que lanza {@link ActividadAutenticacion} antes de cada
+     * test y la cierra automáticamente al finalizar, proporcionando un
+     * {@code ActivityScenario} listo para usar con Espresso.
+     */
     @Rule
     public ActivityScenarioRule<ActividadAutenticacion> reglaSCenario =
         new ActivityScenarioRule<>(ActividadAutenticacion.class);
 
+    /**
+     * Comprueba que, al abrir la pantalla de autenticación, la pestaña de
+     * Login (primera pestaña del {@code ViewPager2}) muestra correctamente
+     * los campos de correo y contraseña.
+     */
     @Test
     public void campoCorrecto_botonLoginSeMuestraYPuedePulsarse() {
         // La primera pestaña del ViewPager2 es Login
@@ -51,6 +61,11 @@ public class FlujoPantallaLoginTest {
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
     }
 
+    /**
+     * Comprueba que, con los campos de correo y contraseña vacíos, el botón
+     * de login permanece deshabilitado, evitando llamadas innecesarias al
+     * servidor sin datos válidos (criterio UX de prevención de errores).
+     */
     @Test
     public void botonLogin_desactivadoConCamposVacios() {
         // Con campos vacíos, el botón de login debe estar deshabilitado
@@ -61,6 +76,11 @@ public class FlujoPantallaLoginTest {
             ));
     }
 
+    /**
+     * Comprueba que, al introducir un correo con formato válido y una
+     * contraseña de al menos 6 caracteres, el botón de login pasa a estar
+     * habilitado.
+     */
     @Test
     public void botonLogin_activadoConCredencialesValidas() {
         // Escribir email válido
@@ -76,6 +96,11 @@ public class FlujoPantallaLoginTest {
             .check(ViewAssertions.matches(ViewMatchers.isEnabled()));
     }
 
+    /**
+     * Comprueba que, si el correo introducido no contiene el carácter "@"
+     * (formato de email inválido), el botón de login permanece deshabilitado
+     * aunque la contraseña sea válida.
+     */
     @Test
     public void botonLogin_desactivadoConEmailSinArroba() {
         // Un email sin @ no debe activar el botón

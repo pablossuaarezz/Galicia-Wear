@@ -1,5 +1,13 @@
 // Perfil público de un diseñador (marca) y sus prendas. Como la API pública de catálogo no
 // filtra por diseñador, se piden las prendas de su ciudad y se filtran por disenadorId.
+//
+// Flujo de usuario:
+// 1. Se accede al perfil mediante el identificador del diseñador en la URL (/disenador/:id).
+// 2. Mientras se cargan los datos del diseñador se muestra un esqueleto; si falla o no existe,
+//    se presenta un estado vacío con enlace al listado de diseñadores.
+// 3. Si el perfil es válido, se renderiza una cabecera con avatar, ubicación, biografía y
+//    acciones (contactar por mensajería y, si la tiene, web de la marca) seguida de la rejilla
+//    de prendas publicadas por esa marca.
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { ExternalLink, Globe, MapPin, MessageSquare } from 'lucide-react';
@@ -11,14 +19,26 @@ import { usarSesion } from '@/contexto/ContextoSesion';
 import { usarTitulo } from '@/hooks/usarTitulo';
 import { CIUDADES } from '@/util/constantes';
 
+/**
+ * Página de perfil público de un diseñador (marca) y de sus prendas publicadas.
+ *
+ * Obtiene los datos del diseñador a partir del identificador presente en la URL y, dado que la
+ * API pública del catálogo no permite filtrar por diseñador, recupera las prendas de la ciudad
+ * del diseñador y las filtra en cliente por `disenadorId`. Gestiona los estados de carga y de
+ * error/no encontrado, y oculta la acción de contacto si el propio usuario es diseñador.
+ */
 export default function DetalleDisenador() {
+  // Identificador del diseñador tomado del parámetro de ruta /disenador/:id.
   const { id } = useParams<{ id: string }>();
+  // Las cuentas de diseñador no pueden contactar con otras tiendas: ocultan el botón "Contactar".
   const { esDisenador } = usarSesion();
   const consulta = usarDisenador(id);
   const disenador = consulta.data;
   usarTitulo(disenador?.nombreMarca);
 
+  // La API de catálogo no filtra por diseñador, por lo que se piden hasta 50 prendas de su ciudad.
   const consultaProductos = usarCatalogo({ ciudad: disenador?.ciudad, limite: 50 });
+  // Se filtran en cliente las prendas para conservar solo las de este diseñador concreto.
   const prendas = useMemo(
     () => (consultaProductos.data?.datos ?? []).filter((p) => p.disenadorId === id),
     [consultaProductos.data, id],

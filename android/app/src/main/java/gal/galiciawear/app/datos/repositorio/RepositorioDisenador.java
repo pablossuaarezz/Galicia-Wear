@@ -26,6 +26,11 @@ public class RepositorioDisenador {
 
     private final ServicioApi servicioApi;
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param servicioApi cliente Retrofit para los endpoints de diseñador.
+     */
     @Inject
     public RepositorioDisenador(ServicioApi servicioApi) {
         this.servicioApi = servicioApi;

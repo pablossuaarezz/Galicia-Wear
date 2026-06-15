@@ -35,6 +35,12 @@ public class AdaptadorIncorporacion extends FragmentStateAdapter {
         super(fa);
     }
 
+    /**
+     * Crea el fragmento correspondiente a la página indicada, empaquetando en
+     * un {@link Bundle} los recursos de título, descripción e icono de esa
+     * slide concreta. FragmentStateAdapter llama a este método de forma
+     * perezosa según el usuario navega entre páginas.
+     */
     @NonNull
     @Override
     public Fragment createFragment(int posicion) {
@@ -47,6 +53,7 @@ public class AdaptadorIncorporacion extends FragmentStateAdapter {
         return f;
     }
 
+    /** Número fijo de slides del onboarding (3, según el criterio de la Ley de Hick). */
     @Override
     public int getItemCount() { return 3; }
 }

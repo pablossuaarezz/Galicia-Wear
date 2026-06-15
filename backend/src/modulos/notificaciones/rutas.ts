@@ -1,3 +1,7 @@
+// Definición de las rutas REST del módulo de notificaciones (bandeja de notificaciones
+// del usuario autenticado), incluyendo su documentación OpenAPI. Todas las rutas pasan
+// primero por `verificarJwt`, por lo que requieren un usuario autenticado y solo operan
+// sobre sus propias notificaciones.
 import { Router } from 'express';
 import { verificarJwt } from '../../middlewares/autenticacion';
 import { controladorNotificaciones } from './controlador';

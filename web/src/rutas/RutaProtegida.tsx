@@ -5,6 +5,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { usarSesion } from '@/contexto/ContextoSesion';
 import { PantallaCargando } from './PantallaCargando';
 
+/** Envuelve rutas que requieren sesión: muestra cargador, redirige a login si no hay sesión. */
 export function RutaProtegida({ children }: { children: ReactNode }) {
   const { estaAutenticado, cargando } = usarSesion();
   const ubicacion = useLocation();

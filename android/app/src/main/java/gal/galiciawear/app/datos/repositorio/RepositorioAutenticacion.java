@@ -40,6 +40,13 @@ public class RepositorioAutenticacion {
     private final GestorSesion gestorSesion;
     private final RepositorioChat repositorioChat;
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param servicioApi cliente Retrofit para llamar a los endpoints de autenticación.
+     * @param gestorSesion encargado de persistir tokens y datos de sesión localmente.
+     * @param repositorioChat se usa para desconectar el socket de chat al cerrar sesión.
+     */
     @Inject
     public RepositorioAutenticacion(ServicioApi servicioApi, GestorSesion gestorSesion,
                                     RepositorioChat repositorioChat) {
@@ -76,8 +83,20 @@ public class RepositorioAutenticacion {
         }
     }
 
+    /**
+     * Realiza el inicio de sesión contra el backend.
+     * Si la respuesta es correcta, guarda los tokens de acceso/refresco y los
+     * datos básicos del usuario (id, rol, nombre) en el {@link GestorSesion}
+     * para que estén disponibles en toda la app sin nuevas peticiones.
+     *
+     * @param correo correo electrónico introducido por el usuario.
+     * @param contrasena contraseña en texto plano (se envía por HTTPS al backend).
+     * @return LiveData que emite primero {@code cargando()}, y después
+     *         {@code exito(token)} o {@code error(mensaje)} según el resultado.
+     */
     public MutableLiveData<RecursoUi<DtoRespuestaToken>> login(String correo, String contrasena) {
         MutableLiveData<RecursoUi<DtoRespuestaToken>> resultado = new MutableLiveData<>();
+        // Emitimos el estado de carga de inmediato para que la UI muestre un spinner.
         resultado.setValue(RecursoUi.cargando());
 
         servicioApi.login(new DtoPeticionLogin(correo, contrasena))
@@ -86,6 +105,8 @@ public class RepositorioAutenticacion {
                 public void onResponse(Call<DtoRespuestaToken> call, Response<DtoRespuestaToken> r) {
                     if (r.isSuccessful() && r.body() != null) {
                         DtoRespuestaToken cuerpo = r.body();
+                        // Persistimos los tokens para que el interceptor de Retrofit
+                        // pueda añadirlos automáticamente a futuras peticiones.
                         gestorSesion.guardarTokens(cuerpo.tokenAcceso, cuerpo.tokenRefresh);
                         if (cuerpo.usuario != null) {
                             gestorSesion.guardarDatosUsuario(
@@ -94,6 +115,8 @@ public class RepositorioAutenticacion {
                                 cuerpo.usuario.nombre
                             );
                         }
+                        // postValue porque este callback se ejecuta en un hilo de
+                        // background de OkHttp, no en el hilo principal.
                         resultado.postValue(RecursoUi.exito(cuerpo));
                     } else {
                         resultado.postValue(RecursoUi.error(extraerMensajeError(r)));
@@ -102,6 +125,7 @@ public class RepositorioAutenticacion {
 
                 @Override
                 public void onFailure(Call<DtoRespuestaToken> call, Throwable t) {
+                    // Fallo de red (sin conexión, timeout, etc.), no error HTTP.
                     resultado.postValue(RecursoUi.error("Sin conexión: " + t.getMessage()));
                 }
             });
@@ -109,6 +133,18 @@ public class RepositorioAutenticacion {
         return resultado;
     }
 
+    /**
+     * Registra un nuevo usuario (cliente, diseñador, etc.) y, si el backend
+     * devuelve tokens directamente, inicia sesión automáticamente igual que
+     * en {@link #login(String, String)}.
+     *
+     * @param correo correo electrónico del nuevo usuario.
+     * @param contrasena contraseña elegida (debe cumplir las reglas de validación del backend).
+     * @param nombre nombre de pila.
+     * @param apellidos apellidos del usuario.
+     * @param rol rol con el que se registra (p.ej. "cliente" o "disenador").
+     * @return LiveData con el estado de la operación (cargando/éxito/error).
+     */
     public MutableLiveData<RecursoUi<DtoRespuestaToken>> registro(
         String correo, String contrasena, String nombre, String apellidos, String rol
     ) {
@@ -142,6 +178,12 @@ public class RepositorioAutenticacion {
         return resultado;
     }
 
+    /**
+     * Obtiene del backend los datos completos del perfil del usuario autenticado.
+     *
+     * @return LiveData con el estado de la operación; en caso de éxito contiene
+     *         el {@link DtoRespuestaUsuario} con los datos del perfil.
+     */
     public MutableLiveData<RecursoUi<DtoRespuestaUsuario>> obtenerPerfil() {
         MutableLiveData<RecursoUi<DtoRespuestaUsuario>> resultado = new MutableLiveData<>();
         resultado.setValue(RecursoUi.cargando());
@@ -201,6 +243,12 @@ public class RepositorioAutenticacion {
         return resultado;
     }
 
+    /**
+     * Cierra la sesión del usuario actual.
+     * Notifica al backend para invalidar el token de refresco (sin esperar
+     * respuesta), desconecta el socket de chat y borra los datos de sesión
+     * almacenados localmente (tokens, id de usuario, rol, etc.).
+     */
     public void cerrarSesion() {
         Map<String, String> cuerpo = new HashMap<>();
         String tokenRefresh = gestorSesion.obtenerTokenRefresh();
@@ -218,18 +266,34 @@ public class RepositorioAutenticacion {
         gestorSesion.cerrarSesion();
     }
 
+    /**
+     * Indica si existe un token de acceso almacenado localmente.
+     * Se usa, por ejemplo, para decidir si mostrar la pantalla de login
+     * al arrancar la app.
+     *
+     * @return {@code true} si hay un token de acceso guardado.
+     */
     public boolean hayTokenAcceso() {
         return gestorSesion.hayTokenAcceso();
     }
 
+    /**
+     * @return el rol del usuario autenticado (p.ej. "cliente", "disenador", "admin"),
+     *         obtenido de los datos guardados localmente tras el login.
+     */
     public String obtenerRol() {
         return gestorSesion.obtenerUsuarioRol();
     }
 
+    /**
+     * @return {@code true} si el usuario ya ha visto la pantalla de onboarding
+     *         en una sesión anterior (persistido localmente).
+     */
     public boolean onboardingYaVisto() {
         return gestorSesion.onboardingYaVisto();
     }
 
+    /** Marca localmente que el onboarding ya se mostró, para no repetirlo. */
     public void marcarOnboardingVisto() {
         gestorSesion.marcarOnboardingVisto();
     }

@@ -32,6 +32,13 @@ public class RepositorioNotificaciones {
     private final ServicioApi servicioApi;
     private final GestorSesion gestorSesion;
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param servicioApi cliente Retrofit para los endpoints de notificaciones.
+     * @param gestorSesion usado para comprobar si hay sesión iniciada antes
+     *                       de registrar el token FCM.
+     */
     @Inject
     public RepositorioNotificaciones(ServicioApi servicioApi, GestorSesion gestorSesion) {
         this.servicioApi = servicioApi;

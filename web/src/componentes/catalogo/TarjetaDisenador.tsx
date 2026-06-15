@@ -5,6 +5,15 @@ import { Avatar } from '@/componentes/ui';
 import { CIUDADES } from '@/util/constantes';
 import type { DisenadorPublico } from '@/api/tipos';
 
+/**
+ * Tarjeta resumen de un diseñador (marca) para listados de catálogo o búsqueda.
+ *
+ * Muestra el avatar/logo de la marca, su nombre, ciudad de origen y una biografía recortada
+ * a 3 líneas. La tarjeta completa es un enlace al perfil público del diseñador.
+ *
+ * @param disenador - Datos públicos del diseñador a mostrar.
+ * @returns Tarjeta enlazada a `/disenador/:usuarioId`.
+ */
 export function TarjetaDisenador({ disenador }: { disenador: DisenadorPublico }) {
   return (
     <Link

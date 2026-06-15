@@ -47,12 +47,21 @@ public class FragmentoInicio extends Fragment {
     private AdaptadorProducto adaptador;
     private TextView badgeNotificaciones;
 
+    /**
+     * Infla el layout del fragmento mediante ViewBinding y devuelve su vista raíz.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
         enlace = FragmentoInicioBinding.inflate(inflater, container, false);
         return enlace.getRoot();
     }
 
+    /**
+     * Obtiene los ViewModels de productos y notificaciones, configura el
+     * RecyclerView del catálogo (grid 2 columnas), el SwipeRefreshLayout, la
+     * campana de notificaciones y los observadores de los datos del catálogo
+     * (caché local + red). Por último, lanza la carga inicial de productos.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -68,6 +77,11 @@ public class FragmentoInicio extends Fragment {
         modeloVista.cargarProductos();
     }
 
+    /**
+     * Cada vez que el fragmento vuelve a primer plano, refresca el contador de
+     * notificaciones no leídas (por ejemplo, tras volver de la bandeja de
+     * notificaciones donde el usuario las marcó como leídas).
+     */
     @Override
     public void onResume() {
         super.onResume();
@@ -80,10 +94,12 @@ public class FragmentoInicio extends Fragment {
      * no leídas (REST + tiempo real por Socket.IO) y registra el token FCM best-effort.
      */
     private void configurarNotificaciones() {
+        // Busca la vista personalizada (icono + badge) del item de menú de notificaciones.
         MenuItem item = enlace.barraSuperior.getMenu().findItem(R.id.accion_notificaciones);
         if (item != null && item.getActionView() != null) {
             View accion = item.getActionView();
             badgeNotificaciones = accion.findViewById(R.id.badge_notificaciones);
+            // Al pulsar la campana se abre la bandeja de notificaciones.
             accion.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), ActividadNotificaciones.class)));
         }
@@ -100,6 +116,11 @@ public class FragmentoInicio extends Fragment {
         sincronizarTokenFcm();
     }
 
+    /**
+     * Observa el contador de notificaciones no leídas y actualiza el badge:
+     * lo muestra con el número (o "99+" si supera el límite) si hay no
+     * leídas, o lo oculta si no hay ninguna.
+     */
     private void refrescarContadorNotificaciones() {
         if (modeloVistaNotif == null) return;
         modeloVistaNotif.contador().observe(getViewLifecycleOwner(), noLeidas -> {
@@ -131,6 +152,12 @@ public class FragmentoInicio extends Fragment {
         }
     }
 
+    /**
+     * Configura el RecyclerView del catálogo con un {@link GridLayoutManager}
+     * de 2 columnas y un {@link AdaptadorProducto} cuyo listener de clic abre
+     * la pantalla de detalle del producto seleccionado, pasando su slug como
+     * extra del {@link Intent}.
+     */
     private void configurarRecyclerView() {
         adaptador = new AdaptadorProducto(producto -> {
             Intent intent = new Intent(requireContext(), ActividadDetalleProducto.class);
@@ -142,12 +169,28 @@ public class FragmentoInicio extends Fragment {
         enlace.listaProductos.setHasFixedSize(true);
     }
 
+    /**
+     * Configura el gesto "deslizar para refrescar": al activarlo se limpian
+     * los filtros del ViewModel, lo que provoca una nueva carga del catálogo
+     * completo desde el backend.
+     */
     private void configurarSwipeRefresh() {
         enlace.refrescarContenido.setOnRefreshListener(() -> {
             modeloVista.limpiarFiltros();
         });
     }
 
+    /**
+     * Observa dos fuentes de datos del catálogo:
+     * <ul>
+     *   <li>La caché local (Room): se muestra de inmediato si aún no hay una
+     *   respuesta de red exitosa, permitiendo ver contenido sin conexión.</li>
+     *   <li>La respuesta de red: tiene prioridad sobre la caché, actualiza el
+     *   indicador de "refrescando" del SwipeRefreshLayout, pinta los
+     *   productos obtenidos (o el mensaje de catálogo vacío), y en caso de
+     *   error muestra un aviso de "sin conexión" si no hay datos en pantalla.</li>
+     * </ul>
+     */
     private void observarDatos() {
         // Caché Room — respuesta inmediata sin conexión
         modeloVista.observarCache().observe(getViewLifecycleOwner(), entidades -> {
@@ -171,6 +214,7 @@ public class FragmentoInicio extends Fragment {
                 );
             } else if (recurso.esError()) {
                 enlace.textoVacio.setText("Sin conexión — mostrando datos guardados");
+                // Solo mostramos el aviso de "sin conexión" si no hay nada que enseñar.
                 if (adaptador.getItemCount() == 0) {
                     enlace.textoVacio.setVisibility(View.VISIBLE);
                 }
@@ -178,6 +222,10 @@ public class FragmentoInicio extends Fragment {
         });
     }
 
+    /**
+     * Libera la referencia al binding al destruirse la vista del fragmento,
+     * evitando fugas de memoria.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

@@ -38,11 +38,32 @@ public class InterceptorJwt implements Interceptor {
     private final OkHttpClient clienteRefresco = new OkHttpClient();
     private final Gson gson = new Gson();
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param gestorSesion componente que almacena y proporciona los tokens
+     *                      de acceso/refresco persistidos en SharedPreferences.
+     */
     @Inject
     public InterceptorJwt(GestorSesion gestorSesion) {
         this.gestorSesion = gestorSesion;
     }
 
+    /**
+     * Punto de entrada del interceptor OkHttp: se ejecuta para cada petición HTTP
+     * realizada por Retrofit.
+     *
+     * Flujo:
+     * 1. Añade el access token actual (si existe) como cabecera Authorization.
+     * 2. Ejecuta la petición.
+     * 3. Si la respuesta es 401 en una ruta autenticada, intenta renovar el
+     *    token con el refresh token y reintenta la petición una sola vez.
+     *
+     * @param chain cadena de interceptores de OkHttp; permite obtener la
+     *              petición original y continuar la ejecución hacia el servidor.
+     * @return la respuesta HTTP (la original, o la del reintento tras renovar el token).
+     * @throws IOException si falla la comunicación de red.
+     */
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request original = chain.request();
@@ -74,6 +95,14 @@ public class InterceptorJwt implements Interceptor {
         }
     }
 
+    /**
+     * Devuelve una copia de la petición con la cabecera "Authorization: Bearer ..."
+     * añadida, o la petición original si no hay token disponible.
+     *
+     * @param peticion petición HTTP original.
+     * @param token    access token a incluir, o null/vacío si no hay sesión.
+     * @return nueva petición con el header añadido (las Request de OkHttp son inmutables).
+     */
     private Request añadirToken(Request peticion, String token) {
         if (token == null || token.isEmpty()) return peticion;
         return peticion.newBuilder()
@@ -116,6 +145,14 @@ public class InterceptorJwt implements Interceptor {
     }
 
     // Las rutas de auth no llevan token y un 401 en ellas no implica renovar/cerrar.
+    /**
+     * Indica si la ruta de la petición es pública (login/registro/refresh), es
+     * decir, no requiere token y un 401 en ella es una respuesta normal
+     * (credenciales inválidas), no un token caducado.
+     *
+     * @param peticion petición original.
+     * @return true si la ruta no debe desencadenar el flujo de renovación de token.
+     */
     private boolean esRutaPublica(Request peticion) {
         String ruta = peticion.url().encodedPath();
         return ruta.contains("/auth/login")

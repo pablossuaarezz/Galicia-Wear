@@ -25,13 +25,27 @@ import gal.galiciawear.app.ui.disenador.ActividadPerfilDisenador;
 import gal.galiciawear.app.utilidades.Constantes;
 import gal.galiciawear.app.utilidades.ImagenBase64;
 
+/**
+ * Pestaña "Perfil" del menú inferior de {@code ActividadPrincipal}.
+ * Muestra los datos del usuario (nombre, correo, rol, avatar), permite
+ * acceder a la edición de perfil, al soporte/conversaciones y, si el
+ * usuario tiene rol DISEÑADOR, a su perfil de diseñador y a "Mis prendas".
+ * También gestiona el cierre de sesión.
+ */
 @AndroidEntryPoint
 public class FragmentoPerfil extends Fragment {
 
+    /** Enlace generado por View Binding; se anula en {@link #onDestroyView()}. */
     private FragmentoPerfilBinding enlace;
+    /** ViewModel que expone los datos de perfil y las operaciones de sesión. */
     private ModeloVistaPerfil modeloVista;
 
     // Al volver de la edición con éxito, recargamos el perfil.
+    /**
+     * Lanzador que abre {@link ActividadEditarPerfil} y, si el usuario guarda
+     * los cambios ({@code RESULT_OK}), vuelve a cargar el perfil para
+     * refrescar los datos mostrados (nombre, avatar, etc.).
+     */
     private final ActivityResultLauncher<Intent> lanzadorEdicion =
         registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), resultado -> {
             if (resultado.getResultCode() == android.app.Activity.RESULT_OK) {
@@ -39,12 +53,30 @@ public class FragmentoPerfil extends Fragment {
             }
         });
 
+    /**
+     * Infla el layout del fragmento mediante View Binding.
+     *
+     * @param inflater  inflador de layouts proporcionado por el sistema.
+     * @param container contenedor padre al que se añadirá la vista.
+     * @param saved     estado guardado del fragmento, o {@code null}.
+     * @return la vista raíz del fragmento.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
         enlace = FragmentoPerfilBinding.inflate(inflater, container, false);
         return enlace.getRoot();
     }
 
+    /**
+     * Configura toda la lógica de la pantalla una vez la vista está creada:
+     * obtención del ViewModel, pintado rápido de nombre/rol desde preferencias,
+     * visibilidad de las opciones de diseñador, listeners de los botones
+     * (editar perfil, soporte, cerrar sesión) y observadores del perfil y
+     * del cierre de sesión.
+     *
+     * @param view                vista raíz ya creada del fragmento.
+     * @param savedInstanceState  estado guardado del fragmento, o {@code null}.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -66,6 +98,7 @@ public class FragmentoPerfil extends Fragment {
                 startActivity(new Intent(requireContext(), ActividadMisPrendas.class)));
         }
 
+        // Abre la pantalla de edición y espera su resultado mediante lanzadorEdicion.
         enlace.botonEditarPerfil.setOnClickListener(v ->
             lanzadorEdicion.launch(new Intent(requireContext(), ActividadEditarPerfil.class)));
 
@@ -75,6 +108,8 @@ public class FragmentoPerfil extends Fragment {
 
         modeloVista.cargarPerfil();
 
+        // Observa la respuesta del backend con los datos completos del perfil
+        // y actualiza la cabecera (nombre completo, correo, rol y avatar).
         modeloVista.observarPerfil().observe(getViewLifecycleOwner(), recurso -> {
             if (recurso.esExito() && recurso.datos != null) {
                 String nombre    = recurso.datos.nombre    != null ? recurso.datos.nombre    : "";
@@ -105,6 +140,9 @@ public class FragmentoPerfil extends Fragment {
                 .show()
         );
 
+        // Si el ViewModel confirma que la sesión se cerró, se navega a Autenticación
+        // limpiando toda la pila de actividades (el usuario no puede volver atrás
+        // a pantallas de la sesión anterior).
         modeloVista.observarCierreSesion().observe(getViewLifecycleOwner(), cerro -> {
             if (Boolean.TRUE.equals(cerro)) {
                 Intent intent = new Intent(requireContext(), ActividadAutenticacion.class);
@@ -123,6 +161,10 @@ public class FragmentoPerfil extends Fragment {
         enlace.textoInicial.setVisibility(hayFoto ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Libera la referencia al enlace de View Binding cuando se destruye la
+     * vista del fragmento, evitando fugas de memoria.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

@@ -28,6 +28,15 @@ public class ActividadChat extends AppCompatActivity {
     private AdaptadorMensajes adaptadorMensajes;
     private String disenadorId;
 
+    /**
+     * Inicializa la pantalla de chat: infla el binding, obtiene el ViewModel,
+     * lee de los extras del {@link android.content.Intent} el id y nombre del
+     * diseñador con el que se conversa, configura la barra de herramientas
+     * (con el nombre del diseñador como título), el RecyclerView de mensajes,
+     * el envío de mensajes y los observadores de mensajes/conexión. Por
+     * último, si hay un diseñador válido, inicia el chat (conecta el socket y
+     * se une a su sala).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +68,11 @@ public class ActividadChat extends AppCompatActivity {
         }
     }
 
+    /**
+     * Configura el listener del botón de enviar: si el campo de texto no está
+     * vacío (tras recortar espacios), envía el mensaje al ViewModel (que lo
+     * emite por el socket) y limpia el campo de texto.
+     */
     private void configurarEnvioMensaje() {
         enlace.botonEnviar.setOnClickListener(v -> {
             String texto = enlace.campoMensaje.getText().toString().trim();
@@ -69,6 +83,16 @@ public class ActividadChat extends AppCompatActivity {
         });
     }
 
+    /**
+     * Observa dos {@code LiveData} del ViewModel:
+     * <ul>
+     *   <li>La lista de mensajes de la conversación: actualiza el adaptador y
+     *   hace scroll automático al último mensaje recibido o enviado.</li>
+     *   <li>El estado de conexión del socket: muestra un indicador textual
+     *   "Conectado"/"Reconectando…" y habilita/deshabilita el botón de envío
+     *   según si el socket está conectado.</li>
+     * </ul>
+     */
     private void observarEstados() {
         modeloVista.observarMensajes().observe(this, mensajes -> {
             adaptadorMensajes.establecerMensajes(mensajes);
@@ -81,10 +105,13 @@ public class ActividadChat extends AppCompatActivity {
         modeloVista.observarConexion().observe(this, conectado -> {
             enlace.textoEstadoConexion.setText(conectado ? "Conectado" : "Reconectando…");
             enlace.textoEstadoConexion.setVisibility(conectado ? View.GONE : View.VISIBLE);
+            // Si el socket no está conectado, se deshabilita el envío para
+            // evitar que el usuario crea que el mensaje se ha enviado.
             enlace.botonEnviar.setEnabled(conectado);
         });
     }
 
+    /** Hace que la flecha de retroceso de la barra de herramientas cierre la actividad. */
     @Override
     public boolean onSupportNavigateUp() {
         finish();

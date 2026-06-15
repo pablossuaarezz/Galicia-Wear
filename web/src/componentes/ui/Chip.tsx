@@ -7,6 +7,7 @@ interface PropsChip extends ButtonHTMLAttributes<HTMLButtonElement> {
   iconoIzquierda?: ReactNode;
 }
 
+/** Botón tipo "chip" para filtros; refleja su estado con `activo` y `aria-pressed`. */
 export function Chip({ activo = false, iconoIzquierda, className, children, ...resto }: PropsChip) {
   return (
     <button

@@ -47,6 +47,11 @@ public class ModeloVistaProductos extends ViewModel {
     private String filtroCertificado = null;
     private int paginaActual         = 1;
 
+    /**
+     * Constructor inyectado por Hilt.
+     *
+     * @param repositorio repositorio de productos (red + caché Room).
+     */
     @Inject
     public ModeloVistaProductos(RepositorioProductos repositorio) {
         this.repositorio = repositorio;
@@ -54,21 +59,31 @@ public class ModeloVistaProductos extends ViewModel {
 
     // ── Caché offline ────────────────────────────────────────────────────────
 
-    /** Datos del caché Room — disponibles offline inmediatamente */
+    /**
+     * Datos del caché Room — disponibles offline inmediatamente.
+     *
+     * @return LiveData observable con los productos cacheados localmente.
+     */
     public LiveData<List<EntidadProducto>> observarCache() {
         return repositorio.observarProductosCache();
     }
 
     // ── Red ──────────────────────────────────────────────────────────────────
 
+    /** @return LiveData con el estado (cargando/éxito/error) del listado de productos. */
     public LiveData<RecursoUi<List<DtoRespuestaProducto>>> observarProductos() {
         return estadoProductos;
     }
 
+    /** @return LiveData con el estado del detalle de un producto consultado. */
     public LiveData<RecursoUi<DtoRespuestaProducto>> observarDetalle() {
         return estadoDetalle;
     }
 
+    /**
+     * Solicita al repositorio la carga de productos con los filtros y la
+     * página actuales, y publica el resultado en {@link #estadoProductos}.
+     */
     public void cargarProductos() {
         // Re-emitimos a través del LiveData propio para no perder a los observadores
         // que ya se hubieran suscrito antes de iniciar la carga.
@@ -78,6 +93,12 @@ public class ModeloVistaProductos extends ViewModel {
         ).observeForever(valor -> estadoProductos.postValue(valor));
     }
 
+    /**
+     * Solicita al repositorio el detalle de un producto y lo publica en
+     * {@link #estadoDetalle}.
+     *
+     * @param slug identificador textual (URL amigable) del producto.
+     */
     public void cargarDetalle(String slug) {
         repositorio.obtenerDetalle(slug)
             .observeForever(valor -> estadoDetalle.postValue(valor));
@@ -85,6 +106,17 @@ public class ModeloVistaProductos extends ViewModel {
 
     // ── Filtros ──────────────────────────────────────────────────────────────
 
+    /**
+     * Aplica un nuevo conjunto de filtros, reinicia la paginación a la
+     * primera página y recarga el listado de productos. Las cadenas vacías
+     * se normalizan a {@code null} para no enviarlas como parámetro al backend.
+     *
+     * @param busqueda texto de búsqueda libre (vacío si no se aplica).
+     * @param material filtro por material principal (vacío si no se aplica).
+     * @param ciudad filtro por ciudad de origen (vacío si no se aplica).
+     * @param maxKm distancia máxima en km de origen, o {@code null}.
+     * @param certificado filtro por certificado de sostenibilidad (vacío si no se aplica).
+     */
     public void aplicarFiltros(String busqueda, String material, String ciudad,
                                 Integer maxKm, String certificado) {
         this.filtroBusqueda    = busqueda.isEmpty()    ? null : busqueda;
@@ -96,6 +128,10 @@ public class ModeloVistaProductos extends ViewModel {
         cargarProductos();
     }
 
+    /**
+     * Elimina todos los filtros activos, reinicia la paginación a la primera
+     * página y recarga el listado de productos sin restricciones.
+     */
     public void limpiarFiltros() {
         filtroBusqueda = filtroMaterial = filtroCiudad = filtroCertificado = null;
         filtroMaxKm = null;
@@ -104,13 +140,18 @@ public class ModeloVistaProductos extends ViewModel {
     }
 
     // Getters de filtros actuales (para restaurar la UI)
+    /** @return el filtro de búsqueda actual, o cadena vacía si no hay ninguno. */
     public String getFiltroBusqueda()    { return filtroBusqueda != null    ? filtroBusqueda    : ""; }
+    /** @return el filtro de material actual, o cadena vacía si no hay ninguno. */
     public String getFiltroMaterial()    { return filtroMaterial != null    ? filtroMaterial    : ""; }
+    /** @return el filtro de distancia máxima actual como texto, o cadena vacía si no hay ninguno. */
     public String getFiltroMaxKm()       { return filtroMaxKm != null       ? String.valueOf(filtroMaxKm) : ""; }
+    /** @return el filtro de certificado actual, o cadena vacía si no hay ninguno. */
     public String getFiltroCertificado() { return filtroCertificado != null ? filtroCertificado : ""; }
 
     // ── Buscador de texto libre ───────────────────────────────────────────────
 
+    /** @return LiveData con el estado del resultado de la búsqueda de texto libre. */
     public LiveData<RecursoUi<ResultadoBusqueda>> observarBusqueda() {
         return estadoBusqueda;
     }
@@ -142,7 +183,13 @@ public class ModeloVistaProductos extends ViewModel {
             });
     }
 
-    /** Carga el catálogo completo y lo ordena por parecido a la consulta. */
+    /**
+     * Carga el catálogo completo (sin filtros) y lo ordena por parecido a la
+     * consulta mediante {@link #rankearSimilares}, publicando el resultado
+     * como sugerencia ({@code sonSimilares = true}) en {@link #estadoBusqueda}.
+     *
+     * @param consulta texto de búsqueda original introducido por el usuario.
+     */
     private void cargarSimilares(String consulta) {
         cargarUnaVez(
             repositorio.cargarProductos(null, null, null, null, null, 1),
@@ -192,6 +239,15 @@ public class ModeloVistaProductos extends ViewModel {
         return ordenados;
     }
 
+    /**
+     * Calcula una puntuación de relevancia de un producto frente a los tokens
+     * de búsqueda, ponderando los campos donde aparece cada token: nombre (5),
+     * material (3), marca del diseñador (2) y descripción (1).
+     *
+     * @param p producto a puntuar.
+     * @param tokens palabras (normalizadas) de la consulta de búsqueda.
+     * @return puntuación total acumulada del producto.
+     */
     private int puntuar(DtoRespuestaProducto p, String[] tokens) {
         String nombre   = normalizar(p.nombre);
         String material = normalizar(p.materialPrincipal);
@@ -224,6 +280,11 @@ public class ModeloVistaProductos extends ViewModel {
         public final boolean sonSimilares;
         public final String consulta;
 
+        /**
+         * @param productos lista de productos del resultado.
+         * @param sonSimilares {@code true} si son sugerencias por parecido (no coincidencias exactas).
+         * @param consulta texto de búsqueda que originó el resultado.
+         */
         public ResultadoBusqueda(List<DtoRespuestaProducto> productos,
                                   boolean sonSimilares, String consulta) {
             this.productos    = productos;

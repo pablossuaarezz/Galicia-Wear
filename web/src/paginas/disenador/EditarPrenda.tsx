@@ -1,5 +1,10 @@
-// Alta y edición de prenda. En alta solo se piden los datos; al crearla se navega al modo
-// edición, donde ya se pueden gestionar variantes (talla·color·stock) e imágenes (subida base64).
+// Alta y edición de prenda (panel del diseñador). Página dividida en tres secciones:
+//  - FormularioDatos: nombre, descripción, precio, km de origen y material principal.
+//  - SeccionVariantes: combinaciones de talla·color con su SKU, stock y ajuste de precio.
+//  - SeccionImagenes: subida (clic o arrastrar y soltar) de fotos como data URI base64.
+// En el alta solo se piden los datos básicos; al crear la prenda se navega al modo edición
+// (misma página con `id` en la ruta), donde recién entonces se habilitan variantes e imágenes,
+// ya que estas necesitan el identificador del producto recién creado.
 import { useEffect, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -25,6 +30,19 @@ import type {
 
 // ---- Formulario de datos de la prenda ----
 
+/**
+ * Formulario con los datos básicos de la prenda (nombre, descripción, precio, km de origen y
+ * material principal).
+ *
+ * Funciona en dos modos según la prop `esEdicion`:
+ * - Alta: al guardar llama a la mutación `crear`; tras crearse navega al modo edición.
+ * - Edición: precarga los valores de `inicial` y al guardar llama a la mutación `actualizar`.
+ *
+ * Valida los campos en cliente con `validar()` antes de enviar.
+ *
+ * @param inicial   Detalle de la prenda existente (solo en modo edición); precarga el formulario.
+ * @param esEdicion Indica si se está editando una prenda existente o creando una nueva.
+ */
 function FormularioDatos({
   inicial,
   esEdicion,

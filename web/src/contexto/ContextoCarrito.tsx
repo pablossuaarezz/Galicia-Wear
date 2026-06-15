@@ -14,6 +14,7 @@ import { usarBrindis } from '@/componentes/ui/Brindis';
 
 const CLAVE_CARRITO = ['carrito'] as const;
 
+/** Totales calculados del carrito que consume la UI (unidades, subtotal, envío y total). */
 export interface ResumenCarrito {
   totalUnidades: number;
   subtotal: number;
@@ -36,10 +37,12 @@ interface ValorCarrito {
 
 const ContextoCarrito = createContext<ValorCarrito | null>(null);
 
+/** Precio unitario de una línea = precio base del producto más el ajuste de la variante. */
 function precioLinea(item: ItemCarrito): number {
   return aNumero(item.variante.producto.precioBase) + aNumero(item.variante.ajustePrecio);
 }
 
+/** Calcula el resumen de totales; el envío es gratis a partir de ENVIO_GRATUITO_DESDE. */
 function calcularResumen(items: ItemCarrito[]): ResumenCarrito {
   const totalUnidades = items.reduce((suma, item) => suma + item.cantidad, 0);
   const subtotal = items.reduce((suma, item) => suma + precioLinea(item) * item.cantidad, 0);
@@ -47,6 +50,7 @@ function calcularResumen(items: ItemCarrito[]): ResumenCarrito {
   return { totalUnidades, subtotal, costeEnvio, total: subtotal + costeEnvio };
 }
 
+/** Proveedor que expone el carrito y sus operaciones al árbol de componentes. */
 export function ProveedorCarrito({ children }: { children: ReactNode }) {
   const { estaAutenticado, rol } = usarSesion();
   const brindis = usarBrindis();
@@ -147,6 +151,7 @@ export function ProveedorCarrito({ children }: { children: ReactNode }) {
   return <ContextoCarrito.Provider value={valor}>{children}</ContextoCarrito.Provider>;
 }
 
+/** Hook de acceso al contexto del carrito; lanza si se usa fuera del proveedor. */
 export function usarCarrito(): ValorCarrito {
   const contexto = useContext(ContextoCarrito);
   if (!contexto) throw new Error('usarCarrito debe usarse dentro de <ProveedorCarrito>');

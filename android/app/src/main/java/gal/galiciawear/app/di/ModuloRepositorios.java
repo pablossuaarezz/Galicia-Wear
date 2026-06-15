@@ -1,5 +1,12 @@
 package gal.galiciawear.app.di;
 
+/*
+ * Módulo Hilt reservado como punto de extensión para los repositorios.
+ * Actualmente vacío porque todos los repositorios usan @Inject en su
+ * constructor y Hilt los resuelve automáticamente sin necesidad de
+ * @Provides/@Binds explícitos en este módulo.
+ */
+
 import dagger.Module;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;

@@ -15,8 +15,19 @@ import gal.galiciawear.app.R;
  */
 public final class EstadoPedidoUi {
 
+    /** Constructor privado: clase de solo métodos estáticos, no instanciable. */
     private EstadoPedidoUi() { /* No instanciable */ }
 
+    /**
+     * Devuelve el recurso de cadena (texto localizado) correspondiente al
+     * estado de pedido recibido del backend.
+     *
+     * @param estado código de estado tal y como lo envía el backend
+     *                (p. ej. "PAGADO", "ENVIADO"); puede ser {@code null}.
+     * @return id de recurso {@code R.string.*} con la etiqueta a mostrar;
+     *         {@code R.string.estado_desconocido} si el estado es null o
+     *         no reconocido.
+     */
     @StringRes
     public static int etiqueta(String estado) {
         if (estado == null) return R.string.estado_desconocido;
@@ -32,7 +43,15 @@ public final class EstadoPedidoUi {
         }
     }
 
-    /** Color fuerte del estado (texto del badge / acentos). */
+    /**
+     * Color fuerte del estado (texto del badge / acentos).
+     *
+     * @param estado código de estado tal y como lo envía el backend;
+     *                puede ser {@code null}.
+     * @return id de recurso {@code R.color.*} con el color semántico
+     *         asociado al estado; {@code R.color.texto_secundario} si el
+     *         estado es null o no reconocido.
+     */
     @ColorRes
     public static int color(String estado) {
         if (estado == null) return R.color.texto_secundario;

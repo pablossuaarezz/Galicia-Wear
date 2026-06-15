@@ -7,18 +7,38 @@ import { CIUDADES, CODIGOS_CIUDAD, CODIGOS_MATERIAL, MATERIALES } from '@/util/c
 import type { CodigoCertificado, FiltrosCatalogo } from '@/api/tipos';
 import { ChipsCertificados } from './ChipsCertificados';
 
+// Valor máximo del slider de distancia (km). Cuando el usuario lo lleva al tope se interpreta
+// como "sin límite" y no se envía el filtro maxKm a la API.
 const KM_MAXIMO = 500;
 
 interface PropsBarraFiltros {
+  /** Estado actual de los filtros del catálogo (controlado por la página padre). */
   valores: FiltrosCatalogo;
+  /** Aplica un cambio parcial sobre los filtros (merge con el estado existente). */
   alActualizar: (parcial: Partial<FiltrosCatalogo>) => void;
+  /** Restablece todos los filtros a su estado inicial. */
   alLimpiar: () => void;
 }
 
+/**
+ * Panel de filtros del catálogo de prendas.
+ *
+ * Componente totalmente controlado: no mantiene estado propio de los filtros, solo el valor
+ * temporal del input numérico se deriva directamente de `valores`. Cada cambio se comunica al
+ * padre mediante `alActualizar`, que decide cómo y cuándo consultar la API (con debounce en la
+ * búsqueda de texto).
+ *
+ * @param valores - Filtros activos actualmente.
+ * @param alActualizar - Callback para fusionar cambios parciales en los filtros.
+ * @param alLimpiar - Callback para limpiar todos los filtros.
+ * @returns Panel con buscador, selectores de material/ciudad, slider de distancia y chips de certificados.
+ */
 export function BarraFiltros({ valores, alActualizar, alLimpiar }: PropsBarraFiltros) {
+  // Indica si hay al menos un filtro activo, para mostrar el botón "Limpiar".
   const hayFiltros = Boolean(
     valores.busqueda || valores.material || valores.ciudad || valores.certificado || valores.maxKm,
   );
+  // Si no hay maxKm definido, el slider se muestra en su posición máxima (sin límite).
   const km = valores.maxKm ?? KM_MAXIMO;
 
   return (
@@ -99,6 +119,7 @@ export function BarraFiltros({ valores, alActualizar, alLimpiar }: PropsBarraFil
           value={km}
           onChange={(e) => {
             const valor = Number(e.target.value);
+            // Si el slider llega al tope, se elimina el filtro (equivale a "sin límite").
             alActualizar({ maxKm: valor >= KM_MAXIMO ? undefined : valor });
           }}
           className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-piedra-200 accent-atlantic-500"

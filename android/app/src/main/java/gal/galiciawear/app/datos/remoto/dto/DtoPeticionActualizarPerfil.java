@@ -8,9 +8,13 @@ import com.google.gson.annotations.SerializedName;
  * "no cambiar este campo".
  */
 public class DtoPeticionActualizarPerfil {
+    /** Nuevo nombre del usuario, o {@code null} si no se quiere modificar. */
     @SerializedName("nombre")    public String nombre;
+    /** Nuevos apellidos del usuario, o {@code null} si no se quiere modificar. */
     @SerializedName("apellidos") public String apellidos;
+    /** Nuevo teléfono de contacto del usuario, o {@code null} si no se quiere modificar. */
     @SerializedName("telefono")  public String telefono;
     // Data URI base64 de la foto de perfil.
+    /** Nueva foto de perfil codificada como data URI en base64, o {@code null} si no cambia. */
     @SerializedName("avatarUrl") public String avatarUrl;
 }

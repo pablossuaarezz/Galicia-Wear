@@ -28,16 +28,30 @@ import retrofit2.converter.gson.GsonConverterFactory;
 @InstallIn(SingletonComponent.class)
 public class ModuloRed {
 
+    /**
+     * Provee la instancia compartida de {@link Gson} para (de)serializar JSON.
+     *
+     * @return un Gson configurado para el formato de fechas y nulos del backend.
+     */
     @Provides
     @Singleton
     public Gson proveerGson() {
         // serializeNulls: el backend espera campos explícitos aunque sean null
         return new GsonBuilder()
             .serializeNulls()
+            // El backend (Node/Prisma) serializa las fechas en formato ISO-8601
+            // UTC con milisegundos; este patrón debe coincidir exactamente
+            // para que Gson pueda parsear las fechas que llegan en las respuestas.
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             .create();
     }
 
+    /**
+     * Provee el interceptor de logging HTTP usado por OkHttp.
+     *
+     * @return interceptor configurado con nivel BODY en debug (para depurar
+     *         peticiones/respuestas completas) y NONE en release.
+     */
     @Provides
     @Singleton
     public HttpLoggingInterceptor proveerLoggingInterceptor() {
@@ -51,6 +65,16 @@ public class ModuloRed {
         return interceptor;
     }
 
+    /**
+     * Provee el cliente OkHttp compartido, con los interceptores de
+     * autenticación (JWT) y logging ya registrados.
+     *
+     * @param interceptorJwt   interceptor que añade el header Authorization
+     *                          con el token de acceso a cada petición.
+     * @param interceptorLog   interceptor de logging HTTP (ver
+     *                          {@link #proveerLoggingInterceptor()}).
+     * @return cliente OkHttp configurado.
+     */
     @Provides
     @Singleton
     public OkHttpClient proveerOkHttp(
@@ -64,6 +88,14 @@ public class ModuloRed {
             .build();
     }
 
+    /**
+     * Provee la instancia de Retrofit configurada con la URL base de la API
+     * y el conversor Gson para JSON.
+     *
+     * @param cliente cliente OkHttp con los interceptores ya aplicados.
+     * @param gson    instancia de Gson para la conversión de JSON.
+     * @return instancia de Retrofit lista para crear servicios.
+     */
     @Provides
     @Singleton
     public Retrofit proveerRetrofit(OkHttpClient cliente, Gson gson) {
@@ -74,6 +106,13 @@ public class ModuloRed {
             .build();
     }
 
+    /**
+     * Provee la implementación generada por Retrofit de {@link ServicioApi},
+     * la interfaz con todos los endpoints REST consumidos por la app.
+     *
+     * @param retrofit instancia de Retrofit ya configurada.
+     * @return implementación proxy de ServicioApi generada en tiempo de ejecución.
+     */
     @Provides
     @Singleton
     public ServicioApi proveerServicioApi(Retrofit retrofit) {

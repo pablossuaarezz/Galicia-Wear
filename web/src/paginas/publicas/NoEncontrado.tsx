@@ -3,6 +3,7 @@ import { Compass } from 'lucide-react';
 import { EnlaceBoton } from '@/componentes/ui';
 import { usarTitulo } from '@/hooks/usarTitulo';
 
+/** Página de error 404 para rutas inexistentes, con enlaces de vuelta al catálogo y al inicio. */
 export default function NoEncontrado() {
   usarTitulo('Página no encontrada');
   return (

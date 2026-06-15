@@ -1,0 +1,36 @@
+==========================================================================
+ GaliciaWear — Capturas para la memoria TFG
+==========================================================================
+
+Guarda aquí tus capturas con EXACTAMENTE estos nombres de archivo.
+En cuanto estén, la memoria las incrustará automáticamente al recompilar
+(donde no haya archivo se muestra un marco "captura pendiente").
+
+Formato recomendado: PNG. No hace falta recortar el marco del móvil.
+
+--- CAPTURAS QUE YA TIENES (las 9 que enviaste) -------------------------
+
+  c01-login-android.png      Login de la app Android (email/contraseña)
+  c02-catalogo-android.png   Catálogo móvil con tarjetas de producto + km
+  c03-detalle-android.png    Ficha de producto (material, certificados)
+  c04-carrito-android.png    "Mi cesta" con total y Tramitar pedido
+  c06-perfil-android.png     Perfil de cliente (Ana López, rol CLIENTE)
+  c07-web-storefront.png     Landing web "Viste a beiramar, teje futuro"
+  c08-web-disenador.png      Panel del diseñador (Liñares Moda, KPIs)
+  c09-web-chat.png           Chat cliente-diseñador (Mensajes / Soporte)
+  c10-desktop-admin.png      Panel admin JavaFX (Dashboard, gráfico)
+
+--- CAPTURAS OPCIONALES (Anexo A · evidencias de ejecución) -------------
+  (si las añades, también se incrustan solas; si no, no pasa nada)
+
+  c05-notif-android.png      Notificaciones in-app (Socket.IO) en Android
+  c11-admin-gestion.png      Diálogo de validación de diseñador (JavaFX)
+  c12-swagger.png            Swagger UI con los endpoints de la API
+  c13-tests-backend.png      Terminal: npm test (Jest) en verde
+  c14-tests-android.png      Android Studio: JUnit/Espresso en verde
+  c16-mongo.png              MongoDB Compass: una colección con documentos
+  c17-backup.png             Terminal: scripts/backup.sh y el .tar.gz
+  c18-docker.png             Terminal: docker compose ps (servicios up)
+  c19-ci.png                 GitHub Actions: workflow en verde
+
+==========================================================================
